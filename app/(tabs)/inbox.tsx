@@ -1,20 +1,8 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
-import { useRouter } from "expo-router";
-import {
-  MessageSquare, ChevronRight, User, Calendar, MapPin, Briefcase,
-} from "lucide-react-native";
-import { useAuth } from '@/src/context/AuthContext';
-import { listenToBookings } from '@/src/services/firebase/firebase';
-import { Card } from "../../src/components/ui/Card";
-import { EmptyState } from "../../src/components/ui/EmptyState";
-import { Icon } from "../../src/components/ui/Icon";
+
+import { Card } from "@/src/components/ui/Card";
+import { EmptyState } from "@/src/components/ui/EmptyState";
+import { Icon } from "@/src/components/ui/Icon";
 
 interface Booking {
   bookingId: string;

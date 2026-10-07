@@ -1,23 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import {
-  ArrowLeft, MapPin, Clock, MessageSquare, CheckCircle, ShieldAlert,
-  ChevronUp, ChevronDown, Compass,
-} from "lucide-react-native";
-import { useAuth } from '@/src/context/AuthContext';
-import { writeDocument, listenToBookings } from '@/src/services/firebase/firebase';
-import { LiveMap } from "../../src/components/features/LiveMap";
-import { Card } from "../../src/components/ui/Card";
-import { Icon } from "../../src/components/ui/Icon";
-import { getDistanceKm, estimateTravelTimeMinutes } from "../../src/utils/location";
-import { getCurrentCoords } from "../../src/utils/geolocation";
+
+import { LiveMap } from "@/src/components/features/LiveMap";
+import { Card } from "@/src/components/ui/Card";
+import { Icon } from "@/src/components/ui/Icon";
+import { getDistanceKm, estimateTravelTimeMinutes } from "@/src/utils/location";
+import { getCurrentCoords } from "@/src/utils/geolocation";
 
 interface Booking {
   bookingId: string;

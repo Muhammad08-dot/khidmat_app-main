@@ -1,22 +1,9 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
-import { useRouter } from "expo-router";
-import {
-  Star, MapPin, Calendar, MessageSquare, CheckCircle, DollarSign,
-  Briefcase, Clock,
-} from "lucide-react-native";
+import React, { useState } from "react";
 import { useAuth } from '@/src/context/AuthContext';
-import {
-  queryCollectionDocs,
-  writeDocument,
-} from '@/src/services/firebase/firebase';
+import { useBookings, useUpdateBookingStatus } from '@/src/hooks/useSupabase';
+import { useRouter } from 'expo-router';
+import { Alert } from 'react-native';
+
 import { getCurrentCoords } from "../../utils/geolocation";
 import { Avatar } from "../ui/Avatar";
 import { TierBadge } from "../ui/TierBadge";
@@ -26,29 +13,7 @@ import { Icon } from "../ui/Icon";
 export const ProviderHome: React.FC = () => {
   const router = useRouter();
   const { user, userProfile, updateProfile } = useAuth();
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [toggling, setToggling] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
-
-  const fetchBookings = async () => {
-    if (!user) return;
-    try {
-      const data = await queryCollectionDocs(
-        "bookings",
-        "providerId",
-        "==",
-        user.uid
-      );
-      setBookings(data);
-    } catch (err) {
-      console.error("Error fetching provider bookings:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchBookings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  const { data: bookings = [], isLoading } = useBookings(user?.uid, 'provider');
 
   if (!userProfile) return null;
 
@@ -86,27 +51,10 @@ export const ProviderHome: React.FC = () => {
     setToggling(false);
   };
 
-  const acceptBooking = async (booking: any) => {
-    try {
-      const updated = { ...booking, status: "confirmed" };
-      await Promise.all([
-        writeDocument("bookings", booking.bookingId, updated),
-        writeDocument(
-          `bookings/${booking.bookingId}/messages`,
-          `sys_${Date.now()}`,
-          {
-            senderId: "system",
-            senderName: "System",
-            text: "The provider has accepted the request and confirmed the booking.",
-            createdAt: new Date().toISOString(),
-          }
-        ),
-      ]);
-      fetchBookings();
-    } catch (err) {
-      console.error("Error accepting booking:", err);
-      Alert.alert("Failed", "Failed to accept booking. Please try again.");
-    }
+  const { mutate: updateStatus } = useUpdateBookingStatus();
+
+  const acceptBooking = (booking: any) => {
+    updateStatus({ bookingId: booking.bookingId || booking.id, status: 'confirmed' });
   };
 
   const completeBooking = async (booking: any) => {

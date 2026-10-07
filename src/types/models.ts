@@ -1,15 +1,6 @@
-export interface User {
-  id: string;
-  name: string;
-  phone: string;
-  role: 'customer' | 'provider';
-  avatarUrl?: string;
-  isRtl?: boolean;
-}
+import { Database } from './database.types';
 
-export interface ServiceCategory {
-  id: string;
-  name: string;
-  iconName: string;
-  basePrice: number;
-}
+export type User = Database['public']['Tables']['profiles']['Row'];
+export type Provider = Database['public']['Tables']['providers']['Row'];
+export type ServiceCategory = Database['public']['Tables']['categories']['Row'];
+

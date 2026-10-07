@@ -5,11 +5,13 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { AuthProvider, useAuth } from '@/src/context/AuthContext';
-import { useAppFonts } from "../src/theme/fonts";
-import { hydrateMockStorage } from "../src/utils/mockStorage";
-import { seedDatabase } from "../src/utils/seedData";
+import { useAppFonts } from "@/src/theme/fonts";
+
 import { ErrorBoundary } from '@/src/components/layout/ErrorBoundary';
 import { installGlobalErrorHandler } from '@/src/services/api/errorReporter';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 /** Redirects unauthenticated users away from protected routes. */
 function RouteGuard({ children }: { children: React.ReactNode }) {
@@ -19,10 +21,15 @@ function RouteGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
-    const onProtected =
-      segments[0] !== "auth" && segments[0] !== "+not-found";
-    if (!user && onProtected) {
-      router.replace("/auth");
+    
+    const inAuthGroup = segments[0] === '(auth)';
+    
+    if (!user && !inAuthGroup) {
+      // Redirect to the sign-in page.
+      router.replace('/(auth)/auth');
+    } else if (user && inAuthGroup) {
+      // Redirect away from the sign-in page.
+      router.replace('/(tabs)');
     }
   }, [user, loading, segments, router]);
 
@@ -31,24 +38,19 @@ function RouteGuard({ children }: { children: React.ReactNode }) {
 
 function RootNavigator() {
   const colorScheme = useColorScheme();
-  const { user } = useAuth();
-  const isAuthed = !!user;
 
   return (
     <View style={{ flex: 1 }} className={colorScheme === "dark" ? "dark" : ""}>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <RouteGuard>
         <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="auth" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="matching" />
-            <Stack.Screen name="providers" />
-            <Stack.Screen name="provider/[id]" />
-            <Stack.Screen name="booking" />
-            <Stack.Screen name="chat" />
-            <Stack.Screen name="safety" />
-            <Stack.Screen name="categories" />
-            <Stack.Screen name="track/[id]" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(booking)" />
+          <Stack.Screen name="chat" />
+          <Stack.Screen name="providers" />
+          <Stack.Screen name="provider/[id]" />
+          <Stack.Screen name="categories" />
           <Stack.Screen name="+not-found" />
         </Stack>
       </RouteGuard>
@@ -65,15 +67,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     installGlobalErrorHandler();
-    hydrateMockStorage()
-      .then(() => {
-        seedDatabase();
-        setReady(true);
-      })
-      .catch((e) => {
-        console.warn("[RootLayout] mock storage hydration failed:", e);
-        setReady(true);
-      });
+    setReady(true);
   }, []);
 
   if (!fontsLoaded || !ready) {
@@ -81,12 +75,14 @@ export default function RootLayout() {
   }
 
   return (
-    <ErrorBoundary>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <AuthProvider>
-          <RootNavigator />
-        </AuthProvider>
-      </GestureHandlerRootView>
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ErrorBoundary>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <AuthProvider>
+            <RootNavigator />
+          </AuthProvider>
+        </GestureHandlerRootView>
+      </ErrorBoundary>
+    </QueryClientProvider>
   );
 }

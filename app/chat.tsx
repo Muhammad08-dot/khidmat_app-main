@@ -1,28 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-  Linking,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import {
-  ArrowLeft, Send, MessageSquare, Clock, MapPin, Phone, Info, Shield, Navigation,
-} from "lucide-react-native";
-import { useAuth } from '@/src/context/AuthContext';
-import {
-  getDocument,
-  sendChatMessage,
-  listenToChatMessages,
-} from '@/src/services/firebase/firebase';
-import { Card } from "../src/components/ui/Card";
-import { EmptyState } from "../src/components/ui/EmptyState";
-import { Icon } from "../src/components/ui/Icon";
+import { useChatMessages, useSendMessage } from '@/src/hooks/useSupabase';
+import { Card } from "@/src/components/ui/Card";
+import { EmptyState } from "@/src/components/ui/EmptyState";
+import { Icon } from "@/src/components/ui/Icon";
 
 interface Booking {
   bookingId: string;

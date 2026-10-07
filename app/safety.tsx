@@ -4,8 +4,8 @@ import { useRouter } from "expo-router";
 import {
   Shield, ChevronLeft, CheckCircle2, PhoneCall, MapPin, Star,
 } from "lucide-react-native";
-import { Card } from "../src/components/ui/Card";
-import { Icon } from "../src/components/ui/Icon";
+import { Card } from "@/src/components/ui/Card";
+import { Icon } from "@/src/components/ui/Icon";
 
 const SAFETY_STEPS = [
   {

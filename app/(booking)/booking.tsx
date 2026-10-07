@@ -1,34 +1,15 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  Modal,
-  ActivityIndicator,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import {
-  Calendar, Clock, MapPin, ArrowLeft, CheckCircle, Truck, FileText, Loader,
-} from "lucide-react-native";
-import { useAuth } from '@/src/context/AuthContext';
-import {
-  getDocument,
-  writeDocument,
-} from '@/src/services/firebase/firebase';
+
 import {
   getDistanceKm,
   calculateTravelFeePKR,
   estimateTravelTimeMinutes,
   type LocationCoords,
-} from "../src/utils/location";
-import { getCurrentCoords } from "../src/utils/geolocation";
-import { Card } from "../src/components/ui/Card";
-import { Avatar } from "../src/components/ui/Avatar";
-import { Icon } from "../src/components/ui/Icon";
+} from "@/src/utils/location";
+import { getCurrentCoords } from "@/src/utils/geolocation";
+import { Card } from "@/src/components/ui/Card";
+import { Avatar } from "@/src/components/ui/Avatar";
+import { Icon } from "@/src/components/ui/Icon";
 
 interface ProviderData {
   userId: string;

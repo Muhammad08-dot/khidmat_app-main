@@ -7,7 +7,7 @@ import {
   Sprout, Truck, Bug, Eye, Flame, Layers, Wrench, Camera, Video,
   PartyPopper, Music, Utensils, UserCheck,
 } from "lucide-react-native";
-import { Icon } from "../src/components/ui/Icon";
+import { Icon } from "@/src/components/ui/Icon";
 
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ color?: string; size?: number }>> = {
   Electrician: Zap,

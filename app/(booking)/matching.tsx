@@ -10,8 +10,8 @@ import {
 } from "lucide-react-native";
 import { parseServiceIntent, type ParsedIntent } from '@/src/services/api/agentClient';
 import { useAuth } from '@/src/context/AuthContext';
-import { Card } from "../src/components/ui/Card";
-import { Icon } from "../src/components/ui/Icon";
+import { Card } from "@/src/components/ui/Card";
+import { Icon } from "@/src/components/ui/Icon";
 
 type LucideIcon = React.ComponentType<{ color?: string; size?: number }>;
 

@@ -1,26 +1,9 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  TextInput,
-  Modal,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
-import { useRouter } from "expo-router";
-import * as ImagePicker from "expo-image-picker";
-import {
-  Mail, Phone, MapPin, Briefcase, Star, Clock, LogOut, Camera, Sparkles,
-  DollarSign, TrendingUp, Award, Shield, ArrowRightLeft, X,
-} from "lucide-react-native";
-import { useAuth } from '@/src/context/AuthContext';
-import { uploadProfilePhoto } from '@/src/services/firebase/firebase';
-import { Avatar } from "../../src/components/ui/Avatar";
-import { TierBadge } from "../../src/components/ui/TierBadge";
-import { Select } from "../../src/components/ui/Select";
-import { Icon } from "../../src/components/ui/Icon";
+
+import { Avatar } from "@/src/components/ui/Avatar";
+import { TierBadge } from "@/src/components/ui/TierBadge";
+import { Select } from "@/src/components/ui/Select";
+import { Icon } from "@/src/components/ui/Icon";
 
 const SPECIALTIES = [
   "Electrician", "Plumber", "Carpenter", "Painter", "AC Technician",

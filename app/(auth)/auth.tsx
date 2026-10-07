@@ -16,11 +16,11 @@ import {
   Briefcase, BookOpen, Map, Camera, CheckCircle2,
 } from "lucide-react-native";
 import { useAuth } from '@/src/context/AuthContext';
-import { MapSelector } from "../src/components/features/MapSelector";
-import { Select } from "../src/components/ui/Select";
-import { Icon } from "../src/components/ui/Icon";
-import { PAKISTAN_CITIES, type LocationCoords } from "../src/utils/location";
-import { Avatar } from "../src/components/ui/Avatar";
+import { MapSelector } from "@/src/components/features/MapSelector";
+import { Select } from "@/src/components/ui/Select";
+import { Icon } from "@/src/components/ui/Icon";
+import { PAKISTAN_CITIES, type LocationCoords } from "@/src/utils/location";
+import { Avatar } from "@/src/components/ui/Avatar";
 
 const SPECIALTIES = [
   "Electrician", "Plumber", "Carpenter", "Painter", "AC Technician",

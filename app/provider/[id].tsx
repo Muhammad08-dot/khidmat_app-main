@@ -1,23 +1,10 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import {
-  ArrowLeft, Star, MapPin, Briefcase, Calendar, ShieldCheck, Check,
-  Compass, UserCheck, Info, Sparkles,
-} from "lucide-react-native";
-import { getDocument, sendInvitationEmail, createInvitationNotification } from '@/src/services/firebase/firebase';
+
 import { useAuth } from '@/src/context/AuthContext';
-import { TierBadge } from "../../src/components/ui/TierBadge";
-import { Avatar } from "../../src/components/ui/Avatar";
-import { Card } from "../../src/components/ui/Card";
-import { Icon } from "../../src/components/ui/Icon";
+import { TierBadge } from "@/src/components/ui/TierBadge";
+import { Avatar } from "@/src/components/ui/Avatar";
+import { Card } from "@/src/components/ui/Card";
+import { Icon } from "@/src/components/ui/Icon";
 
 interface Provider {
   userId: string;

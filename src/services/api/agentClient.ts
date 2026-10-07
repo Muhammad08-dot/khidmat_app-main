@@ -111,12 +111,19 @@ const localFallbackParser = (text: string): ParsedIntent => {
 export const parseServiceIntent = async (userInput: string): Promise<ParsedIntent> => {
   try {
     const serverUrl = getEnv("EXPO_PUBLIC_AGENT_SERVER_URL") || "http://localhost:8787";
+    
+    // Get Supabase Session Token
+    const { supabase } = require('../supabase/client');
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || '';
+
     const response = await fetch(
       `${serverUrl}/api/gemini/generateContent`,
       {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           model: "gemini-2.5-flash",

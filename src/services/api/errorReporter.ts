@@ -1,4 +1,4 @@
-import { storage } from "@/src/utils/storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
  * Client-side crash reporter for the "self-healing" agent.
@@ -50,10 +50,10 @@ export async function captureError(
 
 async function persistError(entry: ReportableError): Promise<void> {
   try {
-    const raw = await storage.getItem(STORE_KEY);
+    const raw = await AsyncStorage.getItem(STORE_KEY);
     const log: ReportableError[] = raw ? JSON.parse(raw) : [];
     log.unshift(entry);
-    await storage.setItem(STORE_KEY, JSON.stringify(log.slice(0, MAX_STORED)));
+    await AsyncStorage.setItem(STORE_KEY, JSON.stringify(log.slice(0, MAX_STORED)));
   } catch (e) {
     console.warn("[agent] persistError failed:", e);
   }

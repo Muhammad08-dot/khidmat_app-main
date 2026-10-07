@@ -1,27 +1,8 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
-import { useRouter } from "expo-router";
-import {
-  Calendar, Clock, MapPin, MessageSquare, CheckCircle, XCircle, Star,
-  AlertCircle, Sparkles, Info, DollarSign, User, Navigation,
-} from "lucide-react-native";
-import { useAuth } from '@/src/context/AuthContext';
-import {
-  writeDocument,
-  submitProviderReview,
-  sendChatMessage,
-  listenToBookings,
-  createNotification,
-} from '@/src/services/firebase/firebase';
-import { Card } from "../../src/components/ui/Card";
-import { Skeleton } from "../../src/components/ui/Skeleton";
-import { Icon } from "../../src/components/ui/Icon";
+
+import { Card } from "@/src/components/ui/Card";
+import { Skeleton } from "@/src/components/ui/Skeleton";
+import { Icon } from "@/src/components/ui/Icon";
 
 interface Booking {
   id?: string;

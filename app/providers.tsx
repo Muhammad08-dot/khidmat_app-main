@@ -1,33 +1,16 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  ActivityIndicator,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import {
-  MapPin, Clock, AlertCircle, Sparkles, ArrowLeft, ChevronRight,
-  Info, Compass,
-} from "lucide-react-native";
-import { useAuth } from '@/src/context/AuthContext';
-import {
-  getCollectionDocs,
-  sendInvitationEmail,
-  createInvitationNotification,
-} from '@/src/services/firebase/firebase';
+
 import {
   rankProvidersWithAI,
   estimateJobPriceWithAI,
   type PriceEstimateResult,
 } from '@/src/services/api/agentClient';
-import { getDistanceKm, estimateTravelTimeMinutes } from "../src/utils/location";
-import { Card } from "../src/components/ui/Card";
-import { EmptyState } from "../src/components/ui/EmptyState";
-import { Avatar } from "../src/components/ui/Avatar";
-import { TierBadge } from "../src/components/ui/TierBadge";
-import { Icon } from "../src/components/ui/Icon";
+import { getDistanceKm, estimateTravelTimeMinutes } from "@/src/utils/location";
+import { Card } from "@/src/components/ui/Card";
+import { EmptyState } from "@/src/components/ui/EmptyState";
+import { Avatar } from "@/src/components/ui/Avatar";
+import { TierBadge } from "@/src/components/ui/TierBadge";
+import { Icon } from "@/src/components/ui/Icon";
 
 interface Provider {
   id?: string;

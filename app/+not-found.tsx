@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { Home, Hammer, Droplet, Zap, Wrench } from "lucide-react-native";
-import { Icon } from "../src/components/ui/Icon";
+import { Icon } from "@/src/components/ui/Icon";
 
 export default function NotFoundScreen() {
   const router = useRouter();
