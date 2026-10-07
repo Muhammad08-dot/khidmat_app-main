@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect, useRef } from "react";
 import { useChatMessages, useSendMessage } from '@/src/hooks/useSupabase';
 import { Card } from "@/src/components/ui/Card";

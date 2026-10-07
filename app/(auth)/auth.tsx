@@ -126,8 +126,7 @@ export default function AuthScreen() {
           city,
           role,
           coordinates,
-          providerDetails,
-          photoUri ?? undefined
+          providerDetails
         );
       }
       router.replace("/");

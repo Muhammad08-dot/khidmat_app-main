@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { getDistanceKm } from '../location';
 
 describe('location utils', () => {

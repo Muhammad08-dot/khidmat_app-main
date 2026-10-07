@@ -1,6 +1,6 @@
 import "../src/theme/global.css";
 import { useEffect, useState } from "react";
-import { View, useColorScheme } from "react-native";
+import { View, useColorScheme, I18nManager } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";

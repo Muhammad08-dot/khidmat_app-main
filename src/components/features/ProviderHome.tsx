@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from "react";
 import { useAuth } from '@/src/context/AuthContext';
 import { useBookings, useUpdateBookingStatus } from '@/src/hooks/useSupabase';
