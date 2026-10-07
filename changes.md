@@ -24,4 +24,19 @@ Based on the 10/10 MVP architectural review, the following structural improvemen
 - **Result:** The Expo Router now officially supports rendering Right-to-Left interfaces when the device language is set to Urdu/Arabic.
 
 ---
+
+## 5. Supabase Migration (Backend & Auth)
+- **Issue:** Firebase was acting as a mock layer and crashing without full configuration.
+- **Fix:** 
+  - Completely removed Firebase from the project (`firebase.ts`, `mockStorage.ts`, `seedData.ts` deleted).
+  - Integrated **Supabase** (`client.ts`, `queries.ts`, `database.types.ts`).
+  - Added React Query (`@tanstack/react-query`) hooks in `useSupabase.ts` for declarative data fetching.
+- **Result:** The app is now connected to a production-grade PostgreSQL backend with Row Level Security (RLS) and real-time support.
+
+## 6. Route Architecture Restructuring & Imports
+- **Issue:** Flat routing inside `app/` was messy.
+- **Fix:** Grouped related routes into `(auth)` and `(booking)` directories. Wrote a script to migrate relative imports (`../src/...`) to absolute aliases (`@/src/...`).
+- **Result:** Clean URL structure and highly maintainable imports resilient to future refactoring.
+
+---
 *The app structure is now fully enterprise-ready and scores a solid 10/10 on the MVP checklist!*

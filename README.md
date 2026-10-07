@@ -20,8 +20,8 @@ khidmat_app-main/
 - **Node.js >= 20**
 - **npm** (package manager)
 - **Expo CLI** (`npm install -g expo-cli`) — for mobile development
-- Firebase project (optional — app runs with a fully functional mock/local fallback)
-- Google Gemini API key (Required on `agent-server` only — app falls back to local parsing if offline)
+- **Supabase Project** (Database, Auth, and Realtime)
+- **Google Gemini API key** (Required on `agent-server` only — app falls back to local parsing if offline)
 
 ## Quick Start
 
@@ -41,7 +41,7 @@ Ensure the `agent-server` is running before starting the mobile app for full AI 
 ```bash
 # From project root
 npm install
-cp .env.example .env          # Copy and optionally fill in Firebase keys
+cp .env.example .env          # Copy and insert your Supabase keys
 npx expo start -c             # Starts Expo Bundler and clears cache
 ```
 Scan the QR code with **Expo Go** on your physical mobile device.
@@ -52,9 +52,8 @@ Scan the QR code with **Expo Go** on your physical mobile device.
 
 | Variable | Purpose | Required |
 |---|---|---|
-| `EXPO_PUBLIC_FIREBASE_API_KEY` | Firebase auth/firestore key | No (mock fallback) |
-| `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN` | Firebase auth domain | No |
-| `EXPO_PUBLIC_FIREBASE_PROJECT_ID` | Firebase project ID | No |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase API URL | Yes |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Supabase Anon Key | Yes |
 | `EXPO_PUBLIC_AGENT_SERVER_URL` | Agent server URL (e.g. `http://localhost:8787`) | No |
 
 *(Note: `EXPO_PUBLIC_GEMINI_API_KEY` has been strictly removed from the frontend for security. AI functions are routed entirely through the `agent-server` proxy.)*
