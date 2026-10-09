@@ -1,4 +1,5 @@
 import { getDistanceKm, type LocationCoords } from "@/src/utils/location";
+import { DEMO_MODE } from '../supabase/client';
 
 const getEnv = (key: string): string => (process.env as any)[key] || "";
 
@@ -109,6 +110,8 @@ const localFallbackParser = (text: string): ParsedIntent => {
  * Parses user input using Google Gemini AI, with a fallback to local parsing.
  */
 export const parseServiceIntent = async (userInput: string): Promise<ParsedIntent> => {
+  // Demo mode: skip the agent-server round trip and use local parsing only.
+  if (DEMO_MODE) return localFallbackParser(userInput);
   try {
     const serverUrl = getEnv("EXPO_PUBLIC_AGENT_SERVER_URL") || "http://localhost:8787";
     
@@ -192,7 +195,7 @@ Output your response as JSON matching this schema:
     return parsedJson;
 
   } catch (error) {
-    console.error("[Gemini] API Call failed. Falling back to local keyword parsing. Error:", error);
+    console.warn("[Gemini] API Call failed. Falling back to local keyword parsing. Error:", error);
     return localFallbackParser(userInput);
   }
 };
@@ -251,6 +254,9 @@ export const rankProvidersWithAI = async (
     await new Promise(resolve => setTimeout(resolve, 800)); // subtle loader feel
     return localRanked.slice(0, 5);
   }
+
+  // Demo mode: local scoring only, never call the agent-server.
+  if (DEMO_MODE) return localRanked.slice(0, 5);
 
   try {
     const simplifiedProviders = providersList.slice(0, 10).map(p => {
@@ -336,7 +342,7 @@ Output your response as a JSON array of objects matching this schema:
     return parsedJson;
 
   } catch (error) {
-    console.error("[Gemini] Provider ranking call failed. Falling back to local ranking. Error:", error);
+    console.warn("[Gemini] Provider ranking call failed. Falling back to local ranking. Error:", error);
     return localRanked.slice(0, 5);
   }
 };
@@ -381,6 +387,8 @@ export const estimateJobPriceWithAI = async (
     explanation: `Calculated from typical PKR rates for ${category} tasks and includes a Rs. ${travelAllowance} travel allowance for a ${distanceKm} km trip.`
   };
 
+  // Demo mode: static PKR rate table only, never call the agent-server.
+  if (DEMO_MODE) return localPriceEstimate;
 
 
   try {
@@ -451,7 +459,7 @@ Output your response as JSON matching this schema:
     return parsedJson;
 
   } catch (error) {
-    console.error("[Gemini] Job price estimation call failed. Falling back to local pricing. Error:", error);
+    console.warn("[Gemini] Job price estimation call failed. Falling back to local pricing. Error:", error);
     return localPriceEstimate;
   }
 };
@@ -502,7 +510,8 @@ const localSiteAgentFallback = (question: string): string => {
  * @returns {Promise<string>} The AI's friendly, contextual response.
  */
 export const askSiteAgent = async (question: string): Promise<string> => {
-
+  // Demo mode: local knowledge-base answers only, never call the agent-server.
+  if (DEMO_MODE) return localSiteAgentFallback(question);
 
   try {
     const serverUrl = getEnv("EXPO_PUBLIC_AGENT_SERVER_URL") || "http://localhost:8787";
@@ -559,7 +568,7 @@ User Question: "${question}"`
     return responseText.trim();
 
   } catch (error) {
-    console.error("[Gemini] Site Agent call failed. Error:", error);
+    console.warn("[Gemini] Site Agent call failed. Error:", error);
     return localSiteAgentFallback(question);
   }
 };

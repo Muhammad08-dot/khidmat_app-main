@@ -1,6 +1,35 @@
-// @ts-nocheck
 import React, { useState, useEffect, useRef } from "react";
-import { useChatMessages, useSendMessage } from '@/src/hooks/useSupabase';
+import { BRAND } from "@/src/theme/colors";
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  Pressable,
+  KeyboardAvoidingView,
+  ActivityIndicator,
+  Platform,
+  Linking,
+} from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import {
+  ArrowLeft,
+  Check,
+  CheckCheck,
+  Clock,
+  Info,
+  MapPin,
+  MessageSquare,
+  Navigation,
+  Phone,
+  Send,
+  Shield,
+} from "lucide-react-native";
+import { useAuth } from "@/src/context/AuthContext";
+import { getDocument } from "@/src/services/supabase/legacy";
+import { sendPushToUser } from "@/src/services/push";
+import { supabase, DEMO_MODE } from "@/src/services/supabase/client";
+import { useChatMessages, useSendMessage, useMarkMessagesSeen } from '@/src/hooks/useSupabase';
 import { Card } from "@/src/components/ui/Card";
 import { EmptyState } from "@/src/components/ui/EmptyState";
 import { Icon } from "@/src/components/ui/Icon";
@@ -19,6 +48,8 @@ interface Booking {
   status: "pending" | "confirmed" | "in_progress" | "completed" | "closed" | "cancelled";
   totalPrice: number;
   distanceKm: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface ChatMessage {
@@ -28,7 +59,15 @@ interface ChatMessage {
   text: string;
   createdAt: string;
   isSystem?: boolean;
+  seenAt?: string | null;
 }
+
+const QUICK_REPLIES = [
+  "I'm on the way",
+  "Aa gaya hoon",
+  "Please confirm the time",
+  "Thank you!",
+];
 
 export default function ChatScreen() {
   const router = useRouter();
@@ -36,83 +75,152 @@ export default function ChatScreen() {
   const { user, userProfile } = useAuth();
 
   const [booking, setBooking] = useState<Booking | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loadingBooking, setLoadingBooking] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [partnerTyping, setPartnerTyping] = useState(false);
 
   const scrollRef = useRef<ScrollView>(null);
-
+  const typingChannel = useRef<any>(null);
+  const typingHideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const lastTypedPing = useRef(0);
   const isWorker = userProfile?.current_mode === "worker";
+
+  const { data: messages = [], isLoading: loadingMessages } = useChatMessages(bookingId as string);
+  const { mutateAsync: sendMessageMutation } = useSendMessage();
+  const { mutate: markSeen } = useMarkMessagesSeen();
 
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
-  }, [messages]);
+  }, [messages, partnerTyping]);
+
+  // Ephemeral typing indicator over a Realtime broadcast channel (no DB, no
+  // storage cost). Skipped on web/demo where broadcast isn't available.
+  useEffect(() => {
+    if (!bookingId || !user || DEMO_MODE || Platform.OS === "web") return;
+    const ch = supabase
+      .channel(`typing_${bookingId}`)
+      .on("broadcast", { event: "typing" }, ({ payload }: any) => {
+        if (payload?.userId && payload.userId !== user.id) {
+          setPartnerTyping(true);
+          clearTimeout(typingHideTimer.current);
+          typingHideTimer.current = setTimeout(() => setPartnerTyping(false), 3500);
+        }
+      })
+      .subscribe();
+    typingChannel.current = ch;
+    return () => {
+      clearTimeout(typingHideTimer.current);
+      supabase.removeChannel(ch);
+      typingChannel.current = null;
+    };
+  }, [bookingId, user?.id]);
+
+  const broadcastTyping = () => {
+    if (!typingChannel.current || !user) return;
+    const now = Date.now();
+    if (now - lastTypedPing.current < 1500) return; // throttle
+    lastTypedPing.current = now;
+    typingChannel.current.send({
+      type: "broadcast",
+      event: "typing",
+      payload: { userId: user.id },
+    });
+  };
 
   useEffect(() => {
     if (!bookingId) {
-      setError("No booking context provided for chat.");
-      setLoading(false);
+      setError("No booking context provided.");
+      setLoadingBooking(false);
       return;
     }
     const fetchBooking = async () => {
       try {
-        const data = await getDocument("bookings", bookingId);
-        if (data) setBooking(data as Booking);
-        else setError("Booking details not found.");
+        const data = await getDocument("bookings", bookingId as string);
+        if (data) {
+          const next = data as Booking;
+          // Only re-render when the booking actually changed. The 3s poll used
+          // to hand a fresh object every tick, forcing a full-screen re-render
+          // (and a scroll-position reset) even when nothing differed.
+          setBooking((prev) =>
+            prev && JSON.stringify(prev) === JSON.stringify(next) ? prev : next
+          );
+        }
       } catch (err) {
         console.error(err);
-        setError("Failed to fetch booking details.");
       } finally {
-        setLoading(false);
+        setLoadingBooking(false);
       }
     };
     fetchBooking();
-  }, [bookingId]);
-
-  useEffect(() => {
-    if (!bookingId) return;
-    const unsubscribe = listenToChatMessages(bookingId, (newMessages) => {
-      setMessages(newMessages);
-    });
-    return () => unsubscribe();
-  }, [bookingId]);
-
-  // Poll booking status updates (fire-and-forget like web interval)
-  useEffect(() => {
-    if (!bookingId) return;
-    const interval = setInterval(async () => {
-      try {
-        const data = await getDocument("bookings", bookingId);
-        if (data) {
-          const fresh = data as Booking;
-          setBooking((prev) =>
-            prev?.status !== fresh.status ? fresh : prev
-          );
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }, 1500);
+    const interval = setInterval(fetchBooking, 3000);
     return () => clearInterval(interval);
   }, [bookingId]);
 
-  const handleSendMessage = async () => {
-    if (!inputText.trim() || !user || !bookingId) return;
-    const textToSend = inputText;
+  const loading = loadingBooking || loadingMessages;
+
+  const sendText = async (raw: string) => {
+    const text = raw.trim();
+    if (!text || !user || !bookingId) return;
     setInputText("");
     try {
-      const senderName = userProfile?.name || user.email?.split("@")[0] || "User";
-      await sendChatMessage(bookingId, user.uid, senderName, textToSend);
+      await sendMessageMutation({
+        bookingId: bookingId as string,
+        senderId: user.id,
+        content: text,
+      });
+      // Free, best-effort push to the chat partner so they get pinged even
+      // when the app is backgrounded. No photos/storage cost — text only.
+      const recipientId = isWorker ? booking?.customerId : booking?.providerId;
+      if (recipientId && recipientId !== user.id) {
+        const senderName = userProfile?.name?.trim();
+        void sendPushToUser(
+          recipientId,
+          senderName ? `New message from ${senderName}` : "New message",
+          text.length > 120 ? `${text.slice(0, 117)}...` : text,
+          { type: "new_message", bookingId }
+        );
+      }
     } catch (err) {
-      console.error("Failed to send message:", err);
+      console.warn("Send fail:", err);
     }
   };
+
+  const handleSendMessage = () => sendText(inputText);
+
+  // Mark the partner's messages seen while this thread is open → drives our
+  // own ✓✓ receipts (the recipient's read is what turns them blue-ish/✓✓).
+  useEffect(() => {
+    if (!bookingId || !user) return;
+    const hasUnseenFromPartner = messages.some(
+      (m) => !m.isSystem && m.senderId !== user.id && !m.seenAt
+    );
+    if (hasUnseenFromPartner) markSeen({ bookingId, myUserId: user.id });
+  }, [bookingId, user?.id, messages, markSeen]);
+
+  // Cancelled threads are always closed. Completed/closed jobs stay open for a
+  // 24-hour grace window (payment/follow-up talk) then lock. Time math runs in
+  // an effect (not render) so the component stays pure.
+  const GRACE_MS = 24 * 60 * 60 * 1000;
+  const [withinGrace, setWithinGrace] = useState(false);
+  useEffect(() => {
+    if (
+      !booking ||
+      !["completed", "closed"].includes(booking.status) ||
+      !booking.updatedAt
+    ) {
+      setWithinGrace(false);
+      return;
+    }
+    setWithinGrace(
+      Date.now() - new Date(booking.updatedAt).getTime() < GRACE_MS
+    );
+  }, [booking]);
 
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-surface">
-        <ActivityIndicator size="large" color="#1F5D3F" />
+        <ActivityIndicator size="large" color={BRAND.primary} />
         <Text className="mt-4 text-sm text-ink/60">Loading chat...</Text>
       </View>
     );
@@ -145,23 +253,27 @@ export default function ChatScreen() {
         .slice(0, 2)
     : "?";
 
-  const isChatLocked = ["completed", "closed", "cancelled"].includes(booking.status);
+  // Cancelled → always locked. Completed/closed → locked only after the grace
+  // window (computed in the effect above).
+  const isCancelled = booking.status === "cancelled";
+  const isTerminal = ["completed", "closed"].includes(booking.status);
+  const isChatLocked = isCancelled || (isTerminal && !withinGrace);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "confirmed":
-        return { color: "#10B981", label: "Confirmed" };
+        return { color: BRAND.success, label: "Confirmed" };
       case "in_progress":
-        return { color: "#F59E0B", label: "In Progress" };
+        return { color: BRAND.warning, label: "In Progress" };
       case "completed":
-        return { color: "#3B82F6", label: "Completed" };
+        return { color: BRAND.info, label: "Completed" };
       case "closed":
-        return { color: "#64748B", label: "Closed" };
+        return { color: BRAND.muted, label: "Closed" };
       case "cancelled":
-        return { color: "#EF4444", label: "Cancelled" };
+        return { color: BRAND.danger, label: "Cancelled" };
       case "pending":
       default:
-        return { color: "#F97316", label: "Pending" };
+        return { color: BRAND.caution, label: "Pending" };
     }
   };
 
@@ -173,13 +285,13 @@ export default function ChatScreen() {
       className="flex-1 bg-[#F8F8F4]"
     >
       {/* Header */}
-      <View className="flex-row items-center justify-between border-b border-border bg-white px-3 py-3">
+      <View className="flex-row items-center justify-between border-b border-border bg-surface-raised px-3 py-3">
         <View className="flex-row items-center gap-2.5">
           <Pressable
             onPress={() => router.push("/inbox")}
             className="h-9 w-9 items-center justify-center"
           >
-            <Icon icon={ArrowLeft} color="#14231C" size={20} />
+            <Icon icon={ArrowLeft} color={BRAND.ink} size={20} />
           </Pressable>
           <View className="h-10 w-10 items-center justify-center rounded-2xl border border-primary/10 bg-primary/15">
             <Text className="text-xs font-bold text-primary">
@@ -224,7 +336,7 @@ export default function ChatScreen() {
               onPress={() => Linking.openURL(`tel:${booking.customerPhone}`)}
               className="h-9 w-9 items-center justify-center"
             >
-              <Icon icon={Phone} color="#1F5D3F" size={16} />
+              <Icon icon={Phone} color={BRAND.primary} size={16} />
             </Pressable>
           )}
         </View>
@@ -238,9 +350,9 @@ export default function ChatScreen() {
         onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
       >
         {/* Service details banner */}
-        <View className="mb-4 self-center rounded-2xl border border-border bg-white p-3">
+        <View className="mb-4 self-center rounded-2xl border border-border bg-surface-raised p-3">
           <View className="mb-1 flex-row items-center justify-center gap-1.5">
-            <Icon icon={Shield} color="#1F5D3F" size={12} />
+            <Icon icon={Shield} color={BRAND.primary} size={12} />
             <Text className="font-mono text-[9px] font-bold uppercase tracking-widest text-ink/40">
               Service Details
             </Text>
@@ -252,12 +364,12 @@ export default function ChatScreen() {
             {booking.date} • {booking.timeSlot}
           </Text>
           <Text className="mt-1 flex-row items-center justify-center gap-1 text-[10px] text-ink/50">
-            <Icon icon={MapPin} color="#1F5D3F" size={12} /> {booking.address}
+            <Icon icon={MapPin} color={BRAND.primary} size={12} /> {booking.address}
           </Text>
         </View>
 
         {messages.map((msg, index) => {
-          let isSystemMessage = false;
+          let isSystemMessage = msg.isSystem === true;
           let displayMsgText = msg.text;
           try {
             if (msg.text.startsWith("{") && msg.text.endsWith("}")) {
@@ -273,7 +385,7 @@ export default function ChatScreen() {
             return (
               <View key={msg.id || index} className="my-3 flex-row justify-center">
                 <View className="flex-row items-center gap-1.5 rounded-full border border-sky-500/15 bg-sky-500/10 px-4 py-1.5">
-                  <Icon icon={Info} color="#0369A1" size={12} />
+                  <Icon icon={Info} color={BRAND.info} size={12} />
                   <Text className="text-[10px] font-semibold text-sky-700">
                     {displayMsgText}
                   </Text>
@@ -282,7 +394,7 @@ export default function ChatScreen() {
             );
           }
 
-          const isMe = msg.senderId === user?.uid;
+          const isMe = msg.senderId === user?.id;
           const msgTime = new Date(msg.createdAt).toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
@@ -304,7 +416,7 @@ export default function ChatScreen() {
                 className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 ${
                   isMe
                     ? "rounded-br-md bg-primary"
-                    : "rounded-bl-md border border-border bg-white"
+                    : "rounded-bl-md border border-border bg-surface-raised"
                 }`}
               >
                 {!isMe && (
@@ -319,13 +431,22 @@ export default function ChatScreen() {
                 >
                   {displayMsgText}
                 </Text>
-                <Text
-                  className={`mt-1 block text-right text-[9px] font-medium ${
-                    isMe ? "text-white/50" : "text-ink/30"
-                  }`}
-                >
-                  {msgTime}
-                </Text>
+                <View className="mt-1 flex-row items-center justify-end gap-1">
+                  <Text
+                    className={`text-[9px] font-medium ${
+                      isMe ? "text-white/50" : "text-ink/30"
+                    }`}
+                  >
+                    {msgTime}
+                  </Text>
+                  {isMe && (
+                    <Icon
+                      icon={msg.seenAt ? CheckCheck : Check}
+                      color={msg.seenAt ? "#BBF7D0" : "rgba(255,255,255,0.5)"}
+                      size={12}
+                    />
+                  )}
+                </View>
               </View>
             </View>
           );
@@ -333,21 +454,46 @@ export default function ChatScreen() {
       </ScrollView>
 
       {/* Input */}
-      <View className="border-t border-border bg-white px-3 py-3">
+      <View className="border-t border-border bg-surface-raised px-3 py-3">
         {isChatLocked ? (
           <View className="flex-row items-center justify-center gap-2 py-2">
-            <Icon icon={Clock} color="#64748B" size={14} />
+            <Icon icon={Clock} color={BRAND.muted} size={14} />
             <Text className="text-xs font-medium text-ink/40">
               This conversation is{" "}
-              {booking.status === "cancelled" ? "cancelled" : "closed"}. Messaging
-              is disabled.
+              {isCancelled ? "cancelled" : "closed"}. Messaging is disabled.
             </Text>
           </View>
         ) : (
-          <View className="flex-row items-end gap-2">
+          <>
+            {/* Typing indicator */}
+            {partnerTyping && (
+              <Text className="mb-1.5 px-1 text-[11px] italic text-ink/50">
+                {chatPartnerName} is typing...
+              </Text>
+            )}
+            {/* Quick replies — one-tap presets, handy for on-the-go workers */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8, paddingBottom: 10 }}
+            >
+              {QUICK_REPLIES.map((q) => (
+                <Pressable
+                  key={q}
+                  onPress={() => sendText(q)}
+                  className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5"
+                >
+                  <Text className="text-[11px] font-semibold text-primary">{q}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+            <View className="flex-row items-end gap-2">
             <TextInput
               value={inputText}
-              onChangeText={setInputText}
+              onChangeText={(v) => {
+                setInputText(v);
+                if (v.trim()) broadcastTyping();
+              }}
               placeholder="Type a message..."
               placeholderTextColor="rgba(20,35,28,0.3)"
               multiline
@@ -360,7 +506,8 @@ export default function ChatScreen() {
             >
               <Icon icon={Send} color="#fff" size={18} />
             </Pressable>
-          </View>
+            </View>
+          </>
         )}
       </View>
     </KeyboardAvoidingView>

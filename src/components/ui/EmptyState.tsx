@@ -1,4 +1,5 @@
 import React from "react";
+import { BRAND } from "@/src/theme/colors";
 import { View, Text, Pressable } from "react-native";
 import { LucideIcon } from "lucide-react-native";
 
@@ -35,7 +36,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       className={`mx-auto w-full max-w-md items-center justify-center space-y-4 px-6 py-12 ${className}`}
     >
       <View className="h-16 w-16 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
-        <IconCmp color="#1F5D3F" size={32} {...iconProps} />
+        <IconCmp color={BRAND.primary} size={32} {...iconProps} />
       </View>
       <Text className="font-display text-xl font-semibold leading-tight text-ink">{title}</Text>
       <Text className="text-sm leading-relaxed text-ink/75 text-center">{description}</Text>

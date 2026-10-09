@@ -1,5 +1,25 @@
-// @ts-nocheck
+
 import React, { useEffect, useState } from "react";
+import { BRAND } from "@/src/theme/colors";
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
+import { useRouter } from "expo-router";
+import {
+  MessageSquare,
+  User,
+  Briefcase,
+  Calendar,
+  MapPin,
+  ChevronRight,
+} from "lucide-react-native";
+import { useAuth } from "@/src/context/AuthContext";
+import { listenToBookings } from "@/src/services/supabase/legacy";
 
 import { Card } from "@/src/components/ui/Card";
 import { EmptyState } from "@/src/components/ui/EmptyState";
@@ -28,35 +48,43 @@ export default function InboxScreen() {
   const { user, userProfile } = useAuth();
   const [conversations, setConversations] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [nonce, setNonce] = useState(0);
 
   const isWorker = userProfile?.current_mode === "worker";
 
   useEffect(() => {
     if (!user || !userProfile) return;
-    setLoading(true);
+    if (!nonce) setLoading(true);
     const fieldName = isWorker ? "providerId" : "customerId";
-    const unsubscribe = listenToBookings(fieldName, user.uid, (data) => {
+    const unsubscribe = listenToBookings(fieldName, user.id, (data) => {
       setConversations(data as Booking[]);
       setLoading(false);
+      setRefreshing(false);
     });
     return () => unsubscribe();
-  }, [user, userProfile]);
+  }, [user, userProfile, nonce]);
+
+  const refresh = () => {
+    setRefreshing(true);
+    setNonce((n) => n + 1);
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "confirmed":
-        return { color: "#10B981", label: "Confirmed" };
+        return { color: BRAND.success, label: "Confirmed" };
       case "in_progress":
-        return { color: "#F59E0B", label: "In Progress" };
+        return { color: BRAND.warning, label: "In Progress" };
       case "completed":
-        return { color: "#3B82F6", label: "Completed" };
+        return { color: BRAND.info, label: "Completed" };
       case "closed":
-        return { color: "#64748B", label: "Closed" };
+        return { color: BRAND.muted, label: "Closed" };
       case "cancelled":
-        return { color: "#EF4444", label: "Cancelled" };
+        return { color: BRAND.danger, label: "Cancelled" };
       case "pending":
       default:
-        return { color: "#F97316", label: "Pending" };
+        return { color: BRAND.caution, label: "Pending" };
     }
   };
 
@@ -72,7 +100,7 @@ export default function InboxScreen() {
           alignItems: "center",
         }}
       >
-        <ActivityIndicator size="large" color="#1F5D3F" />
+        <ActivityIndicator size="large" color={BRAND.primary} />
         <Text className="mt-4 text-sm font-medium text-ink/50">
           Loading your messages...
         </Text>
@@ -85,6 +113,9 @@ export default function InboxScreen() {
       className="flex-1 bg-surface"
       contentContainerStyle={{ paddingTop: 20, paddingBottom: 120 }}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={BRAND.primary} colors={[BRAND.primary]} />
+      }
     >
       <View className="px-4">
         <Text className="font-display text-2xl font-medium text-ink">
@@ -173,11 +204,11 @@ export default function InboxScreen() {
 
                       <View className="mt-1.5 flex-row flex-wrap items-center gap-x-3 gap-y-1">
                         <Text className="flex-row items-center gap-1 text-[10px] font-medium text-ink/40">
-                          <Icon icon={Calendar} color="#6b7280" size={12} />
+                          <Icon icon={Calendar} color={BRAND.muted} size={12} />
                           {convo.date}
                         </Text>
                         <Text className="max-w-[180px] flex-row items-center gap-1 truncate text-[10px] font-medium text-ink/40">
-                          <Icon icon={MapPin} color="#6b7280" size={12} />
+                          <Icon icon={MapPin} color={BRAND.muted} size={12} />
                           {convo.address}
                         </Text>
                       </View>

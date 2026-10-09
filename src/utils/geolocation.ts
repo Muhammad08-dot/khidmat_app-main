@@ -23,7 +23,9 @@ export async function getCurrentCoords(): Promise<LocationCoords | null> {
       lng: Math.round(pos.coords.longitude * 10000) / 10000,
     };
   } catch (err) {
-    console.error("[location] Failed to get current position:", err);
+    // Denied/unavailable is an expected user state, not an app failure —
+    // console.error surfaces as a red overlay in web dev builds.
+    console.warn("[location] Failed to get current position:", err);
     return null;
   }
 }

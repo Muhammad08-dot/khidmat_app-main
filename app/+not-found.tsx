@@ -1,4 +1,5 @@
 import React from "react";
+import { BRAND } from "@/src/theme/colors";
 import { View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { Home, Hammer, Droplet, Zap, Wrench } from "lucide-react-native";
@@ -14,13 +15,13 @@ export default function NotFoundScreen() {
       <View className="absolute bottom-[-15%] right-[-10%] h-72 w-72 rounded-full bg-primary/5 opacity-40" />
 
       {/* Card */}
-      <View className="w-full max-w-md rounded-[32px] border border-border bg-white p-8 shadow-xl">
+      <View className="w-full max-w-md rounded-[32px] border border-border bg-surface-raised p-8 shadow-xl">
         {/* Faint tool icons row */}
         <View className="mb-6 flex-row items-center justify-center gap-6 opacity-10">
-          <Icon icon={Hammer} color="#1F6B52" size={28} />
-          <Icon icon={Droplet} color="#1F6B52" size={24} />
-          <Icon icon={Wrench} color="#1F6B52" size={26} />
-          <Icon icon={Zap} color="#1F6B52" size={24} />
+          <Icon icon={Hammer} color={BRAND.primary} size={28} />
+          <Icon icon={Droplet} color={BRAND.primary} size={24} />
+          <Icon icon={Wrench} color={BRAND.primary} size={26} />
+          <Icon icon={Zap} color={BRAND.primary} size={24} />
         </View>
 
         <Text className="text-center font-display text-[46px] font-extrabold leading-tight text-ink">
@@ -40,9 +41,9 @@ export default function NotFoundScreen() {
 
         <Pressable
           onPress={() => router.replace("/")}
-          className="mt-7 flex-row items-center justify-center gap-2 rounded-2xl border border-border bg-white px-6 py-4 shadow-sm"
+          className="mt-7 flex-row items-center justify-center gap-2 rounded-2xl border border-border bg-surface-raised px-6 py-4 shadow-sm"
         >
-          <Icon icon={Home} color="#1F6B52" size={18} />
+          <Icon icon={Home} color={BRAND.primary} size={18} />
           <Text className="text-xs font-bold text-primary">
             Go Back to Home
           </Text>

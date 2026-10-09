@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { BRAND } from "@/src/theme/colors";
 import {
   View,
   Text,
@@ -210,7 +211,7 @@ export const SiteAgentWidget: React.FC = () => {
                   onChangeText={setInput}
                   onSubmitEditing={() => send()}
                   placeholder="Ask about Khidmat..."
-                  placeholderTextColor="#64748b"
+                  placeholderTextColor={BRAND.muted}
                   className="flex-1 rounded-full border border-slate-700 bg-slate-800 px-4 py-2 text-sm text-white"
                 />
                 <Pressable
@@ -224,7 +225,7 @@ export const SiteAgentWidget: React.FC = () => {
 
               <View className="items-center pb-1">
                 <Text className="text-[10px] text-slate-500">
-                  <Icon icon={Sparkles} color="#64748b" size={10} /> AI-powered
+                  <Icon icon={Sparkles} color={BRAND.muted} size={10} /> AI-powered
                   by Khidmat
                 </Text>
               </View>

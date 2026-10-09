@@ -36,14 +36,20 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-location",
+      [
+        "expo-location",
+        {
+          "isBackgroundLocationEnabled": true
+        }
+      ],
       [
         "expo-image-picker",
         {
           "photosPermission": "Khidmat uses your photo library to set your profile picture.",
           "cameraPermission": "Khidmat uses your camera to take a profile photo."
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true

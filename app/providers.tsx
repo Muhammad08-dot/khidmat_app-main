@@ -1,5 +1,30 @@
-// @ts-nocheck
+
 import React, { useEffect, useState } from "react";
+import { BRAND } from "@/src/theme/colors";
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import {
+  ArrowLeft,
+  AlertCircle,
+  Info,
+  MapPin,
+  Clock,
+  Sparkles,
+  Compass,
+  BadgeCheck,
+} from "lucide-react-native";
+import { useAuth } from "@/src/context/AuthContext";
+import {
+  getCollectionDocs,
+  sendInvitationEmail,
+  createInvitationNotification,
+} from "@/src/services/supabase/legacy";
 
 import {
   rankProvidersWithAI,
@@ -26,6 +51,7 @@ interface Provider {
   tier: string;
   bio: string;
   available?: boolean;
+  verified?: boolean;
   photoURL?: string;
   email?: string;
 }
@@ -67,7 +93,7 @@ export default function ProviderListScreen() {
         p.email || "worker@email.com",
         p.name,
         userProfile.name,
-        user?.uid || "",
+        user?.id || "",
         userProfile.email || user?.email || "",
         p.category,
         p.city
@@ -75,7 +101,7 @@ export default function ProviderListScreen() {
       await createInvitationNotification(
         p.userId,
         userProfile.name,
-        user?.uid || "",
+        user?.id || "",
         userProfile.email || user?.email || "",
         p.category,
         p.city
@@ -105,7 +131,7 @@ export default function ProviderListScreen() {
         const allProviders = rawProviders.filter(
           (p) => p.category && p.category.toLowerCase() === category.toLowerCase()
         );
-        const eligibleProviders = allProviders.filter((p) => p.userId !== user?.uid);
+        const eligibleProviders = allProviders.filter((p) => p.userId !== user?.id);
 
         const onlineProviders = eligibleProviders.filter((p) => p.available === true);
         const offlineProviders = eligibleProviders.filter((p) => p.available !== true);
@@ -189,7 +215,7 @@ export default function ProviderListScreen() {
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-surface px-6">
-        <ActivityIndicator size="large" color="#1F5D3F" />
+        <ActivityIndicator size="large" color={BRAND.primary} />
         <Text className="mt-4 text-sm font-medium text-ink/60">
           Finding the best matches in {userProfile?.city || "your city"}...
         </Text>
@@ -212,7 +238,7 @@ export default function ProviderListScreen() {
             onPress={() => router.replace("/")}
             className="h-10 w-10 items-center justify-center rounded-full border border-border"
           >
-            <Icon icon={ArrowLeft} color="#14231C" size={20} />
+            <Icon icon={ArrowLeft} color={BRAND.ink} size={20} />
           </Pressable>
           <View className="flex-1">
             <Text className="font-display text-lg font-medium text-ink">
@@ -242,7 +268,7 @@ export default function ProviderListScreen() {
           <>
             {isCrossCity && (
               <View className="mb-3 flex-row gap-3 rounded-xl border border-accent-terracotta/30 bg-accent-terracotta/10 p-3">
-                <Icon icon={Info} color="#C2410C" size={20} />
+                <Icon icon={Info} color={BRAND.caution} size={20} />
                 <Text className="flex-1 text-sm text-accent-terracotta">
                   <Text className="font-bold">Outside Local Area: </Text>
                   No direct workers found in {userProfile?.city}. Displaying nearby
@@ -302,6 +328,9 @@ export default function ProviderListScreen() {
                       <View className="flex-1 pr-6">
                         <View className="flex-row flex-wrap items-center gap-2">
                           <Text className="text-base font-bold text-ink">{p.name}</Text>
+                          {p.verified && (
+                            <Icon icon={BadgeCheck} color={BRAND.primary} size={16} />
+                          )}
                           <TierBadge tier={p.tier} />
                           <View
                             className={`rounded-full border px-2 py-0.5 ${
@@ -329,11 +358,11 @@ export default function ProviderListScreen() {
 
                         <View className="mt-1.5 flex-row flex-wrap gap-x-4 gap-y-1">
                           <Text className="flex-row items-center gap-1 text-xs font-medium text-ink/60">
-                            <Icon icon={MapPin} color="#1F5D3F" size={14} />
+                            <Icon icon={MapPin} color={BRAND.primary} size={14} />
                             {distance} km ({p.city})
                           </Text>
                           <Text className="flex-row items-center gap-1 text-xs font-medium text-ink/60">
-                            <Icon icon={Clock} color="#1F5D3F" size={14} />
+                            <Icon icon={Clock} color={BRAND.primary} size={14} />
                             Travel: ~{travelTime} mins
                           </Text>
                           <Text className="flex-row items-center gap-1 font-bold text-primary">
@@ -343,7 +372,7 @@ export default function ProviderListScreen() {
 
                         {/* AI reasoning */}
                         <View className="mt-2 flex-row gap-2 rounded-lg border border-primary/10 bg-primary/5 p-2.5">
-                          <Icon icon={Sparkles} color="#1F5D3F" size={16} />
+                          <Icon icon={Sparkles} color={BRAND.primary} size={16} />
                           <Text className="flex-1 text-xs italic leading-relaxed text-ink/75">
                             {matchReason}
                           </Text>
@@ -365,7 +394,7 @@ export default function ProviderListScreen() {
                               ) : (
                                 <Icon
                                   icon={Sparkles}
-                                  color={notifiedWorkers[p.userId] ? "#059669" : "#fff"}
+                                  color={notifiedWorkers[p.userId] ? BRAND.success : "#fff"}
                                   size={14}
                                 />
                               )}
@@ -392,7 +421,7 @@ export default function ProviderListScreen() {
             {priceEstimate && (
               <Card className="mt-4 p-4">
                 <Text className="mb-3 flex-row items-center gap-1.5 border-b border-border pb-2 text-base font-bold text-ink">
-                  <Icon icon={Compass} color="#1F5D3F" size={20} /> AI Price Estimate
+                  <Icon icon={Compass} color={BRAND.primary} size={20} /> AI Price Estimate
                 </Text>
                 <View className="overflow-hidden rounded-2xl bg-primary p-4 text-center">
                   <Text className="text-center font-mono text-[10px] uppercase tracking-widest text-white/70">
@@ -414,7 +443,7 @@ export default function ProviderListScreen() {
                   </Text>
                 </View>
                 <View className="mt-3 flex-row gap-2 border-t border-border pt-3">
-                  <Icon icon={Info} color="#1F5D3F" size={16} />
+                  <Icon icon={Info} color={BRAND.primary} size={16} />
                   <Text className="flex-1 text-[10px] leading-relaxed text-ink/50">
                     Final prices can be negotiated directly with your worker in the
                     chat screen after booking.

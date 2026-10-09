@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { BRAND } from "@/src/theme/colors";
 import {
   View,
   Text,
@@ -36,11 +37,17 @@ const labelClass =
 
 export default function AuthScreen() {
   const router = useRouter();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, sendPasswordReset, sendPhoneOtp, verifyPhoneOtp } = useAuth();
 
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const phoneAuthEnabled = process.env.EXPO_PUBLIC_PHONE_AUTH_ENABLED === "true";
+  const [otpPhone, setOtpPhone] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -93,8 +100,7 @@ export default function AuthScreen() {
     try {
       if (isLogin) {
         await signIn(email, password);
-      } else {
-        if (!name.trim()) throw new Error("Please enter your full name.");
+      } else {        if (!name.trim()) throw new Error("Please enter your full name.");
         if (!phone.trim()) throw new Error("Please enter your phone number.");
         if (phone.length < 9) throw new Error("Please enter a valid phone number.");
 
@@ -118,7 +124,7 @@ export default function AuthScreen() {
           providerDetails = { category, bio, basePrice: Number(basePrice) };
         }
 
-        await signUp(
+        const result = await signUp(
           email,
           password,
           name,
@@ -128,22 +134,86 @@ export default function AuthScreen() {
           coordinates,
           providerDetails
         );
+        // If "Confirm email" is enabled in Supabase, no session is returned —
+        // the user must confirm before signing in.
+        if (!result?.session) {
+          setNotice(
+            "Account created! Check your inbox to confirm your email, then log in."
+          );
+          setIsLogin(true);
+          setLoading(false);
+          return;
+        }
       }
       router.replace("/");
     } catch (err: any) {
       console.error(err);
       let friendly = err.message || "An error occurred during authentication.";
       const m = err.message || "";
-      if (m.includes("auth/user-not-found") || m.includes("auth/wrong-password") || m.includes("auth/invalid-credential")) {
+      if (m.includes("Invalid login credentials")) {
         friendly = "Invalid email or password. Please try again.";
-      } else if (m.includes("auth/email-already-in-use")) {
+      } else if (m.includes("User already registered")) {
         friendly = "This email address is already in use by another account.";
-      } else if (m.includes("auth/weak-password")) {
+      } else if (m.includes("Password should be at least")) {
         friendly = "Password should be at least 6 characters long.";
-      } else if (m.includes("auth/invalid-email")) {
+      } else if (m.includes("invalid email")) {
         friendly = "Please enter a valid email address.";
       }
       setError(friendly);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    setError(null);
+    setNotice(null);
+    if (!email.trim()) {
+      setError("Enter your email above first, then tap 'Forgot password?'.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await sendPasswordReset(email);
+      setNotice("Password reset link sent to your email. Open it on this device.");
+    } catch (err: any) {
+      setError(err.message || "Could not send reset link. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendOtp = async () => {
+    setError(null);
+    setNotice(null);
+    if (otpPhone.length < 10) {
+      setError("Enter a valid phone number (e.g. +923001234567).");
+      return;
+    }
+    setLoading(true);
+    try {
+      await sendPhoneOtp(otpPhone);
+      setOtpSent(true);
+      setNotice("SMS code sent to your phone.");
+    } catch (err: any) {
+      setError(err.message || "Could not send the code.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    setError(null);
+    if (otpCode.length < 4) {
+      setError("Enter the 6-digit code from the SMS.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await verifyPhoneOtp(otpPhone, otpCode);
+      router.replace("/");
+    } catch (err: any) {
+      setError(err.message || "Invalid or expired code.");
     } finally {
       setLoading(false);
     }
@@ -181,6 +251,11 @@ export default function AuthScreen() {
               <Text className="text-sm text-red-600">{error}</Text>
             </View>
           )}
+          {notice && (
+            <View className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <Text className="text-sm text-emerald-700">{notice}</Text>
+            </View>
+          )}
 
           {isLogin ? (
             /* LOGIN */
@@ -192,7 +267,7 @@ export default function AuthScreen() {
 
               <Text className={labelClass}>Email Address</Text>
               <View className="mb-4 flex-row items-center rounded-xl border border-border bg-surface px-4">
-                <Icon icon={Mail} color="#6b7280" size={16} />
+                <Icon icon={Mail} color={BRAND.muted} size={16} />
                 <TextInput
                   value={email}
                   onChangeText={setEmail}
@@ -206,7 +281,7 @@ export default function AuthScreen() {
 
               <Text className={labelClass}>Password</Text>
               <View className="mb-4 flex-row items-center rounded-xl border border-border bg-surface px-4">
-                <Icon icon={Lock} color="#6b7280" size={16} />
+                <Icon icon={Lock} color={BRAND.muted} size={16} />
                 <TextInput
                   value={password}
                   onChangeText={setPassword}
@@ -216,6 +291,12 @@ export default function AuthScreen() {
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
               </View>
+
+              <Pressable onPress={handleForgotPassword} className="mb-1 self-start">
+                <Text className="text-xs font-semibold text-primary">
+                  Forgot password?
+                </Text>
+              </Pressable>
 
               <Pressable
                 onPress={handleSubmit}
@@ -236,6 +317,54 @@ export default function AuthScreen() {
                   </>
                 )}
               </Pressable>
+
+              {phoneAuthEnabled && (
+                <View className="mt-6 border-t border-border pt-4">
+                  <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink/50">
+                    Or login with phone (SMS code)
+                  </Text>
+                  <TextInput
+                    value={otpPhone}
+                    onChangeText={setOtpPhone}
+                    placeholder="+923001234567"
+                    placeholderTextColor="rgba(20,35,28,0.3)"
+                    keyboardType="phone-pad"
+                    editable={!otpSent}
+                    className={`mb-3 ${inputClass}`}
+                  />
+                  {otpSent ? (
+                    <View>
+                      <TextInput
+                        value={otpCode}
+                        onChangeText={setOtpCode}
+                        placeholder="6-digit code"
+                        placeholderTextColor="rgba(20,35,28,0.3)"
+                        keyboardType="number-pad"
+                        className={`mb-3 ${inputClass}`}
+                      />
+                      <Pressable
+                        onPress={handleVerifyOtp}
+                        disabled={loading}
+                        className="flex-row items-center justify-center rounded-xl bg-primary py-3 disabled:opacity-70"
+                      >
+                        <Text className="text-sm font-semibold text-white">
+                          Verify & Login
+                        </Text>
+                      </Pressable>
+                    </View>
+                  ) : (
+                    <Pressable
+                      onPress={handleSendOtp}
+                      disabled={loading}
+                      className="flex-row items-center justify-center rounded-xl border border-primary py-3 disabled:opacity-70"
+                    >
+                      <Text className="text-sm font-semibold text-primary">
+                        Send SMS Code
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+              )}
             </View>
           ) : (
             /* SIGNUP */
@@ -293,7 +422,7 @@ export default function AuthScreen() {
 
               <Text className={labelClass}>Full Name</Text>
               <View className="mb-4 flex-row items-center rounded-xl border border-border bg-surface px-4">
-                <Icon icon={User} color="#6b7280" size={16} />
+                <Icon icon={User} color={BRAND.muted} size={16} />
                 <TextInput
                   value={name}
                   onChangeText={setName}
@@ -305,7 +434,7 @@ export default function AuthScreen() {
 
               <Text className={labelClass}>Phone Number</Text>
               <View className="mb-4 flex-row items-center rounded-xl border border-border bg-surface px-4">
-                <Icon icon={Phone} color="#6b7280" size={16} />
+                <Icon icon={Phone} color={BRAND.muted} size={16} />
                 <Text className="ml-3 border-r border-border pr-2 text-xs font-semibold text-ink/70">
                   +92
                 </Text>
@@ -322,7 +451,7 @@ export default function AuthScreen() {
 
               <Text className={labelClass}>Email Address</Text>
               <View className="mb-4 flex-row items-center rounded-xl border border-border bg-surface px-4">
-                <Icon icon={Mail} color="#6b7280" size={16} />
+                <Icon icon={Mail} color={BRAND.muted} size={16} />
                 <TextInput
                   value={email}
                   onChangeText={setEmail}
@@ -336,7 +465,7 @@ export default function AuthScreen() {
 
               <Text className={labelClass}>Password</Text>
               <View className="mb-4 flex-row items-center rounded-xl border border-border bg-surface px-4">
-                <Icon icon={Lock} color="#6b7280" size={16} />
+                <Icon icon={Lock} color={BRAND.muted} size={16} />
                 <TextInput
                   value={password}
                   onChangeText={setPassword}
@@ -371,7 +500,7 @@ export default function AuthScreen() {
               {role === "provider" && (
                 <View className="mt-2 flex-col gap-4 border-t border-border pt-4">
                   <Text className="flex-row items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
-                    <Icon icon={Briefcase} color="#1F5D3F" size={14} /> Provider
+                    <Icon icon={Briefcase} color={BRAND.primary} size={14} /> Provider
                     Specialty info
                   </Text>
 
@@ -399,7 +528,7 @@ export default function AuthScreen() {
 
                   <Text className={labelClass}>Professional Bio</Text>
                   <View className="flex-row items-start rounded-xl border border-border bg-surface px-4">
-                    <Icon icon={BookOpen} color="#6b7280" size={16} />
+                    <Icon icon={BookOpen} color={BRAND.muted} size={16} />
                     <TextInput
                       value={bio}
                       onChangeText={setBio}

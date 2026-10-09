@@ -1,4 +1,5 @@
 import React from "react";
+import { BRAND } from "@/src/theme/colors";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import {
@@ -14,7 +15,7 @@ const SAFETY_STEPS = [
     icon: PhoneCall,
     description:
       "Contact numbers are validated via one-time passwords (OTP) to ensure clients can always reach the assigned professional in real-time.",
-    color: "#D97706",
+    color: BRAND.warning,
     bgColor: "bg-amber-500/10",
     borderColor: "border-amber-500/20",
   },
@@ -24,7 +25,7 @@ const SAFETY_STEPS = [
     icon: MapPin,
     description:
       "Physical addresses are collected and verified. Geolocation pinning registers their exact service dispatch coordinates on our local maps.",
-    color: "#059669",
+    color: BRAND.success,
     bgColor: "bg-emerald-500/10",
     borderColor: "border-emerald-500/20",
   },
@@ -66,7 +67,7 @@ export default function SafetyScreen() {
             onPress={() => router.back()}
             className="h-11 w-11 items-center justify-center rounded-full border border-border"
           >
-            <Icon icon={ChevronLeft} color="#14231C" size={20} />
+            <Icon icon={ChevronLeft} color={BRAND.ink} size={20} />
           </Pressable>
           <View>
             <Text className="font-display text-3xl font-bold text-ink">
@@ -82,7 +83,7 @@ export default function SafetyScreen() {
         <Card className="mb-8 overflow-hidden border border-border p-6">
           <View className="flex-row items-center gap-4">
             <View className="h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
-              <Icon icon={Shield} color="#1F5D3F" size={32} />
+              <Icon icon={Shield} color={BRAND.primary} size={32} />
             </View>
             <View className="flex-1">
               <Text className="font-display text-xl font-bold text-ink">
@@ -132,7 +133,7 @@ export default function SafetyScreen() {
                 </View>
 
                 <View className="mt-4 flex-row items-center gap-1.5">
-                  <Icon icon={CheckCircle2} color="#B8863B" size={16} />
+                  <Icon icon={CheckCircle2} color={BRAND.gold} size={16} />
                   <Text className="text-[10px] font-bold uppercase tracking-wider text-accent-gold">
                     Verified Check
                   </Text>

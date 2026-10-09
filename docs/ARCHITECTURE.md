@@ -9,20 +9,21 @@ Khidmat is a service marketplace mobile app designed to connect customers with l
 - **Framework**: Expo SDK (React Native)
 - **Routing**: Expo Router (File-based routing)
 - **Styling**: NativeWind (TailwindCSS for React Native)
-- **State Management**: React Context (`AuthContext`)
-- **Storage**: Local `AsyncStorage` (or MockStorage for dev)
+- **State Management**: React Context (`AuthContext`) + TanStack React Query for server state
+- **Storage**: `expo-secure-store` (native) / `window.localStorage` (web) for auth sessions
 
 ### 2. Agent Server (Node.js / Express)
 - **Role**: A secure backend microservice acting as a proxy and LLM Orchestrator.
 - **Responsibilities**:
   - **AI Proxying**: Securely routes requests to Google Gemini (hiding API keys from the client).
   - **Self-Healing Agent**: Receives crash reports from the mobile app and uses LangChain to diagnose root causes and suggest code patches.
-- **Tech Stack**: Express, TypeScript, Zod, Helmet, Express-Rate-Limit, LangChain.
+- **Tech Stack**: Express, TypeScript, Zod, Helmet, Express-Rate-Limit, JWT, LangChain.
 
-### 3. Backend (Firebase)
-- **Authentication**: Firebase Auth (Email/Password & Social Logins).
-- **Database**: Firestore (Users, Jobs, Messages).
-- **Storage**: Firebase Storage (Avatars, Job media).
+### 3. Backend (Supabase)
+- **Authentication**: Supabase Auth (Email/Password), sessions persisted via `expo-secure-store` (native) / `localStorage` (web).
+- **Database**: PostgreSQL (profiles, categories, providers, bookings, messages, provider_locations, reviews, push_tokens) with Row Level Security.
+- **Realtime**: Supabase Realtime channels power live chat and booking status updates.
+- **Storage**: Supabase Storage (Avatars, Job media).
 
 ---
 
@@ -42,10 +43,10 @@ Khidmat is a service marketplace mobile app designed to connect customers with l
 │   ├── hooks/              # Custom React Hooks
 │   ├── services/           # External API integrations
 │   │   ├── api/            # Gemini proxy & Log service
-│   │   └── firebase/       # Firebase SDK wrapper
+│   │   └── supabase/       # Supabase client & typed queries
 │   ├── theme/              # Typography & Tailwind global CSS
 │   ├── types/              # Global TypeScript interfaces
-│   └── utils/              # Helper functions (geolocation, mockStorage)
+│   └── utils/              # Helper functions (geolocation, location math)
 ```
 
 ## AI Agent Data Flow

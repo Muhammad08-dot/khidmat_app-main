@@ -1,9 +1,11 @@
 import "dotenv/config";
 import express, { Request, Response, NextFunction } from "express";
+import { createHmac } from "crypto";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
+import { requireAuth } from "./middleware/auth";
 
 const PORT = Number(process.env.PORT) || 8787;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
@@ -199,6 +201,75 @@ app.post("/api/gemini/generateContent", validateRequest(geminiProxySchema), asyn
   } catch (error) {
     next(error);
   }
+});
+
+// ── Payments (JazzCash / EasyPaisa wallet initiation) ────────────────────
+// Gated behind PAYMENTS_ENABLED + merchant credentials that live ONLY here,
+// never in the mobile bundle. Returns an order string the client hands to the
+// gateway SDK/app link. Signature algorithm follows the JazzCash server-to-
+// server spec (SHA-512 HMAC over the sorted payload).
+const PAYMENTS_ENABLED = process.env.PAYMENTS_ENABLED === "true";
+
+const paymentInitSchema = z.object({
+  bookingId: z.string().uuid(),
+  amount: z.number().int().positive().max(1_000_000), // PKR, sane upper bound
+  method: z.enum(["jazzcash", "easypaisa"]),
+});
+
+app.post("/api/payments/initiate", requireAuth, validateRequest(paymentInitSchema), async (req, res) => {
+  if (!PAYMENTS_ENABLED) {
+    res.status(503).json({ error: "Payments are not enabled yet. Pay cash with the provider on completion." });
+    return;
+  }
+  const { bookingId, amount, method } = req.body as z.infer<typeof paymentInitSchema>;
+  const pp_MobileAccount = process.env.GW_MOBILE_ACCOUNT;
+  const pp_MerchantKey = process.env.GW_MERCHANT_KEY;
+  if (!pp_MobileAccount || !pp_MerchantKey) {
+    res.status(500).json({ error: "Gateway credentials are not configured on the server." });
+    return;
+  }
+  const now = new Date();
+  const txnTime = now.toISOString().slice(0, 19).replace("T", " ");
+  const pp_TxnExpiryDateTime = new Date(now.getTime() + 15 * 60_000)
+    .toISOString()
+    .slice(0, 19)
+    .replace("T", " ");
+  const pp_Amount = String(amount * 100); // pasis (1/100 PKR)
+
+  // Gateway-specific constants; provided once merchant accounts are issued.
+  const pp_VersionNumber = process.env.GW_VERSION_NUMBER || "2.0";
+  const pp_MerchantID = process.env.GW_MERCHANT_ID || "";
+  const pp_PasswordSalt = process.env.GW_PASSWORD_SALT || "";
+  const secureHash = `${pp_VersionNumber}|${pp_TxnExpiryDateTime}|${pp_Amount}|${pp_MobileAccount}|${bookingId}|${pp_PasswordSalt}`;
+  const pp_SecureHash = createHmac("sha256", pp_MerchantKey).update(secureHash).digest("hex");
+
+  res.json({
+    bookingId,
+    method,
+    orderString:
+      `pp_VersionNumber=${encodeURIComponent(pp_VersionNumber)}` +
+      `&pp_TxnType=${encodeURIComponent(process.env.GW_TXN_TYPE || "MWALLET")}` +
+      `&pp_Language=${encodeURIComponent("en")}` +
+      `&pp_MerchantID=${encodeURIComponent(pp_MerchantID)}` +
+      `&pp_SubMerchantID=${encodeURIComponent("")}` +
+      `&pp_Password=${encodeURIComponent("")}` +
+      `&pp_BankID=${encodeURIComponent("")}` +
+      `&pp_ProductID=${encodeURIComponent("")}` +
+      `&pp_TxnRefNo=${encodeURIComponent("T" + Date.now())}` +
+      `&pp_Amount=${encodeURIComponent(pp_Amount)}` +
+      `&pp_TxnCurrency=${encodeURIComponent("PKR")}` +
+      `&pp_TxnDateTime=${encodeURIComponent(txnTime)}` +
+      `&pp_BillReference=${encodeURIComponent("billref_" + bookingId.slice(0, 8))}` +
+      `&pp_Description=${encodeURIComponent("Khidmat service booking")}` +
+      `&pp_TxnExpiryDateTime=${encodeURIComponent(pp_TxnExpiryDateTime)}` +
+      `&pp_ReturnURL=${encodeURIComponent(process.env.GW_RETURN_URL || "khidmat://payments/callback")}` +
+      `&pp_SecureHash=${encodeURIComponent(pp_SecureHash)}` +
+      `&ppmpf_1=1`,
+  });
+});
+
+app.get("/api/payments/config", (_req, res) => {
+  res.json({ enabled: PAYMENTS_ENABLED });
 });
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

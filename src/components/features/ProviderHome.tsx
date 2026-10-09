@@ -1,9 +1,31 @@
-// @ts-nocheck
 import React, { useState } from "react";
+import { BRAND } from "@/src/theme/colors";
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+  Alert,
+  Modal,
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { useAuth } from '@/src/context/AuthContext';
-import { useBookings, useUpdateBookingStatus } from '@/src/hooks/useSupabase';
+import { useBookings, useUpdateBookingStatus, useSendMessage } from '@/src/hooks/useSupabase';
+import { uploadJobMedia, mergeBookingMeta } from '@/src/services/supabase/legacy';
 import { useRouter } from 'expo-router';
-import { Alert } from 'react-native';
+import {
+  CheckCircle,
+  DollarSign,
+  Star,
+  Briefcase,
+  Calendar,
+  MapPin,
+  Clock,
+  MessageSquare,
+  Camera,
+  X,
+} from "lucide-react-native";
 
 import { getCurrentCoords } from "../../utils/geolocation";
 import { Avatar } from "../ui/Avatar";
@@ -14,7 +36,15 @@ import { Icon } from "../ui/Icon";
 export const ProviderHome: React.FC = () => {
   const router = useRouter();
   const { user, userProfile, updateProfile } = useAuth();
-  const { data: bookings = [], isLoading } = useBookings(user?.uid, 'provider');
+  const { data: bookings = [], isLoading, refetch } = useBookings(user?.id, 'provider');
+  const { mutateAsync: updateStatus } = useUpdateBookingStatus();
+  const { mutateAsync: sendSystemMessage } = useSendMessage();
+
+  const [toggling, setToggling] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [completingBooking, setCompletingBooking] = useState<any | null>(null);
+  const [completionPhotos, setCompletionPhotos] = useState<string[]>([]);
+  const [finishing, setFinishing] = useState(false);
 
   if (!userProfile) return null;
 
@@ -52,32 +82,77 @@ export const ProviderHome: React.FC = () => {
     setToggling(false);
   };
 
-  const { mutate: updateStatus } = useUpdateBookingStatus();
-
-  const acceptBooking = (booking: any) => {
-    updateStatus({ bookingId: booking.bookingId || booking.id, status: 'confirmed' });
+  const acceptBooking = async (booking: any) => {
+    try {
+      await updateStatus({ bookingId: booking.bookingId || booking.id, status: 'confirmed' });
+      refetch();
+    } catch (err) {
+      console.error("Error accepting booking:", err);
+      Alert.alert("Failed", "Failed to accept the job. Please try again.");
+    }
   };
 
   const completeBooking = async (booking: any) => {
     try {
-      const updated = { ...booking, status: "completed" };
-      await Promise.all([
-        writeDocument("bookings", booking.bookingId, updated),
-        writeDocument(
-          `bookings/${booking.bookingId}/messages`,
-          `sys_${Date.now()}`,
-          {
-            senderId: "system",
-            senderName: "System",
-            text: "The provider has marked the service as completed. Pending client confirmation/rating review.",
-            createdAt: new Date().toISOString(),
-          }
-        ),
-      ]);
-      fetchBookings();
+      const bookingId = booking.bookingId || booking.id;
+      await updateStatus({ bookingId, status: "completed" });
+      await sendSystemMessage({
+        bookingId,
+        senderId: user?.id || "",
+        content: JSON.stringify({
+          text: "The provider has marked the service as completed. Pending client confirmation/rating review.",
+          isSystemEvent: true,
+          eventStatus: "completed",
+        }),
+      });
+      refetch();
     } catch (err) {
       console.error("Error completing booking:", err);
       Alert.alert("Failed", "Failed to update booking status. Please try again.");
+    }
+  };
+
+  const openCompleteModal = (booking: any) => {
+    setCompletionPhotos([]);
+    setCompletingBooking(booking);
+  };
+
+  const pickCompletionPhoto = async () => {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert("Permission needed", "Camera access is required to take job photos.");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({ quality: 0.7 });
+    if (!result.canceled && result.assets?.[0]?.uri) {
+      setCompletionPhotos((prev) => [...prev, result.assets[0].uri].slice(0, 3));
+    }
+  };
+
+  const confirmComplete = async () => {
+    if (!completingBooking || finishing) return;
+    setFinishing(true);
+    try {
+      const bookingId = completingBooking.bookingId || completingBooking.id;
+      if (completionPhotos.length > 0) {
+        const urls: string[] = [];
+        for (const uri of completionPhotos) {
+          try {
+            urls.push(await uploadJobMedia(user!.id, uri));
+          } catch (e) {
+            console.warn("Job photo upload failed (continuing):", e);
+          }
+        }
+        if (urls.length > 0) {
+          await mergeBookingMeta(bookingId, {
+            jobPhotos: [...(completingBooking.jobPhotos ?? []), ...urls],
+          });
+        }
+      }
+      await completeBooking(completingBooking);
+      setCompletingBooking(null);
+    } finally {
+      setFinishing(false);
     }
   };
 
@@ -96,6 +171,7 @@ export const ProviderHome: React.FC = () => {
     );
 
   return (
+    <>
     <ScrollView
       className="flex-1 bg-surface"
       contentContainerStyle={{ paddingTop: 20, paddingBottom: 120 }}
@@ -133,11 +209,11 @@ export const ProviderHome: React.FC = () => {
             }`}
           >
             {toggling ? (
-              <ActivityIndicator size="small" color={isOnline ? "#fff" : "#1F5D3F"} />
+              <ActivityIndicator size="small" color={isOnline ? "#fff" : BRAND.primary} />
             ) : (
               <View
                 className={`h-3.5 w-3.5 rounded-full border-2 border-white ${
-                  isOnline ? "bg-white" : "bg-ink/40"
+                  isOnline ? "bg-surface-raised" : "bg-ink/40"
                 }`}
               />
             )}
@@ -171,19 +247,19 @@ export const ProviderHome: React.FC = () => {
             {
               label: "Jobs Completed",
               icon: CheckCircle,
-              color: "#1F5D3F" as string,
+              color: BRAND.primary as string,
               value: String(userProfile.totalJobs || 0),
             },
             {
               label: "Total Earnings",
               icon: DollarSign,
-              color: "#1F5D3F",
+              color: BRAND.primary,
               value: `Rs. ${userProfile.totalEarnings || 0}`,
             },
             {
               label: "Overall Rating",
               icon: Star,
-              color: "#B8863B",
+              color: BRAND.gold,
               value:
                 userProfile.rating != null
                   ? userProfile.rating.toFixed(1)
@@ -192,7 +268,7 @@ export const ProviderHome: React.FC = () => {
             {
               label: "Specialty",
               icon: Briefcase,
-              color: "#1F5D3F",
+              color: BRAND.primary,
               value: userProfile.category || "Specialist",
             },
           ].map((s) => (
@@ -215,7 +291,7 @@ export const ProviderHome: React.FC = () => {
         {/* Active requests */}
         <View className="mt-6">
           <Text className="flex-row items-center gap-2 text-base font-bold text-ink">
-            <Icon icon={Calendar} color="#1F5D3F" size={18} /> Active Service
+            <Icon icon={Calendar} color={BRAND.primary} size={18} /> Active Service
             Requests ({activeBookings.length})
           </Text>
 
@@ -244,7 +320,7 @@ export const ProviderHome: React.FC = () => {
                     {b.status}
                   </Text>
                   <Text className="font-mono text-xs font-bold text-ink/40">
-                    #{String(b.bookingId || "").substring(8)}
+                    #{String(b.bookingId || "").slice(0, 8) || "N/A"}
                   </Text>
                 </View>
                 <Text className="mt-2 text-base font-bold text-ink">
@@ -252,10 +328,10 @@ export const ProviderHome: React.FC = () => {
                 </Text>
                 <View className="mt-1 flex-row flex-wrap gap-x-4 gap-y-1">
                   <Text className="flex-row items-center gap-1 text-xs font-medium text-ink/60">
-                    <Icon icon={MapPin} color="#1F5D3F" size={13} /> {b.address}
+                    <Icon icon={MapPin} color={BRAND.primary} size={13} /> {b.address}
                   </Text>
                   <Text className="flex-row items-center gap-1 text-xs font-medium text-ink/60">
-                    <Icon icon={Clock} color="#1F5D3F" size={13} /> {b.timeSlot}{" "}
+                    <Icon icon={Clock} color={BRAND.primary} size={13} /> {b.timeSlot}{" "}
                     ({b.date})
                   </Text>
                 </View>
@@ -270,7 +346,7 @@ export const ProviderHome: React.FC = () => {
                     onPress={() => openChat(b.bookingId)}
                     className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-surface py-2.5"
                   >
-                    <Icon icon={MessageSquare} color="#1F5D3F" size={15} />
+                    <Icon icon={MessageSquare} color={BRAND.primary} size={15} />
                     <Text className="text-xs font-semibold text-ink">
                       Chat Client
                     </Text>
@@ -288,7 +364,7 @@ export const ProviderHome: React.FC = () => {
                   )}
                   {b.status === "confirmed" && (
                     <Pressable
-                      onPress={() => completeBooking(b)}
+                      onPress={() => openCompleteModal(b)}
                       className="flex-[2] flex-row items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5"
                     >
                       <Icon icon={CheckCircle} color="#fff" size={15} />
@@ -306,7 +382,7 @@ export const ProviderHome: React.FC = () => {
         {/* Recent earnings */}
         <View className="mt-6">
           <Text className="flex-row items-center gap-2 text-base font-bold text-ink">
-            <Icon icon={DollarSign} color="#1F5D3F" size={18} /> Recent Earnings
+            <Icon icon={DollarSign} color={BRAND.primary} size={18} /> Recent Earnings
             ({recentHistory.length})
           </Text>
           <Card className="mt-3 p-4">
@@ -342,6 +418,67 @@ export const ProviderHome: React.FC = () => {
         </View>
       </View>
     </ScrollView>
+
+    {/* Job completion photo modal */}
+    <Modal
+      visible={!!completingBooking}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setCompletingBooking(null)}
+    >
+      <Pressable className="flex-1 bg-black/50" onPress={() => setCompletingBooking(null)}>
+        <View className="flex-1 justify-end">
+          <Pressable className="bg-surface-raised rounded-t-3xl p-6" onPress={(e) => e.stopPropagation()}>
+            <View className="flex-row items-center justify-between">
+              <Text className="text-lg font-bold text-ink">Complete Job</Text>
+              <Pressable onPress={() => setCompletingBooking(null)} hitSlop={8}>
+                <Icon icon={X} color={BRAND.muted} size={20} />
+              </Pressable>
+            </View>
+            <Text className="text-sm text-ink/60 mt-1">
+              Add optional before/after photos so the client can verify the work.
+            </Text>
+
+            <View className="flex-row gap-3 mt-5">
+              {completionPhotos.map((uri, i) => (
+                <View key={i} className="h-20 w-20 rounded-xl bg-ink/10 items-center justify-center">
+                  <Icon icon={CheckCircle} color={BRAND.primary} size={24} />
+                </View>
+              ))}
+              {completionPhotos.length < 3 && (
+                <Pressable
+                  onPress={pickCompletionPhoto}
+                  className="h-20 w-20 rounded-xl border border-dashed border-primary/40 items-center justify-center"
+                >
+                  <Icon icon={Camera} color={BRAND.primary} size={24} />
+                </Pressable>
+              )}
+            </View>
+            {completionPhotos.length > 0 && (
+              <Text className="text-xs text-ink/50 mt-2">
+                {completionPhotos.length} photo(s) captured
+              </Text>
+            )}
+
+            <Pressable
+              onPress={confirmComplete}
+              disabled={finishing}
+              className="mt-6 rounded-xl bg-primary py-3.5 flex-row items-center justify-center gap-2"
+            >
+              {finishing ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Icon icon={CheckCircle} color="#fff" size={18} />
+              )}
+              <Text className="text-sm font-bold text-white">
+                {finishing ? "Uploading…" : "Mark as Completed"}
+              </Text>
+            </Pressable>
+          </Pressable>
+        </View>
+      </Pressable>
+    </Modal>
+    </>
   );
 };
 

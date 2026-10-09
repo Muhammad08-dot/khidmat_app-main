@@ -1,4 +1,5 @@
 import React from "react";
+import { BRAND } from "@/src/theme/colors";
 import { Pressable, Text, ActivityIndicator } from "react-native";
 
 type Variant = "primary" | "secondary" | "outline" | "ghost";
@@ -45,7 +46,7 @@ export const Button: React.FC<ButtonProps> = ({
       }`}
     >
       {loading ? (
-        <ActivityIndicator color={variant === "primary" ? "#fff" : "#1F5D3F"} />
+        <ActivityIndicator color={variant === "primary" ? "#fff" : BRAND.primary} />
       ) : (
         <>
           {icon}

@@ -1,5 +1,30 @@
-// @ts-nocheck
+
 import React, { useEffect, useRef, useState } from "react";
+import { BRAND } from "@/src/theme/colors";
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import {
+  ShieldAlert,
+  ArrowLeft,
+  MapPin,
+  Clock,
+  MessageSquare,
+  CheckCircle,
+  Navigation,
+  Phone,
+  User,
+  ChevronDown,
+  ChevronUp,
+  Compass,
+} from "lucide-react-native";
+import { useAuth } from "@/src/context/AuthContext";
+import { listenToBookings, writeDocument } from "@/src/services/supabase/legacy";
 
 import { LiveMap } from "@/src/components/features/LiveMap";
 import { Card } from "@/src/components/ui/Card";
@@ -62,8 +87,8 @@ export default function LiveTrackingScreen() {
       if (data && data.length > 0) {
         const activeBooking = data[0] as Booking;
         if (
-          activeBooking.customerId !== user.uid &&
-          activeBooking.providerId !== user.uid
+          activeBooking.customerId !== user.id &&
+          activeBooking.providerId !== user.id
         ) {
           setError("Unauthorized: You do not have permission to track this service.");
           setLoading(false);
@@ -105,7 +130,7 @@ export default function LiveTrackingScreen() {
       }
       previousCoordsRef.current = { lat: currentLat, lng: currentLng };
 
-      const isWorker = user.uid === booking.providerId;
+      const isWorker = user.id === booking.providerId;
       const payload = isWorker
         ? {
             workerLocation: {
@@ -191,7 +216,7 @@ export default function LiveTrackingScreen() {
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-surface">
-        <ActivityIndicator size="large" color="#1F5D3F" />
+        <ActivityIndicator size="large" color={BRAND.primary} />
         <Text className="mt-4 text-sm text-ink/60">
           Initializing Live Map...
         </Text>
@@ -203,7 +228,7 @@ export default function LiveTrackingScreen() {
     return (
       <View className="flex-1 items-center justify-center bg-surface px-6">
         <View className="mb-6 flex-row items-center gap-2 rounded-xl border border-accent-terracotta/20 bg-accent-terracotta/10 p-4">
-          <Icon icon={ShieldAlert} color="#C2410C" size={20} />
+          <Icon icon={ShieldAlert} color={BRAND.caution} size={20} />
           <Text className="flex-1 text-accent-terracotta">
             {error || "Booking not found."}
           </Text>
@@ -219,7 +244,7 @@ export default function LiveTrackingScreen() {
     );
   }
 
-  const isWorker = user?.uid === booking.providerId;
+  const isWorker = user?.id === booking.providerId;
   const clientCoords = booking.coordinates || { lat: 31.5204, lng: 74.3587 };
   const workerCoords = booking.workerLocation || null;
 
@@ -252,7 +277,7 @@ export default function LiveTrackingScreen() {
             onPress={() => router.back()}
             className="h-10 w-10 items-center justify-center rounded-full border border-border"
           >
-            <Icon icon={ArrowLeft} color="#14231C" size={20} />
+            <Icon icon={ArrowLeft} color={BRAND.ink} size={20} />
           </Pressable>
           <View className="flex-1">
             <Text className="font-display text-lg font-medium text-ink">
@@ -282,7 +307,7 @@ export default function LiveTrackingScreen() {
                 <View className="flex-row items-start justify-between gap-3">
                   <View className="flex-row items-start gap-2">
                     <View className="mt-0.5 h-8 w-8 items-center justify-center rounded-full bg-accent-terracotta/20">
-                      <Icon icon={MapPin} color="#C2410C" size={16} />
+                      <Icon icon={MapPin} color={BRAND.caution} size={16} />
                     </View>
                     <View className="flex-1">
                       <Text className="font-mono text-[10px] uppercase tracking-widest text-white/50">
@@ -329,7 +354,7 @@ export default function LiveTrackingScreen() {
                 <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center gap-2">
                     <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                      <Icon icon={Clock} color="#1F5D3F" size={16} />
+                      <Icon icon={Clock} color={BRAND.primary} size={16} />
                     </View>
                     <View>
                       <Text className="font-mono text-[10px] uppercase tracking-wider text-ink/40">
@@ -450,7 +475,7 @@ export default function LiveTrackingScreen() {
               >
                 <Icon
                   icon={Compass}
-                  color={isSimulating ? "#D97706" : "#fff"}
+                  color={isSimulating ? BRAND.warning : "#fff"}
                   size={16}
                 />
                 <Text
@@ -469,7 +494,7 @@ export default function LiveTrackingScreen() {
               onPress={() => router.push(`/chat?bookingId=${booking.bookingId}`)}
               className="flex-row items-center justify-center gap-2 rounded-xl border border-border bg-surface py-3"
             >
-              <Icon icon={MessageSquare} color="#1F5D3F" size={16} />
+              <Icon icon={MessageSquare} color={BRAND.primary} size={16} />
               <Text className="text-sm font-bold text-ink">
                 Open Booking Chat
               </Text>

@@ -1,7 +1,36 @@
-// @ts-nocheck
+
 import React, { useEffect, useState } from "react";
+import { BRAND } from "@/src/theme/colors";
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import {
+  ArrowLeft,
+  Briefcase,
+  Calendar,
+  Check,
+  Compass,
+  Info,
+  MapPin,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  UserCheck,
+  BadgeCheck,
+} from "lucide-react-native";
+import {
+  getDocument,
+  sendInvitationEmail,
+  createInvitationNotification,
+} from "@/src/services/supabase/legacy";
 
 import { useAuth } from '@/src/context/AuthContext';
+import { useProviderReviews } from "@/src/hooks/useSupabase";
 import { TierBadge } from "@/src/components/ui/TierBadge";
 import { Avatar } from "@/src/components/ui/Avatar";
 import { Card } from "@/src/components/ui/Card";
@@ -12,6 +41,7 @@ interface Provider {
   name: string;
   category: string;
   city: string;
+  verified?: boolean;
   location: { lat: number; lng: number };
   basePrice: number;
   rating: number;
@@ -37,6 +67,14 @@ export default function ProviderProfileScreen() {
   const [notifying, setNotifying] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
+  const { data: reviewsData } = useProviderReviews(id);
+  const reviews = reviewsData || [];
+  const reviewCount = reviews.length;
+  const avgRating =
+    reviewCount > 0
+      ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviewCount) * 10) / 10
+      : null;
+
   const handleNotifyWorker = async () => {
     if (!provider || !userProfile) return;
     setNotifying(true);
@@ -45,7 +83,7 @@ export default function ProviderProfileScreen() {
         provider.email || "worker@email.com",
         provider.name,
         userProfile.name,
-        user?.uid || "",
+        user?.id || "",
         userProfile.email || "",
         provider.category,
         provider.city
@@ -53,7 +91,7 @@ export default function ProviderProfileScreen() {
       await createInvitationNotification(
         provider.userId,
         userProfile.name,
-        user?.uid || "",
+        user?.id || "",
         userProfile.email || "",
         provider.category,
         provider.city
@@ -97,7 +135,7 @@ export default function ProviderProfileScreen() {
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-surface">
-        <ActivityIndicator size="large" color="#1F5D3F" />
+        <ActivityIndicator size="large" color={BRAND.primary} />
         <Text className="mt-3 text-sm text-ink/60">Loading profile detail...</Text>
       </View>
     );
@@ -142,7 +180,7 @@ export default function ProviderProfileScreen() {
             onPress={() => router.back()}
             className="h-10 w-10 items-center justify-center rounded-full border border-border"
           >
-            <Icon icon={ArrowLeft} color="#14231C" size={20} />
+            <Icon icon={ArrowLeft} color={BRAND.ink} size={20} />
           </Pressable>
           <View className="flex-1">
             <Text className="font-display text-lg font-medium text-ink">
@@ -169,11 +207,19 @@ export default function ProviderProfileScreen() {
               )}
             </View>
 
-            <Text className="text-xl font-extrabold text-ink">
-              {provider.name}
-            </Text>
+            <View className="flex-row items-center gap-2">
+              <Text className="text-xl font-extrabold text-ink">
+                {provider.name}
+              </Text>
+              {provider.verified && (
+                <View className="flex-row items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5">
+                  <Icon icon={BadgeCheck} color={BRAND.success} size={13} />
+                  <Text className="text-[10px] font-bold text-emerald-700">Verified</Text>
+                </View>
+              )}
+            </View>
             <View className="mt-1 flex-row items-center gap-1.5">
-              <Icon icon={Briefcase} color="#1F5D3F" size={16} />
+              <Icon icon={Briefcase} color={BRAND.primary} size={16} />
               <Text className="text-sm font-semibold text-primary">
                 {provider.category}
               </Text>
@@ -187,7 +233,7 @@ export default function ProviderProfileScreen() {
             <View className="my-4 w-full flex-row justify-around border-t border-b border-border py-4">
               <View className="items-center">
                 <View className="flex-row items-center gap-1">
-                  <Icon icon={Star} color="#B8863B" size={16} />
+                  <Icon icon={Star} color={BRAND.gold} size={16} />
                   <Text className="text-base font-bold text-accent-gold">
                     {provider.rating != null ? provider.rating.toFixed(1) : "New"}
                   </Text>
@@ -226,7 +272,7 @@ export default function ProviderProfileScreen() {
               ) : (
                 <>
                   <View className="flex-row gap-2 rounded-xl border border-slate-500/25 bg-slate-500/10 p-3">
-                    <Icon icon={Info} color="#64748b" size={16} />
+                    <Icon icon={Info} color={BRAND.muted} size={16} />
                     <Text className="flex-1 text-xs leading-relaxed text-ink/75">
                       This provider is currently offline. You can notify them to get
                       online and accept your job match immediately!
@@ -246,7 +292,7 @@ export default function ProviderProfileScreen() {
                     ) : (
                       <Icon
                         icon={Sparkles}
-                        color={notified ? "#059669" : "#fff"}
+                        color={notified ? BRAND.success : "#fff"}
                         size={18}
                       />
                     )}
@@ -262,7 +308,7 @@ export default function ProviderProfileScreen() {
                     onPress={() => router.push(`/booking?providerId=${provider.userId}`)}
                     className="flex-row items-center justify-center gap-2 rounded-xl border border-border bg-surface py-3"
                   >
-                    <Icon icon={Calendar} color="#1F5D3F" size={16} />
+                    <Icon icon={Calendar} color={BRAND.primary} size={16} />
                     <Text className="text-sm font-bold text-ink">
                       Schedule for Later
                     </Text>
@@ -290,11 +336,11 @@ export default function ProviderProfileScreen() {
           </Text>
           <View className="gap-2">
             <Text className="flex-row items-center gap-2 text-sm font-semibold text-ink">
-              <Icon icon={MapPin} color="#1F5D3F" size={16} /> Base City:{" "}
+              <Icon icon={MapPin} color={BRAND.primary} size={16} /> Base City:{" "}
               <Text className="text-primary">{provider.city}</Text>
             </Text>
             <Text className="flex-row items-center gap-2 text-sm text-ink/60">
-              <Icon icon={Compass} color="#1F5D3F" size={16} /> GPS Pin Drop:{" "}
+              <Icon icon={Compass} color={BRAND.primary} size={16} /> GPS Pin Drop:{" "}
               <Text className="font-mono text-xs">
                 {provider.location.lat.toFixed(5)}, {provider.location.lng.toFixed(5)}
               </Text>
@@ -303,7 +349,7 @@ export default function ProviderProfileScreen() {
 
           <View className="mt-4 rounded-xl bg-emerald-500/10 px-4 py-3">
             <View className="flex-row items-center gap-1.5">
-              <Icon icon={UserCheck} color="#059669" size={16} />
+              <Icon icon={UserCheck} color={BRAND.success} size={16} />
               <Text className="text-xs font-bold text-emerald-600">
                 Ready to travel inside {provider.city}
               </Text>
@@ -312,7 +358,7 @@ export default function ProviderProfileScreen() {
 
           <View className="mt-4 h-36 items-center justify-center rounded-lg border border-dashed border-border bg-surface">
             <View className="mb-2 h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-              <Icon icon={MapPin} color="#1F5D3F" size={20} />
+              <Icon icon={MapPin} color={BRAND.primary} size={20} />
             </View>
             <Text className="text-xs font-bold text-ink">
               Active Dispatch Area
@@ -327,19 +373,70 @@ export default function ProviderProfileScreen() {
         {/* Verification checks */}
         <Card className="p-4">
           <Text className="mb-3 flex-row items-center gap-1.5 border-b border-border pb-2 text-base font-bold text-ink">
-            <Icon icon={ShieldCheck} color="#1F5D3F" size={20} /> Khidmat
+            <Icon icon={ShieldCheck} color={BRAND.primary} size={20} /> Khidmat
             Security &amp; Safety Checks
           </Text>
           <View className="gap-3">
             {verificationChecks.map((item, index) => (
               <View key={index} className="flex-row items-center gap-2">
                 <View className="h-5 w-5 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10">
-                  <Icon icon={Check} color="#059669" size={12} />
+                  <Icon icon={Check} color={BRAND.success} size={12} />
                 </View>
                 <Text className="text-xs font-semibold text-ink/70">{item}</Text>
               </View>
             ))}
           </View>
+        </Card>
+
+        {/* Customer reviews */}
+        <Card className="mt-4 p-4">
+          <View className="mb-3 flex-row items-center justify-between border-b border-border pb-2">
+            <Text className="flex-row items-center gap-1.5 text-base font-bold text-ink">
+              <Icon icon={Star} color={BRAND.gold} size={18} /> Customer Reviews
+            </Text>
+            {avgRating != null && (
+              <View className="flex-row items-center gap-1 rounded-full bg-accent-gold/10 border border-accent-gold/20 px-2.5 py-0.5">
+                <Icon icon={Star} color={BRAND.gold} size={12} />
+                <Text className="text-xs font-bold text-accent-gold">
+                  {avgRating.toFixed(1)} · {reviewCount}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {reviewCount === 0 ? (
+            <Text className="py-2 text-center text-xs text-ink/50">
+              No written reviews yet. Be the first to rate after your job.
+            </Text>
+          ) : (
+            <View className="gap-4">
+              {reviews.map((r) => (
+                <View key={r.id} className="flex-row gap-3">
+                  <Avatar name={r.name} className="h-9 w-9" />
+                  <View className="flex-1">
+                    <View className="flex-row items-center justify-between">
+                      <Text className="text-sm font-bold text-ink">{r.name}</Text>
+                      <View className="flex-row items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <Icon
+                            key={n}
+                            icon={Star}
+                            color={n <= r.rating ? BRAND.warning : BRAND.border}
+                            size={12}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                    {!!r.comment && (
+                      <Text className="mt-1 text-xs leading-relaxed text-ink/70">
+                        {r.comment}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
         </Card>
       </View>
 

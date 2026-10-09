@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { BRAND } from "@/src/theme/colors";
 import { View, Text } from "react-native";
 import Svg, { Path, Circle, G, Text as SvgText } from "react-native-svg";
 import { Navigation } from "lucide-react-native";
@@ -94,17 +95,17 @@ const MockMap: React.FC<{ progress: number; isCompleted: boolean }> = ({
           {"VILLA 533"}
         </SvgText>
         {/* Route path */}
-        <Path d={routeD} fill="none" stroke="#10B981" strokeWidth={5} strokeLinecap="round" strokeDasharray="8,4" />
+        <Path d={routeD} fill="none" stroke={BRAND.success} strokeWidth={5} strokeLinecap="round" strokeDasharray="8,4" />
         {/* Destination pin */}
         <G translateX={dest.x} translateY={dest.y - 10}>
-          <Path d="M-6,-6 L6,-6 L0,10 Z" fill="#C2410C" />
+          <Path d="M-6,-6 L6,-6 L0,10 Z" fill={BRAND.caution} />
           <Circle cx={0} cy={-6} r={3} fill="#ffffff" />
         </G>
-        <Circle cx={dest.x} cy={dest.y} r={14} fill="none" stroke="#EF4444" strokeWidth={1.5} />
+        <Circle cx={dest.x} cy={dest.y} r={14} fill="none" stroke={BRAND.danger} strokeWidth={1.5} />
         {/* Worker marker */}
         <G translateX={current.x} translateY={current.y}>
           <Circle cx={0} cy={0} r={16} fill="rgba(16,185,129,0.2)" />
-          <Circle cx={0} cy={0} r={11} fill="#10B981" stroke="#fff" strokeWidth={2} />
+          <Circle cx={0} cy={0} r={11} fill={BRAND.success} stroke="#fff" strokeWidth={2} />
         </G>
         {/* Worker heading arrow */}
         <G translateX={current.x - 4} translateY={current.y - 7}>
@@ -115,7 +116,7 @@ const MockMap: React.FC<{ progress: number; isCompleted: boolean }> = ({
       </Svg>
       {/* Compass HUD */}
       <View className="absolute right-4 top-4 rounded-full border border-border bg-surface-raised p-2 shadow-soft">
-        <Icon icon={Navigation} color="#1F5D3F" size={16} />
+        <Icon icon={Navigation} color={BRAND.primary} size={16} />
       </View>
     </View>
   );

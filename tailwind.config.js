@@ -5,6 +5,9 @@ module.exports = {
     "./src/**/*.{ts,tsx}"
   ],
   presets: [require("nativewind/preset")],
+  // NativeWind requires the class strategy — the 'media' default makes its web
+  // runtime throw "Cannot manually set color scheme" on http://localhost:8081.
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -19,6 +22,13 @@ module.exports = {
         "accent-sage": "#7FA894",
         "accent-sky": "#4A7FA0",
         border: "#E4E2D8",
+        // Semantic status colors (keep in sync with src/theme/colors.ts BRAND).
+        success: "#059669",
+        danger: "#EF4444",
+        warning: "#F59E0B",
+        caution: "#C2410C",
+        info: "#4A7FA0",
+        muted: "#64748B",
         dark: {
           ink: "#F4F2EA",
           surface: "#0F1712",
@@ -29,7 +39,13 @@ module.exports = {
           "accent-terracotta": "#D97A54",
           "accent-sage": "#8FBFA8",
           "accent-sky": "#6FA3C9",
-          border: "#263229"
+          border: "#263229",
+          success: "#34D399",
+          danger: "#F87171",
+          warning: "#FBBF24",
+          caution: "#F97316",
+          info: "#6FA3C9",
+          muted: "#94A3B8"
         }
       },
       fontFamily: {

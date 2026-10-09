@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { BRAND } from "@/src/theme/colors";
 import { View, Text, Pressable } from "react-native";
 import { Icon } from "../ui/Icon";
 import { MapPin, Navigation, ShieldAlert, Sparkles } from "lucide-react-native";
@@ -111,18 +112,18 @@ export const MapSelector: React.FC<MapSelectorProps> = ({
         >
           <View className="absolute h-8 w-8 rounded-full border border-primary/40 bg-primary/20" />
           <View className="absolute h-2 w-2 rounded-full border border-white bg-primary" />
-          <Icon icon={MapPin} color="#1F5D3F" size={32} />
+          <Icon icon={MapPin} color={BRAND.primary} size={32} />
         </View>
 
         <View className="absolute left-3 top-3 flex-row items-center gap-1.5 rounded-lg border border-slate-200 bg-white/80 px-3 py-1.5">
-          <Icon icon={Sparkles} color="#1F5D3F" size={13} />
+          <Icon icon={Sparkles} color={BRAND.primary} size={13} />
           <Text className="text-[11px] font-medium text-slate-600">
             Tap to place pin
           </Text>
         </View>
 
         <View className="absolute bottom-3 left-3 flex-row items-center gap-1 rounded border border-slate-200 bg-white/90 px-2 py-1">
-          <Icon icon={Navigation} color="#1F5D3F" size={13} />
+          <Icon icon={Navigation} color={BRAND.primary} size={13} />
           <Text className="font-mono text-[10px] text-slate-500">
             Pin: {value.lat.toFixed(5)}, {value.lng.toFixed(5)}
           </Text>

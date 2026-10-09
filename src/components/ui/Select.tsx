@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { BRAND } from "@/src/theme/colors";
 import { View, Text, Pressable, Modal, ScrollView } from "react-native";
 import { ChevronDown } from "lucide-react-native";
 import { Icon } from "./Icon";
@@ -41,7 +42,7 @@ export const Select: React.FC<SelectProps> = ({
         className="flex-row items-center justify-between rounded-xl border border-border bg-surface px-4 py-3.5"
       >
         <Text className="text-sm text-ink">{selected?.label ?? "Select..."}</Text>
-        <Icon icon={ChevronDown} color="#1F5D3F66" size={16} />
+        <Icon icon={ChevronDown} color={BRAND.primary + "66"} size={16} />
       </Pressable>
 
       <Modal

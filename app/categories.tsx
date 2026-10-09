@@ -1,5 +1,6 @@
-// @ts-nocheck
+
 import React from "react";
+import { BRAND } from "@/src/theme/colors";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
@@ -35,8 +36,8 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ color?: string; size?
 };
 
 const CATEGORY_COLORS: Record<string, { text: string; iconBg: string }> = {
-  gold: { text: "#B8863B", iconBg: "bg-accent-gold/10" },
-  sky: { text: "#2C6E8F", iconBg: "bg-accent-sky/10" },
+  gold: { text: BRAND.gold, iconBg: "bg-accent-gold/10" },
+  sky: { text: BRAND.info, iconBg: "bg-accent-sky/10" },
   sage: { text: "#3D7A5F", iconBg: "bg-accent-sage/10" },
 };
 
@@ -80,7 +81,7 @@ export default function CategoriesScreen() {
             onPress={() => router.back()}
             className="h-10 w-10 items-center justify-center rounded-full border border-border"
           >
-            <Icon icon={ChevronLeft} color="#14231C" size={20} />
+            <Icon icon={ChevronLeft} color={BRAND.ink} size={20} />
           </Pressable>
           <View className="flex-1">
             <Text className="font-display text-2xl font-medium text-ink">

@@ -1,5 +1,30 @@
-// @ts-nocheck
+
 import React, { useState, useEffect } from "react";
+import { BRAND } from "@/src/theme/colors";
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  Pressable,
+  KeyboardAvoidingView,
+  ActivityIndicator,
+  Modal,
+  Platform,
+} from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  MapPin,
+  FileText,
+  Truck,
+  CheckCircle,
+} from "lucide-react-native";
+import { useAuth } from "@/src/context/AuthContext";
+import { getDocument, writeDocument } from "@/src/services/supabase/legacy";
+import { track, AnalyticsEvents } from "@/src/services/analytics";
 
 import {
   getDistanceKm,
@@ -92,9 +117,14 @@ export default function ConfirmBookingScreen() {
           await updateProfile({ location: coords });
         } catch {}
       } else {
-        setLocationError(
-          "Location access is required to book services. Please enable location permissions."
-        );
+        // Live fix unavailable — fall back to the profile's last known location
+        // (seeded in jobCoordinates) instead of dead-ending the booking flow.
+        const hasSavedLocation = Boolean(userProfile?.location);
+        if (!hasSavedLocation) {
+          setLocationError(
+            "Couldn't detect your current location. Please pin or type your area — the default city location will be used."
+          );
+        }
       }
     })();
   }, []);
@@ -140,7 +170,9 @@ export default function ConfirmBookingScreen() {
   }, [provider, jobCoordinates]);
 
   const handleConfirm = async () => {
-    if (locationError) {
+    // locationError is a soft notice now — only block when there's no usable
+    // coordinate at all (no live fix AND no saved profile location).
+    if (locationError && !jobCoordinates) {
       setError(locationError);
       return;
     }
@@ -161,7 +193,7 @@ export default function ConfirmBookingScreen() {
       const bookingId = `booking_${Math.random().toString(36).substring(2, 11)}`;
       const payload = {
         bookingId,
-        customerId: user?.uid || "anonymous",
+        customerId: user?.id || "",
         customerName: userProfile?.name || "Customer",
         customerPhone: userProfile?.phone || "",
         providerId: provider?.userId,
@@ -179,11 +211,12 @@ export default function ConfirmBookingScreen() {
         totalPrice,
         createdAt: new Date().toISOString(),
       };
-      await writeDocument("bookings", bookingId, payload);
+      const createdId = await writeDocument("bookings", bookingId, payload);
+            track(AnalyticsEvents.BOOKING_CREATED, { totalPrice });
       setShowSuccessModal(true);
       setTimeout(() => {
         setShowSuccessModal(false);
-        router.replace(`/chat?bookingId=${bookingId}`);
+        router.replace(`/chat?bookingId=${createdId}`);
       }, 2600);
     } catch (err) {
       console.error(err);
@@ -198,7 +231,7 @@ export default function ConfirmBookingScreen() {
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-surface">
-        <ActivityIndicator size="large" color="#1F5D3F" />
+        <ActivityIndicator size="large" color={BRAND.primary} />
         <Text className="mt-3 text-sm text-ink/60">
           Loading booking details...
         </Text>
@@ -241,7 +274,7 @@ export default function ConfirmBookingScreen() {
               onPress={() => router.back()}
               className="h-10 w-10 items-center justify-center rounded-full border border-border"
             >
-              <Icon icon={ArrowLeft} color="#14231C" size={20} />
+              <Icon icon={ArrowLeft} color={BRAND.ink} size={20} />
             </Pressable>
             <View className="flex-1">
               <Text className="font-display text-lg font-medium text-ink">
@@ -264,7 +297,7 @@ export default function ConfirmBookingScreen() {
             {/* Date selection */}
             <Card className="p-4">
               <Text className="mb-3 flex-row items-center gap-1.5 text-sm font-bold text-ink/65">
-                <Icon icon={Calendar} color="#1F5D3F" size={20} /> Select Date
+                <Icon icon={Calendar} color={BRAND.primary} size={20} /> Select Date
               </Text>
               <View className="flex-row flex-wrap gap-2">
                 {dateOptions.map((date) => (
@@ -306,7 +339,7 @@ export default function ConfirmBookingScreen() {
             {/* Time slot */}
             <Card className="p-4">
               <Text className="mb-3 flex-row items-center gap-1.5 text-sm font-bold text-ink/65">
-                <Icon icon={Clock} color="#1F5D3F" size={20} /> Preferred Time Slot
+                <Icon icon={Clock} color={BRAND.primary} size={20} /> Preferred Time Slot
               </Text>
               <View className="gap-2">
                 {TIME_SLOTS.map((slot) => (
@@ -334,8 +367,22 @@ export default function ConfirmBookingScreen() {
             {/* Address */}
             <Card className="p-4">
               <Text className="mb-2 flex-row items-center gap-1.5 text-sm font-bold text-ink/65">
-                <Icon icon={MapPin} color="#1F5D3F" size={16} /> Detailed Street Address
+                <Icon icon={MapPin} color={BRAND.primary} size={16} /> Detailed Street Address
               </Text>
+              {((userProfile?.addresses as any[]) ?? []).length > 0 && (
+                <View className="mb-2 flex-row flex-wrap gap-2">
+                  {((userProfile?.addresses as any[]) ?? []).map((a) => (
+                    <Pressable
+                      key={a.id}
+                      onPress={() => setDetailedAddress(a.line)}
+                      className="flex-row items-center gap-1 rounded-full border border-primary/25 bg-primary/5 px-3 py-1.5"
+                    >
+                      <Icon icon={MapPin} color={BRAND.primary} size={12} />
+                      <Text className="text-[11px] font-bold text-primary">{a.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
               <TextInput
                 value={detailedAddress}
                 onChangeText={setDetailedAddress}
@@ -348,7 +395,7 @@ export default function ConfirmBookingScreen() {
             {/* Notes */}
             <Card className="p-4">
               <Text className="mb-2 flex-row items-center gap-1.5 text-sm font-bold text-ink/65">
-                <Icon icon={FileText} color="#1F5D3F" size={16} /> Special Instructions
+                <Icon icon={FileText} color={BRAND.primary} size={16} /> Special Instructions
                 (Optional)
               </Text>
               <TextInput
@@ -406,7 +453,7 @@ export default function ConfirmBookingScreen() {
                 </View>
 
                 <View className="flex-row items-center gap-2 rounded bg-accent-sky/10 p-2">
-                  <Icon icon={Truck} color="#2C6E8F" size={16} />
+                  <Icon icon={Truck} color={BRAND.info} size={16} />
                   <Text className="text-[11px] font-medium text-accent-sky">
                     Travel time estimate: ~{estimateTravelTimeMinutes(distance)} mins
                     away

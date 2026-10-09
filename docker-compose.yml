@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: khidmat-app
+    ports:
+      - "8081:8081"      # Expo Web
+      - "3000:3000"      # Fallback web port
+      - "19000:19000"    # Expo DevTools
+      - "19001:19001"    # Expo DevTools WebSocket
+    environment:
+      - NODE_ENV=development
+      - EXPO_PUBLIC_SUPABASE_URL=${EXPO_PUBLIC_SUPABASE_URL}
+      - EXPO_PUBLIC_SUPABASE_ANON_KEY=${EXPO_PUBLIC_SUPABASE_ANON_KEY}
+      - EXPO_PUBLIC_AGENT_SERVER_URL=${EXPO_PUBLIC_AGENT_SERVER_URL}
+    volumes:
+      # Source code for hot reload
+      - ./src:/app/src
+      - ./app.json:/app/app.json
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./tailwind.config.js:/app/tailwind.config.js
+      # Exclude node_modules to avoid conflicts
+      - /app/node_modules
+      - /app/.expo
+    env_file:
+      - .env
+    networks:
+      - khidmat-network
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+        - action: sync
+          path: ./app.json
+          target: /app/app.json
+        - action: rebuild
+          path: package.json
+
+networks:
+  khidmat-network:
+    driver: bridge

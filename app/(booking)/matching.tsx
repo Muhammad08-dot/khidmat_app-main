@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { BRAND } from "@/src/theme/colors";
 import { View, Text, Pressable } from "react-native";
 import { MotiView } from 'moti';
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -106,11 +107,11 @@ export default function MatchingScreen() {
   const getUrgency = (urgency: string) => {
     switch (urgency) {
       case "high":
-        return { color: "#EF4444", label: "Critical / Emergency Action" };
+        return { color: BRAND.danger, label: "Critical / Emergency Action" };
       case "medium":
-        return { color: "#F59E0B", label: "Standard Scheduled Repair" };
+        return { color: BRAND.warning, label: "Standard Scheduled Repair" };
       default:
-        return { color: "#10B981", label: "Routine Maintenance" };
+        return { color: BRAND.success, label: "Routine Maintenance" };
     }
   };
 
@@ -150,7 +151,7 @@ export default function MatchingScreen() {
         <Card className="w-full max-w-md p-6">
           <View className="items-center py-6">
             <View className="h-16 w-16 items-center justify-center rounded-full bg-red-100">
-              <Icon icon={AlertCircle} color="#DC2626" size={30} />
+              <Icon icon={AlertCircle} color={BRAND.danger} size={30} />
             </View>
             <Text className="mt-4 font-display text-lg font-semibold text-ink">
               Matching Failed
@@ -176,7 +177,7 @@ export default function MatchingScreen() {
         {/* Header announcement */}
         <View className="items-center">
           <View className="h-14 w-14 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-100">
-            <Icon icon={CheckCircle2} color="#059669" size={28} />
+            <Icon icon={CheckCircle2} color={BRAND.success} size={28} />
           </View>
           <Text className="mt-3 font-display text-xl font-medium text-ink">
             Request Analyzed!
@@ -202,7 +203,7 @@ export default function MatchingScreen() {
           <View className="mb-4">
             <View className="mb-3 flex-row items-center gap-3 rounded-xl border border-border bg-surface p-3">
               <View className="h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                <Icon icon={MatchedIcon as any} color="#1F5D3F" size={24} />
+                <Icon icon={MatchedIcon as any} color={BRAND.primary} size={24} />
               </View>
               <View className="flex-1">
                 <Text className="font-mono text-[10px] uppercase tracking-wider text-ink/40">
@@ -248,7 +249,7 @@ export default function MatchingScreen() {
           </Text>
 
           <View className="mt-4 flex-row items-center gap-2 border-t border-border pt-3">
-            <Icon icon={Compass} color="#1F5D3F" size={14} />
+            <Icon icon={Compass} color={BRAND.primary} size={14} />
             <Text className="text-[11px] text-ink/60">
               Finding local {result?.category} workers registered in{" "}
               {userProfile?.city || "your city"}...

@@ -1,0 +1,9 @@
+node_modules
+.git
+.expo
+dist
+web-build
+.agents
+bug_report.md
+migrate-chat.js
+migrate-bookings.js

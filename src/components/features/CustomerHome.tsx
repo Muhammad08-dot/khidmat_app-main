@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { BRAND } from "@/src/theme/colors";
 import {
   View,
   Text,
@@ -130,7 +131,7 @@ export const CustomerHome: React.FC = () => {
               focused ? "border-accent-gold" : "border-border"
             }`}
           >
-            <Icon icon={Search} color="#1F5D3F" size={18} />
+            <Icon icon={Search} color={BRAND.primary} size={18} />
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -138,12 +139,12 @@ export const CustomerHome: React.FC = () => {
               onBlur={() => setFocused(false)}
               onSubmitEditing={() => submitSearch()}
               placeholder="Describe what service you need... (e.g. kitchen pipe leak)"
-              placeholderTextColor="#1F5D3F66"
+              placeholderTextColor={BRAND.primary + "66"}
               className="ml-2 flex-1 py-3.5 text-sm font-medium text-ink"
               returnKeyType="search"
             />
             <Pressable onPress={startVoice} className="rounded-full p-2">
-              <Icon icon={Mic} color="#1F5D3F" size={18} />
+              <Icon icon={Mic} color={BRAND.primary} size={18} />
             </Pressable>
           </View>
         </View>
@@ -176,7 +177,7 @@ export const CustomerHome: React.FC = () => {
                     className="items-center rounded-xl border border-border bg-surface-raised px-2 py-4"
                   >
                     <View className="mb-2 h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
-                      <IconCmp color={cat.color === "text-accent-gold" ? "#B8863B" : cat.color === "text-accent-sky" ? "#2C6E8F" : "#6B8F71"} size={22} />
+                      <IconCmp color={cat.color === "text-accent-gold" ? BRAND.gold : cat.color === "text-accent-sky" ? BRAND.info : "#6B8F71"} size={22} />
                     </View>
                     <Text className="text-center text-xs font-medium text-ink">
                       {cat.name}
@@ -222,7 +223,7 @@ export const CustomerHome: React.FC = () => {
         {/* WHY KHIDMAT */}
         <View className="mt-8">
           <View className="flex-row items-center gap-2">
-            <Icon icon={Heart} color="#EF4444" size={14} />
+            <Icon icon={Heart} color={BRAND.danger} size={14} />
             <Text className="text-[10px] font-bold uppercase tracking-wider text-primary">
               Created with a Purpose
             </Text>
@@ -248,7 +249,7 @@ export const CustomerHome: React.FC = () => {
         {/* SAFETY */}
         <View className="mt-8">
           <View className="flex-row items-center gap-2">
-            <Icon icon={Users} color="#1F5D3F" size={14} />
+            <Icon icon={Users} color={BRAND.primary} size={14} />
             <Text className="text-[10px] font-bold uppercase tracking-wider text-primary">
               A Safer Community
             </Text>
@@ -303,7 +304,7 @@ export const CustomerHome: React.FC = () => {
               <View className="items-center py-4">
                 <View className="h-20 w-20 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10">
                   <View className="absolute inset-0 rounded-full bg-red-500/20" />
-                  <Icon icon={Mic} color="#EF4444" size={32} />
+                  <Icon icon={Mic} color={BRAND.danger} size={32} />
                 </View>
                 <Text className="mt-4 font-display text-lg font-semibold text-ink">
                   Listening...
@@ -324,7 +325,7 @@ export const CustomerHome: React.FC = () => {
             ) : (
               <View className="items-center">
                 <View className="h-16 w-16 items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/10">
-                  <Icon icon={AlertCircle} color="#D97706" size={26} />
+                  <Icon icon={AlertCircle} color={BRAND.warning} size={26} />
                 </View>
                 <Text className="mt-3 font-display text-lg font-semibold text-ink">
                   Voice Search Status
