@@ -294,6 +294,31 @@ are documented in `docs/LAUNCH_CHECKLIST.md` — they cannot be enabled without 
 
 Verified `tsc` 0, `eslint` 0, `jest` 23/23 (5 suites). Added `src/services/supabase/__tests__/adminFlows.test.ts` as a runtime self-check of the admin/moderation data flows against the mock (approve removes from `getPendingProviders`; hide removes from `getProviderReviews` + recomputes the average). Not changed here: full-screen Urdu content rollout and a wired light/dark toggle (both tracked as roadmap — English-only ships fine on the store).
 
+---
+
+## 16. Security hardening pass (PII split, forge-proof notifications, admin audit, store compliance)
+
+A security audit against Play Store launch standards scored the app **~6.5/10** with four
+concrete weak dimensions. This section closes each one. Nothing here changes UI/UX; every
+change is either a policy tighten, a data-model correction, or an unused-surface removal.
+
+| # | Fix | Where |
+|---|---|---|
+| 16.1 | **PII split — `profiles.phone` → new `profile_contacts` table.** Postgres RLS cannot mask a column on a public table, so `phone` moved into `profile_contacts(user_id, phone, updated_at)` with `SELECT / INSERT / UPDATE USING (self OR admin OR booking counterparty)`. `profiles.phone` is dropped and the signup trigger `handle_new_user()` re-pointed to write into both. Screens (`AuthContext.fetchProfile`, `mapBookingRow`, `mapProviderRow`, `writeDocument('profiles')`, `getPendingProviders`, admin console) updated to route phone via `profile_contacts` (batched lookups + PostgREST nested-embed via reverse-FK `profile_contacts!profile_contacts_user_id_fkey(phone)`). Public provider browse never sees a phone number until a booking exists — a real privacy win for the Pakistan market. | `supabase/migrations/0008_security_hardening.sql`, `queries.ts`, `legacy.ts`, `AuthContext.tsx`, `mockClient.ts` |
+| 16.2 | **Notifications forge-proof INSERT.** The 0003 policy `WITH CHECK (auth.uid() IS NOT NULL)` let any authenticated user inject a notification into any other user's inbox (phishing / spam). Replaced with: `self OR admin OR booking counterparty on the notification's booking_id`. | `0008_security_hardening.sql` |
+| 16.3 | **Job-media bucket → private + owner/admin reads.** 0003 shipped a `public` bucket with a world-readable policy; even though the photo-attachment feature isn't wired, the surface existed. Now `public=false` + `SELECT USING (owner OR is_admin())`. | `0008_security_hardening.sql` |
+| 16.4 | **Admin audit trail.** New `admin_actions(actor_id, action, target_type, target_id, meta, created_at)` — append-only, admin-reads-only. Every `setProviderVerification`, `setReviewHidden`, `deleteReview` best-effort appends a row. Provides tamper-evidence for moderation disputes. | `0008_security_hardening.sql`, `queries.ts::logAdminAction` |
+| 16.5 | **Play Store compliance — `app.json` `isBackgroundLocationEnabled` was `true` while `EXPO_PUBLIC_BG_LOCATION_ENABLED=false`.** Setting flipped to `false` so the manifest doesn't advertise a permission we don't ship. | `app.json` |
+| 16.6 | **Abuse resistance — unauthenticated paid-LLM endpoints closed.** `/api/heal` and `/api/gemini/generateContent` had no `requireAuth` — an anonymous caller could burn OpenAI/Gemini credits (rate-limiter alone was weak defense). Both now `requireAuth`. | `agent-server/src/index.ts` |
+| 16.7 | **Payment HMAC spec alignment.** Comment declared SHA-512 (JazzCash server-to-server spec) but code used `createHmac("sha256", …)` — merchant integration would have been rejected at first call. Now uses `sha512` matching the spec. | `agent-server/src/index.ts` |
+| 16.8 | **Web auth-storage blast radius.** Supabase session was persisting to `window.localStorage` on web, which survives XSS across tabs + reloads. Switched to `window.sessionStorage` (tab-scoped, cleared on close), with an in-memory fallback for private-browsing modes that throw on access. Native still uses `expo-secure-store`. | `src/services/supabase/client.ts` |
+| 16.9 | **Device-token leak in logs.** `usePushNotifications.ts` console-logged the Expo push token unconditionally — a device-identifying secret in production logs. The hook turned out to be dead code (nothing imports it, `expo-device` isn't in `package.json`, it also carried pre-existing TS errors), so it was **removed** rather than patched. Zero loss; the real push path lives in `src/services/push.ts`. | `src/hooks/usePushNotifications.ts` (deleted) |
+| 16.10 | **Self-check tests for the audit trail.** `src/services/supabase/__tests__/audit.test.ts` signs in as the demo admin, calls `setProviderVerification` + `setReviewHidden` through the mock, and asserts the corresponding `admin_actions` rows are written with the expected `action` / `actor_id` / `target_type` / `meta` shape. | `audit.test.ts` |
+
+**Verified**: `tsc` 0 errors · `eslint` 0 errors · `jest` **25/25 across 6 suites** (added audit.test.ts).
+
+**Not changed** (deliberate): `profiles SELECT USING (true)` stays — the leak was `phone`, not name/city/photo; those are legitimately public on a service marketplace. Postgres column-level GRANT can't be row-scoped, so the split is the correct primitive. Full Urdu content rollout + wired light/dark toggle remain roadmap items.
+
 
 
 

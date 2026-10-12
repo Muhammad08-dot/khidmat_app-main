@@ -24,6 +24,7 @@ import {
   Compass,
 } from "lucide-react-native";
 import { useAuth } from "@/src/context/AuthContext";
+import { supabase } from "@/src/services/supabase/client";
 import { listenToBookings, writeDocument } from "@/src/services/supabase/legacy";
 
 import { LiveMap } from "@/src/components/features/LiveMap";
@@ -76,6 +77,8 @@ export default function LiveTrackingScreen() {
   const [isTopExpanded, setIsTopExpanded] = useState(false);
   const [isBottomExpanded, setIsBottomExpanded] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [liveWorkerLocation, setLiveWorkerLocation] = useState(null);
+  const [liveClientLocation, setLiveClientLocation] = useState(null);
 
   const simIntervalRef = useRef<any>(null);
   const previousCoordsRef = useRef<{ lat: number; lng: number } | null>(null);

@@ -66,9 +66,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .select('*')
           .eq('id', userId)
           .maybeSingle();
+        // Phone is in the private profile_contacts table (owner/admin/counterparty RLS).
+        // For self-read this always succeeds; screens keep consuming userProfile.phone.
+        const { data: contactRow } = await supabase
+          .from('profile_contacts')
+          .select('phone')
+          .eq('user_id', userId)
+          .maybeSingle();
         setUserProfile({
           ...profile,
           photoURL: profile.photo_url,
+          phone: contactRow?.phone ?? profile.profile_contacts?.phone ?? null,
           ...(providerRow
             ? {
                 category: providerRow.category,
@@ -215,8 +223,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       profileKeys.reduce((acc: any, k) => ({ ...acc, [k]: newData[k] }), {})
     );
     if (Object.keys(profilePatch).length > 0) {
-      const { error } = await supabase.from('profiles').update(profilePatch).eq('id', user.id);
-      if (error) throw error;
+      // Phone belongs in profile_contacts, not on the public profiles row.
+      const phone = (profilePatch as any).phone;
+      delete (profilePatch as any).phone;
+      if (Object.keys(profilePatch).length > 0) {
+        const { error } = await supabase.from('profiles').update(profilePatch).eq('id', user.id);
+        if (error) throw error;
+      }
+      if (phone !== undefined) {
+        const { error: contactErr } = await supabase
+          .from('profile_contacts')
+          .upsert({ user_id: user.id, phone, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+        if (contactErr) throw contactErr;
+      }
     }
 
     const providerPatch: Record<string, any> = {};

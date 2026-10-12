@@ -11,26 +11,41 @@ interface AuthStorageAdapter {
 }
 
 // `expo-secure-store` is native-only and throws on web.
-// Use SecureStore on native platforms and fall back to window.localStorage on web.
+// Use SecureStore on native platforms. On web, sessionStorage is scoped to
+// the tab and is cleared when the tab closes — a strictly better XSS blast
+// radius than localStorage (which persists across tabs and reloads).
+const getWebStore = (): Storage | null => {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
+  try {
+    return window.sessionStorage;
+  } catch {
+    // Private-browsing modes may throw on access; fall back to an in-memory map.
+    const mem = new Map<string, string>();
+    return {
+      getItem: (k: string) => mem.get(k) ?? null,
+      setItem: (k: string, v: string) => { mem.set(k, v); },
+      removeItem: (k: string) => { mem.delete(k); },
+      clear: () => mem.clear(),
+      key: () => null,
+      length: 0,
+    } as unknown as Storage;
+  }
+};
+
 const ExpoSecureStoreAdapter: AuthStorageAdapter = {
   getItem: async (key: string) => {
-    if (Platform.OS === 'web') {
-      return typeof window !== 'undefined' ? window.localStorage.getItem(key) : null;
-    }
+    const web = getWebStore();
+    if (web) return web.getItem(key);
     return SecureStore.getItemAsync(key);
   },
   setItem: async (key: string, value: string) => {
-    if (Platform.OS === 'web') {
-      window.localStorage.setItem(key, value);
-      return;
-    }
+    const web = getWebStore();
+    if (web) { web.setItem(key, value); return; }
     await SecureStore.setItemAsync(key, value);
   },
   removeItem: async (key: string) => {
-    if (Platform.OS === 'web') {
-      window.localStorage.removeItem(key);
-      return;
-    }
+    const web = getWebStore();
+    if (web) { web.removeItem(key); return; }
     await SecureStore.deleteItemAsync(key);
   },
 };

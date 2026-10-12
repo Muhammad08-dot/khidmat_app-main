@@ -44,7 +44,7 @@ const BOOKING_COLUMN_KEYS: Record<string, string> = {
 
 const BOOKING_SELECT = `
   *,
-  customer:profiles!bookings_customer_id_fkey(name, phone),
+  customer:profiles!bookings_customer_id_fkey(name, profile_contacts!profile_contacts_user_id_fkey(phone)),
   provider:providers!bookings_provider_id_fkey(base_price, profiles!providers_id_fkey(name))
 `;
 
@@ -55,7 +55,7 @@ export const mapBookingRow = (row: any): Doc => {
     bookingId: row.id,
     customerId: row.customer_id,
     customerName: row.customer?.name ?? meta.customerName ?? 'Customer',
-    customerPhone: meta.customerPhone ?? row.customer?.phone ?? '',
+    customerPhone: meta.customerPhone ?? row.customer?.profile_contacts?.phone ?? '',
     providerId: row.provider_id,
     providerName: providerProfile?.name ?? meta.providerName ?? 'Provider',
     providerCategory: row.category,
@@ -98,7 +98,7 @@ const fetchBookingById = async (id: string): Promise<Doc | null> => {
 
 const PROVIDER_SELECT = `
   *,
-  profile:profiles!providers_id_fkey(name, phone, city, photo_url, location_lat, location_lng, verification_status)
+  profile:profiles!providers_id_fkey(name, city, photo_url, location_lat, location_lng, verification_status, profile_contacts!profile_contacts_user_id_fkey(phone))
 `;
 
 export const mapProviderRow = (row: any): Doc => ({
@@ -118,7 +118,7 @@ export const mapProviderRow = (row: any): Doc => ({
   available: row.available ?? false,
   verified: row.profile?.verification_status === 'verified',
   photoURL: row.profile?.photo_url,
-  phone: row.profile?.phone,
+  phone: row.profile?.profile_contacts?.phone,
 });
 
 /* ------------------------------------------------------------------ */
@@ -195,8 +195,17 @@ export async function writeDocument(collection: string, id: string, data: Doc): 
 
   if (collection === 'profiles') {
     const row = profileColumnsFromCamel(data);
+    // Phone now lives in profile_contacts (owner/admin/counterparty RLS).
+    const phone = (row as any).phone;
+    delete (row as any).phone;
     const { error } = await supabase.from('profiles').update(row).eq('id', id);
     if (error) throw error;
+    if (phone !== undefined) {
+      const { error: contactErr } = await supabase
+        .from('profile_contacts')
+        .upsert({ user_id: id, phone, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+      if (contactErr) throw contactErr;
+    }
     return id;
   }
 
@@ -214,13 +223,14 @@ const mapProfileRow = (row: any): Doc => ({
 
 /** Translates the camelCase keys screens pass to `updateProfile` into columns. */
 export function profileColumnsFromCamel(data: Doc): Doc {
-  const { photoURL, basePrice, location, ...rest } = data;
+  const { photoURL, basePrice, location, currentMode, ...rest } = data;
   const row: Doc = { ...rest };
   if (photoURL !== undefined) row.photo_url = photoURL;
   if (basePrice !== undefined) row.base_price = basePrice;
+  if (currentMode !== undefined) row.current_mode = currentMode;
   if (location && typeof location === 'object') {
-    row.location_lat = location.lat;
-    row.location_lng = location.lng;
+    row.location_lat = (location as any).lat;
+    row.location_lng = (location as any).lng;
   }
   return row;
 }

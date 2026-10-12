@@ -167,7 +167,7 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", hasLLM, timestamp: new Date().toISOString() });
 });
 
-app.post("/api/heal", validateRequest(healSchema), async (req, res, next) => {
+app.post("/api/heal", requireAuth, validateRequest(healSchema), async (req, res, next) => {
   try {
     const result = await callLLM(req.body);
     res.json(result);
@@ -177,7 +177,7 @@ app.post("/api/heal", validateRequest(healSchema), async (req, res, next) => {
   }
 });
 
-app.post("/api/gemini/generateContent", validateRequest(geminiProxySchema), async (req, res, next) => {
+app.post("/api/gemini/generateContent", requireAuth, validateRequest(geminiProxySchema), async (req, res, next) => {
   try {
     if (!GEMINI_API_KEY) {
       res.status(500).json({ error: "GEMINI_API_KEY not configured on server" });
@@ -241,7 +241,8 @@ app.post("/api/payments/initiate", requireAuth, validateRequest(paymentInitSchem
   const pp_MerchantID = process.env.GW_MERCHANT_ID || "";
   const pp_PasswordSalt = process.env.GW_PASSWORD_SALT || "";
   const secureHash = `${pp_VersionNumber}|${pp_TxnExpiryDateTime}|${pp_Amount}|${pp_MobileAccount}|${bookingId}|${pp_PasswordSalt}`;
-  const pp_SecureHash = createHmac("sha256", pp_MerchantKey).update(secureHash).digest("hex");
+  // JazzCash server-to-server spec: SHA-512 HMAC over the sorted payload.
+  const pp_SecureHash = createHmac("sha512", pp_MerchantKey).update(secureHash).digest("hex");
 
   res.json({
     bookingId,

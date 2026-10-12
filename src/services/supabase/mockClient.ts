@@ -37,67 +37,84 @@ interface MockDB {
 const seed: MockDB = {
   profiles: [
     {
-      id: CUSTOMER_ID, name: 'Ali Raza', phone: '+923001234567',
+      id: CUSTOMER_ID, name: 'Ali Raza',
       email: 'demo@khidmat.app', city: 'Lahore', role: 'customer',
       photo_url: null, location_lat: 31.5204, location_lng: 74.3587,
       current_mode: 'customer', created_at: iso(60 * 24 * 30),
+      profile_contacts: { phone: '+923001234567' },
       addresses: [
         { id: 'a_home', label: 'Home', line: 'House 42, Street 5, DHA Phase 5, Lahore' },
         { id: 'a_office', label: 'Office', line: 'Office 7, 3rd Floor, Gulberg Galleria, Lahore' },
       ],
     },
     {
-      id: BILAL_ID, name: 'Bilal Ahmed', phone: '+923215551122',
+      id: BILAL_ID, name: 'Bilal Ahmed',
       email: 'bilal@khidmat.app', city: 'Lahore', role: 'provider',
       photo_url: null, location_lat: 31.55, location_lng: 74.32,
       current_mode: 'worker', verification_status: 'verified',
       created_at: iso(60 * 24 * 90),
+      profile_contacts: { phone: '+923215551122' },
     },
     {
-      id: NADIA_ID, name: 'Nadia Karim', phone: '+923337778899',
+      id: NADIA_ID, name: 'Nadia Karim',
       email: 'nadia@khidmat.app', city: 'Karachi', role: 'provider',
       verification_status: 'pending', created_at: iso(60 * 24 * 60),
+      profile_contacts: { phone: '+923337778899' },
     },
     {
-      id: IMRAN_ID, name: 'Imran Shah', phone: '+923459990011',
+      id: IMRAN_ID, name: 'Imran Shah',
       email: 'imran@khidmat.app', city: 'Islamabad', role: 'provider',
       verification_status: 'verified', created_at: iso(60 * 24 * 45),
+      profile_contacts: { phone: '+923459990011' },
     },
     {
-      id: O786_ID, name: 'Usman Ali', phone: '+923111222333',
+      id: O786_ID, name: 'Usman Ali',
       email: 'usman@khidmat.app', city: 'Lahore', role: 'provider',
       verification_status: 'verified', created_at: iso(60 * 24 * 20),
+      profile_contacts: { phone: '+923111222333' },
     },
     {
-      id: ADMIN_ID, name: 'Khidmat Ops', phone: '+923000000000',
+      id: ADMIN_ID, name: 'Khidmat Ops',
       email: 'admin@khidmat.app', city: 'Lahore', role: 'admin',
       verification_status: 'verified', created_at: iso(60 * 24 * 120),
+      profile_contacts: { phone: '+923000000000' },
     },
   ],
+  // Phone + email split into a private table (owner / admin / booking-counterparty RLS).
+  profile_contacts: [
+    { user_id: CUSTOMER_ID, phone: '+923001234567', updated_at: iso(0) },
+    { user_id: BILAL_ID,    phone: '+923215551122', updated_at: iso(0) },
+    { user_id: NADIA_ID,    phone: '+923337778899', updated_at: iso(0) },
+    { user_id: IMRAN_ID,    phone: '+923459990011', updated_at: iso(0) },
+    { user_id: O786_ID,     phone: '+923111222333', updated_at: iso(0) },
+    { user_id: ADMIN_ID,    phone: '+923000000000', updated_at: iso(0) },
+  ],
+  // Append-only audit log for admin moderation actions. Starts empty.
+  admin_actions: [],
   providers: [
     {
       id: BILAL_ID, category: 'Electrician', bio: 'Certified electrician, 12 years wiring & fixture experience.',
       base_price: 1500, rating: 4.8, total_jobs: 132, tier: 'Gold', available: true,
       total_earnings: 210000,
-      profile: { name: 'Bilal Ahmed', phone: '+923215551122', city: 'Lahore', photo_url: null, location_lat: 31.55, location_lng: 74.32, verification_status: 'verified' },
+      profile: { name: 'Bilal Ahmed', city: 'Lahore', photo_url: null, location_lat: 31.55, location_lng: 74.32, verification_status: 'verified', profile_contacts: { phone: '+923215551122' } },
     },
     {
       id: NADIA_ID, category: 'House Cleaner', bio: 'Deep-cleaning specialists for homes and offices.',
       base_price: 2000, rating: 4.6, total_jobs: 88, tier: 'Silver', available: true,
       total_earnings: 96000,
-      profile: { name: 'Nadia Karim', phone: '+923337778899', city: 'Karachi', photo_url: null, location_lat: 24.86, location_lng: 67.01, verification_status: 'pending' },
+      profile: { name: 'Nadia Karim', city: 'Karachi', photo_url: null, location_lat: 24.86, location_lng: 67.01, verification_status: 'pending', profile_contacts: { phone: '+923337778899' } },
     },
     {
       id: IMRAN_ID, category: 'Plumber', bio: 'Fast leak, pipe and fitting repairs, same-day service.',
       base_price: 1200, rating: 4.9, total_jobs: 210, tier: 'Gold', available: false,
       total_earnings: 260000,
-      profile: { name: 'Imran Shah', phone: '+923459990011', city: 'Islamabad', photo_url: null, location_lat: 33.68, location_lng: 73.05, verification_status: 'verified' },
+      profile: { name: 'Imran Shah', city: 'Islamabad', photo_url: null, location_lat: 33.68, location_lng: 73.05, verification_status: 'verified', profile_contacts: { phone: '+923459990011' } },
     },
     {
       id: O786_ID, category: 'AC Technician', bio: 'AC installation, servicing and gas refill expert.',
       base_price: 1800, rating: 4.4, total_jobs: 54, tier: 'Bronze', available: true,
       total_earnings: 61000,
-      profile: { name: 'Usman Ali', phone: '+923111222333', city: 'Lahore', photo_url: null, location_lat: 31.51, location_lng: 74.36, verification_status: 'verified' },
+      profile: { name: 'Usman Ali', city: 'Lahore', photo_url: null, location_lat: 31.51, location_lng: 74.36, verification_status: 'verified', profile_contacts: { phone: '+923111222333' } },
     },
   ],
   categories: [
@@ -116,7 +133,7 @@ const seed: MockDB = {
       location_lat: 31.5204, location_lng: 74.3587,
       meta: { date: '2026-10-10', timeSlot: '11:00-13:00', address: 'House 42, Street 5, DHA Phase 5, Lahore', customerName: 'Ali Raza', providerName: 'Bilal Ahmed' },
       created_at: iso(180), updated_at: iso(90),
-      customer: { name: 'Ali Raza', phone: '+923001234567' },
+      customer: { name: 'Ali Raza', profile_contacts: { phone: '+923001234567' } },
       provider: { base_price: 1500, profiles: { name: 'Bilal Ahmed' } },
     },
     {
@@ -125,7 +142,7 @@ const seed: MockDB = {
       status: 'completed', urgency: 'low', estimated_price: 3200,
       meta: { date: '2026-10-02', timeSlot: '15:00-17:00', address: 'Gulberg III, Lahore', customerName: 'Ali Raza', providerName: 'Usman Ali', reviewedAt: iso(60 * 24 * 6), customerRating: 4 },
       created_at: iso(60 * 24 * 7), updated_at: iso(60 * 24 * 6),
-      customer: { name: 'Ali Raza', phone: '+923001234567' },
+      customer: { name: 'Ali Raza', profile_contacts: { phone: '+923001234567' } },
       provider: { base_price: 1800, profiles: { name: 'Usman Ali' } },
     },
     {
@@ -134,7 +151,7 @@ const seed: MockDB = {
       status: 'closed', urgency: 'medium', estimated_price: 4100,
       meta: { date: '2026-09-28', timeSlot: '09:00-11:00', address: 'Johar Town Block B4, Lahore', customerName: 'Ali Raza', providerName: 'Bilal Ahmed', reviewedAt: iso(60 * 24 * 11), customerRating: 5, paymentMethod: 'cod' },
       created_at: iso(60 * 24 * 12), updated_at: iso(60 * 24 * 11),
-      customer: { name: 'Ali Raza', phone: '+923001234567' },
+      customer: { name: 'Ali Raza', profile_contacts: { phone: '+923001234567' } },
       provider: { base_price: 1500, profiles: { name: 'Bilal Ahmed' } },
     },
   ],
@@ -386,13 +403,15 @@ export function createMockSupabase() {
         const id = genId();
         AUTH_USERS.push({ id, email, password, role: meta.role ?? 'customer', name: meta.name ?? '' });
         const profileRow: MockRow = {
-          id, name: meta.name ?? 'New User', phone: meta.phone ?? '', email,
+          id, name: meta.name ?? 'New User', email,
           city: meta.city ?? '', role: meta.role ?? 'customer',
           location_lat: meta.location_lat ?? 0, location_lng: meta.location_lng ?? 0,
           current_mode: meta.role === 'provider' ? 'worker' : 'customer',
           verification_status: 'pending', created_at: iso(0),
+          profile_contacts: { phone: meta.phone ?? '' },
         };
         db.profiles.push(profileRow);
+        db.profile_contacts.push({ user_id: id, phone: meta.phone ?? '', updated_at: iso(0) });
         if (meta.role === 'provider') {
           db.providers.push({
             id, category: meta.category ?? 'General', bio: meta.bio ?? '',

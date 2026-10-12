@@ -39,7 +39,7 @@
       [
         "expo-location",
         {
-          "isBackgroundLocationEnabled": true
+          "isBackgroundLocationEnabled": false
         }
       ],
       [

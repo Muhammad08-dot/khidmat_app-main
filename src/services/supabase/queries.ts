@@ -13,7 +13,7 @@ export const getProvidersByCategory = async (category: string) => {
     .from('providers')
     .select(`
       *,
-      profiles:id ( name, city, location_lat, location_lng, photo_url, phone )
+      profiles:id ( name, city, location_lat, location_lng, photo_url )
     `)
     .eq('category', category)
     .eq('available', true);
@@ -49,8 +49,8 @@ export const getUserBookings = async (userId: string, role: 'customer' | 'provid
     .from('bookings')
     .select(`
       *,
-      customer:profiles!bookings_customer_id_fkey(name, phone),
-      provider:providers!bookings_provider_id_fkey(base_price, profiles!providers_id_fkey(name))
+      customer:profiles!bookings_customer_id_fkey(id, name),
+      provider:providers!bookings_provider_id_fkey(base_price, profiles!providers_id_fkey(id, name))
     `)
     .eq(column, userId)
     .order('created_at', { ascending: false });
@@ -90,6 +90,8 @@ export const getMessages = async (bookingId: string) => {
   });
 };
 
+import { sendPushToUser } from '../push';
+
 export const sendMessage = async (bookingId: string, senderId: string, content: string) => {
   const { data, error } = await supabase.from('messages').insert({
     booking_id: bookingId,
@@ -98,6 +100,18 @@ export const sendMessage = async (bookingId: string, senderId: string, content: 
   }).select().single();
   
   if (error) throw error;
+
+  // Best-effort push notification
+  try {
+    const { data: booking } = await supabase.from('bookings').select('customer_id, provider_id').eq('id', bookingId).single();
+    if (booking) {
+      const receiverId = booking.customer_id === senderId ? booking.provider_id : booking.customer_id;
+      sendPushToUser(receiverId, 'New Message', content, { bookingId });
+    }
+  } catch (err) {
+    console.warn('Failed to send push notification', err);
+  }
+
   return data;
 };
 
@@ -170,19 +184,57 @@ export const markNotificationsRead = async (userId: string) => {
 /* Admin / moderation (Play Store operational readiness)              */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Append an audit row to `admin_actions`. Best-effort: if the write is
+ * rejected (non-admin RLS or transient failure) the primary mutation still
+ * succeeded and should not be reversed. Never store PII in `meta`.
+ */
+const logAdminAction = async (
+  action: string,
+  targetType: 'profile' | 'review',
+  targetId: string,
+  meta: Record<string, unknown> = {},
+) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) return;
+    await supabase.from('admin_actions').insert({
+      actor_id: user.id,
+      action,
+      target_type: targetType,
+      target_id: targetId,
+      meta,
+    });
+  } catch {
+    /* swallow: audit trail is best-effort */
+  }
+};
+
 /** Providers awaiting KYC review (new signups default to 'pending'). */
 export const getPendingProviders = async () => {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name, phone, city, role, verification_status, created_at')
+    .select('id, name, city, role, verification_status, created_at')
     .eq('role', 'provider')
     .in('verification_status', ['pending', 'unverified'])
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((row: any) => ({
+  const rows = (data ?? []) as any[];
+  // Phone lives in profile_contacts (owner / admin / booking-counterparty RLS).
+  // Admin passes the RLS check, so a batched lookup returns phones for the queue.
+  const ids = rows.map((r) => r.id as string);
+  const phoneById = new Map<string, string | null>();
+  if (ids.length > 0) {
+    const { data: contacts } = await supabase
+      .from('profile_contacts')
+      .select('user_id, phone')
+      .in('user_id', ids);
+    for (const c of (contacts ?? []) as any[]) phoneById.set(c.user_id as string, (c.phone as string | null) ?? null);
+  }
+  return rows.map((row: any) => ({
     id: row.id as string,
     name: row.name as string,
-    phone: (row.phone as string | null) ?? null,
+    phone: phoneById.get(row.id as string) ?? null,
     city: (row.city as string | null) ?? null,
     status: row.verification_status as string,
     createdAt: row.created_at as string,
@@ -196,6 +248,12 @@ export const setProviderVerification = async (profileId: string, status: 'verifi
     .update({ verification_status: status })
     .eq('id', profileId);
   if (error) throw error;
+  await logAdminAction(
+    status === 'verified' ? 'provider.verified' : 'provider.rejected',
+    'profile',
+    profileId,
+    { status },
+  );
 };
 
 /** Latest reviews across all providers, for the moderation queue. */
@@ -225,6 +283,9 @@ export const setReviewHidden = async (reviewId: string, providerId: string | nul
   const { error } = await supabase.from('reviews').update({ is_hidden: hidden }).eq('id', reviewId);
   if (error) throw error;
   if (providerId) await recomputeProviderRating(providerId);
+  await logAdminAction(hidden ? 'review.hidden' : 'review.unhidden', 'review', reviewId, {
+    provider_id: providerId,
+  });
 };
 
 /** Permanently delete a review, then refresh the provider's average rating. */
@@ -232,4 +293,5 @@ export const deleteReview = async (reviewId: string, providerId: string | null) 
   const { error } = await supabase.from('reviews').delete().eq('id', reviewId);
   if (error) throw error;
   if (providerId) await recomputeProviderRating(providerId);
+  await logAdminAction('review.deleted', 'review', reviewId, { provider_id: providerId });
 };
