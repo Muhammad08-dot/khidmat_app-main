@@ -77,11 +77,48 @@ export default function LiveTrackingScreen() {
   const [isTopExpanded, setIsTopExpanded] = useState(false);
   const [isBottomExpanded, setIsBottomExpanded] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
-  const [liveWorkerLocation, setLiveWorkerLocation] = useState(null);
-  const [liveClientLocation, setLiveClientLocation] = useState(null);
+  const [liveWorkerLocation, setLiveWorkerLocation] = useState<{
+    lat: number;
+    lng: number;
+    heading: number;
+    speed: number;
+    timestamp: string;
+  } | null>(null);
+  const [liveClientLocation, setLiveClientLocation] = useState<{
+    lat: number;
+    lng: number;
+    timestamp: string;
+  } | null>(null);
 
   const simIntervalRef = useRef<any>(null);
   const previousCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
+  const trackingChannelRef = useRef<any>(null);
+  const lastDbWriteRef = useRef<number>(0);
+
+  // 1. Subscribe to Realtime broadcast channel for live location (zero DB overload)
+  useEffect(() => {
+    if (!id) return;
+    const channelName = `tracking:${id}`;
+    const channel = supabase.channel(channelName);
+    trackingChannelRef.current = channel;
+
+    channel.on('broadcast', { event: 'location' }, ({ payload }: any) => {
+      if (!payload) return;
+      if (payload.role === 'worker') {
+        setLiveWorkerLocation(payload.location);
+      } else if (payload.role === 'client') {
+        setLiveClientLocation(payload.location);
+      }
+    });
+
+    channel.subscribe();
+
+    return () => {
+      channel.unsubscribe();
+      supabase.removeChannel(channel);
+      trackingChannelRef.current = null;
+    };
+  }, [id]);
 
   useEffect(() => {
     if (!id || !user) return;
@@ -107,7 +144,7 @@ export default function LiveTrackingScreen() {
     return () => unsubscribe();
   }, [id, user]);
 
-  // GPS location sharing — polled via getCurrentCoords (expo-location)
+  // GPS location sharing — broadcasted via WebSockets (Realtime) instead of DB writes
   useEffect(() => {
     if (!booking || !user) return;
     const isActive =
@@ -134,22 +171,45 @@ export default function LiveTrackingScreen() {
       previousCoordsRef.current = { lat: currentLat, lng: currentLng };
 
       const isWorker = user.id === booking.providerId;
-      const payload = isWorker
+      const locPayload = isWorker
         ? {
-            workerLocation: {
-              lat: currentLat,
-              lng: currentLng,
-              heading,
-              speed: 0,
-              timestamp,
-            },
+            lat: currentLat,
+            lng: currentLng,
+            heading,
+            speed: 0,
+            timestamp,
           }
-        : { clientLocation: { lat: currentLat, lng: currentLng, timestamp } };
+        : { lat: currentLat, lng: currentLng, timestamp };
 
-      writeDocument("bookings", booking.bookingId, {
-        ...booking,
-        ...payload,
-      }).catch((err) => console.error("Error updating tracking coords:", err));
+      // Update sender's local state immediately
+      if (isWorker) {
+        setLiveWorkerLocation(locPayload as any);
+      } else {
+        setLiveClientLocation(locPayload as any);
+      }
+
+      // Broadcast over Supabase Realtime channel (zero database write)
+      if (trackingChannelRef.current) {
+        trackingChannelRef.current.send({
+          type: 'broadcast',
+          event: 'location',
+          payload: {
+            role: isWorker ? 'worker' : 'client',
+            location: locPayload,
+          },
+        }).catch?.(() => {});
+      }
+
+      // Throttled fallback: write to DB at most once per 60s
+      const now = Date.now();
+      if (now - lastDbWriteRef.current > 60_000) {
+        lastDbWriteRef.current = now;
+        const dbPayload = isWorker ? { workerLocation: locPayload } : { clientLocation: locPayload };
+        writeDocument("bookings", booking.bookingId, {
+          ...booking,
+          ...dbPayload,
+        }).catch((err) => console.error("Periodic fallback tracking save failed:", err));
+      }
     }, 6000);
 
     return () => {
@@ -160,30 +220,35 @@ export default function LiveTrackingScreen() {
         simIntervalRef.current = null;
       }
     };
-  }, [booking?.status, user]);
+  }, [booking?.status, user, booking?.bookingId, booking?.providerId]);
 
   const startSimulation = async () => {
     if (!booking) return;
     setIsSimulating(true);
 
-    const clientPos = booking.coordinates || { lat: 31.5204, lng: 74.3587 };
+    const clientPos = liveClientLocation || booking.coordinates || { lat: 31.5204, lng: 74.3587 };
     let currentLat = clientPos.lat - 0.012;
     let currentLng = clientPos.lng - 0.012;
     const totalSteps = 15;
     let stepNum = 0;
 
-    await writeDocument("bookings", booking.bookingId, {
-      ...booking,
-      workerLocation: {
-        lat: currentLat,
-        lng: currentLng,
-        heading: 45,
-        speed: 9.5,
-        timestamp: new Date().toISOString(),
-      },
-    });
+    const initialSimLoc = {
+      lat: currentLat,
+      lng: currentLng,
+      heading: 45,
+      speed: 9.5,
+      timestamp: new Date().toISOString(),
+    };
+    setLiveWorkerLocation(initialSimLoc);
+    if (trackingChannelRef.current) {
+      trackingChannelRef.current.send({
+        type: 'broadcast',
+        event: 'location',
+        payload: { role: 'worker', location: initialSimLoc },
+      }).catch?.(() => {});
+    }
 
-    simIntervalRef.current = setInterval(async () => {
+    simIntervalRef.current = setInterval(() => {
       stepNum++;
       if (stepNum > totalSteps) {
         clearInterval(simIntervalRef.current);
@@ -199,19 +264,21 @@ export default function LiveTrackingScreen() {
       const heading = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
       currentLat = nextLat;
       currentLng = nextLng;
-      try {
-        await writeDocument("bookings", booking.bookingId, {
-          ...booking,
-          workerLocation: {
-            lat: nextLat,
-            lng: nextLng,
-            heading,
-            speed: 9.5,
-            timestamp: new Date().toISOString(),
-          },
-        });
-      } catch (err) {
-        console.error("Simulation write error:", err);
+
+      const simLoc = {
+        lat: nextLat,
+        lng: nextLng,
+        heading,
+        speed: 9.5,
+        timestamp: new Date().toISOString(),
+      };
+      setLiveWorkerLocation(simLoc);
+      if (trackingChannelRef.current) {
+        trackingChannelRef.current.send({
+          type: 'broadcast',
+          event: 'location',
+          payload: { role: 'worker', location: simLoc },
+        }).catch?.(() => {});
       }
     }, 2500);
   };
@@ -248,8 +315,8 @@ export default function LiveTrackingScreen() {
   }
 
   const isWorker = user?.id === booking.providerId;
-  const clientCoords = booking.coordinates || { lat: 31.5204, lng: 74.3587 };
-  const workerCoords = booking.workerLocation || null;
+  const clientCoords = liveClientLocation || booking.clientLocation || booking.coordinates || { lat: 31.5204, lng: 74.3587 };
+  const workerCoords = liveWorkerLocation || booking.workerLocation || null;
 
   let distance = booking.distanceKm;
   let etaMinutes = estimateTravelTimeMinutes(distance);

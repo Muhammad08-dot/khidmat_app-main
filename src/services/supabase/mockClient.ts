@@ -206,6 +206,7 @@ const genId = () => uid((Math.floor(Math.random() * 0xffffffff) >>> 0).toString(
 
 type ChangeListener = (payload: { table: string; eventType: string; new: MockRow; old: MockRow | null }) => void;
 const listeners = new Set<ChangeListener>();
+const broadcastRegistry = new Map<string, Set<(event: string, payload: any) => void>>();
 const emit = (table: string, eventType: string, newRow: MockRow, oldRow: MockRow | null) => {
   setTimeout(() => listeners.forEach((l) => l({ table, eventType, new: clone(newRow), old: oldRow ? clone(oldRow) : null })), 5);
 };
@@ -457,8 +458,10 @@ export function createMockSupabase() {
       },
     },
 
-    channel(_name: string) {
+    channel(name: string) {
       const bindings: Array<{ filter: any; cb: (p: any) => void }> = [];
+      const broadcastBindings: Array<{ event: string; cb: (p: any) => void }> = [];
+
       const forward = (payload: any) => {
         bindings.forEach(({ filter, cb }) => {
           if (!filter?.table || filter.table === payload.table) {
@@ -466,18 +469,46 @@ export function createMockSupabase() {
           }
         });
       };
+
+      if (!broadcastRegistry.has(name)) {
+        broadcastRegistry.set(name, new Set());
+      }
+      const bHandler = (event: string, payload: any) => {
+        broadcastBindings.forEach(({ event: targetEvent, cb }) => {
+          if (!targetEvent || targetEvent === event) {
+            cb({ event, payload });
+          }
+        });
+      };
+
       const ch = {
-        on(_type: string, filter: any, cb: (p: any) => void) {
-          bindings.push({ filter, cb });
+        on(type: string, filter: any, cb: (p: any) => void) {
+          if (type === 'broadcast') {
+            broadcastBindings.push({ event: filter?.event, cb });
+          } else {
+            bindings.push({ filter, cb });
+          }
           return ch;
+        },
+        send(message: { type: string; event: string; payload: any }) {
+          if (message.type === 'broadcast') {
+            const handlers = broadcastRegistry.get(name);
+            handlers?.forEach((fn) => fn(message.event, message.payload));
+          }
+          return Promise.resolve('ok');
         },
         subscribe(cb?: (s: string) => void) {
           listeners.add(forward);
+          broadcastRegistry.get(name)?.add(bHandler);
           setTimeout(() => cb?.('SUBSCRIBED'), 10);
           return ch;
         },
         unsubscribe() {
           listeners.delete(forward);
+          broadcastRegistry.get(name)?.delete(bHandler);
+          if (broadcastRegistry.get(name)?.size === 0) {
+            broadcastRegistry.delete(name);
+          }
           return Promise.resolve();
         },
       };
