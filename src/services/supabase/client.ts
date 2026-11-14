@@ -50,7 +50,8 @@ const ExpoSecureStoreAdapter: AuthStorageAdapter = {
   },
 };
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+const rawSupabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+const supabaseUrl = rawSupabaseUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
 // Demo mode: everything runs against the in-memory mock DB (no network, no
