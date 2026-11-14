@@ -295,3 +295,81 @@ export const deleteReview = async (reviewId: string, providerId: string | null) 
   if (providerId) await recomputeProviderRating(providerId);
   await logAdminAction('review.deleted', 'review', reviewId, { provider_id: providerId });
 };
+
+export type BookingStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'in_progress'
+  | 'completed'
+  | 'reviewed'
+  | 'closed'
+  | 'cancelled'
+  | 'rejected';
+
+export const ALLOWED_STATUS_TRANSITIONS: Record<string, string[]> = {
+  pending: ['confirmed', 'rejected', 'cancelled'],
+  confirmed: ['in_progress', 'cancelled'],
+  in_progress: ['completed'],
+  completed: ['reviewed', 'closed'],
+  reviewed: ['closed'],
+  cancelled: [],
+  rejected: [],
+  closed: [],
+};
+
+export const isValidStatusTransition = (currentStatus: string, nextStatus: string): boolean => {
+  const allowed = ALLOWED_STATUS_TRANSITIONS[currentStatus];
+  return allowed ? allowed.includes(nextStatus) : false;
+};
+
+export interface TransitionBookingParams {
+  bookingId: string;
+  status: string;
+  expectedCurrentStatus?: string;
+  cancelReason?: string;
+}
+
+/**
+ * Atomically transitions booking status with concurrency collision detection.
+ * Enforces allowed state transitions and prevents race conditions.
+ */
+export const transitionBookingStatus = async (params: TransitionBookingParams) => {
+  const { bookingId, status: newStatus, expectedCurrentStatus, cancelReason } = params;
+
+  let expectedStatus = expectedCurrentStatus;
+  if (!expectedStatus) {
+    const { data: current, error: fetchErr } = await supabase
+      .from('bookings')
+      .select('status')
+      .eq('id', bookingId)
+      .maybeSingle();
+    if (fetchErr) throw fetchErr;
+    if (!current) throw new Error(`Booking ${bookingId} not found.`);
+    expectedStatus = current.status;
+  }
+
+  if (!isValidStatusTransition(expectedStatus, newStatus)) {
+    throw new Error(
+      `Cannot transition booking from "${expectedStatus}" to "${newStatus}". Invalid transition.`
+    );
+  }
+
+  const payload: Record<string, any> = { status: newStatus };
+  if (cancelReason) payload.cancel_reason = cancelReason;
+
+  const { data, error } = await supabase
+    .from('bookings')
+    .update(payload)
+    .eq('id', bookingId)
+    .eq('status', expectedStatus)
+    .select();
+
+  if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new Error(
+      `Status conflict: booking status could not be changed to "${newStatus}" because its status was already modified by the other party.`
+    );
+  }
+
+  return data[0];
+};

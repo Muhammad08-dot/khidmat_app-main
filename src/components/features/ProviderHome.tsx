@@ -84,18 +84,26 @@ export const ProviderHome: React.FC = () => {
 
   const acceptBooking = async (booking: any) => {
     try {
-      await updateStatus({ bookingId: booking.bookingId || booking.id, status: 'confirmed' });
+      await updateStatus({
+        bookingId: booking.bookingId || booking.id,
+        status: 'confirmed',
+        expectedCurrentStatus: booking.status || 'pending',
+      });
       refetch();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error accepting booking:", err);
-      Alert.alert("Failed", "Failed to accept the job. Please try again.");
+      Alert.alert("Failed", err?.message || "Failed to accept the job. Please try again.");
     }
   };
 
   const completeBooking = async (booking: any) => {
     try {
       const bookingId = booking.bookingId || booking.id;
-      await updateStatus({ bookingId, status: "completed" });
+      await updateStatus({
+        bookingId,
+        status: "completed",
+        expectedCurrentStatus: booking.status || "in_progress",
+      });
       await sendSystemMessage({
         bookingId,
         senderId: user?.id || "",

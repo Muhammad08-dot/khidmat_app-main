@@ -10,7 +10,8 @@ import {
   createBooking,
   updateProviderLocation,
   getNotifications,
-  markNotificationsRead
+  markNotificationsRead,
+  transitionBookingStatus,
 } from '../services/supabase/queries';
 import { supabase } from '../services/supabase/client';
 import { useEffect } from 'react';
@@ -120,12 +121,15 @@ export const useMarkMessagesSeen = () => {
 export const useUpdateBookingStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { bookingId: string, status: string }) => {
-      const { data, error } = await supabase.from('bookings').update({ status: params.status }).eq('id', params.bookingId);
-      if (error) throw error;
-      return data;
+    mutationFn: async (params: {
+      bookingId: string;
+      status: string;
+      expectedCurrentStatus?: string;
+      cancelReason?: string;
+    }) => {
+      return transitionBookingStatus(params);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bookings'] })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bookings'] }),
   });
 };
 

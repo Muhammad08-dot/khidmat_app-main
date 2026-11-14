@@ -9,6 +9,7 @@ import {
   Modal,
   TextInput,
   RefreshControl,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import {
@@ -182,7 +183,11 @@ export default function BookingsScreen() {
   ) => {
     try {
       const updatedBooking = { ...booking, status: newStatus };
-      await updateStatus({ bookingId: booking.bookingId, status: newStatus });
+      await updateStatus({
+        bookingId: booking.bookingId,
+        status: newStatus,
+        expectedCurrentStatus: booking.status,
+      });
 
       // Live job tracking lifecycle (flag-guarded; no-op when disabled).
       if (newStatus === "in_progress" && isWorker) {
@@ -261,8 +266,13 @@ export default function BookingsScreen() {
       }
 
       await Promise.all(tasks);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to update status:", err);
+      Alert.alert(
+        "Update Conflict",
+        err?.message || "Could not update booking status because it was modified by the other party."
+      );
+      refetch();
     }
   };
 
