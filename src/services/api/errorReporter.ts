@@ -27,14 +27,46 @@ const MAX_STORED = 25;
 const getEnv = (key: string): string => (process.env as any)[key] || "";
 const AGENT_ENDPOINT = getEnv("EXPO_PUBLIC_AGENT_ENDPOINT");
 
+/**
+ * Strips Personally Identifiable Information (PII) including CNIC, phone numbers,
+ * auth tokens, emails, and address snippets from error logs before transmitting.
+ */
+export function scrubPII(text: string | undefined): string {
+  if (!text) return "";
+  let clean = text;
+
+  // 1. Redact JWT / Bearer tokens
+  clean = clean.replace(/eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+/g, "[REDACTED_TOKEN]");
+
+  // 2. Redact Pakistani CNIC (with or without dashes: 35202-1234567-1 or 3520212345671)
+  clean = clean.replace(/\b\d{5}-\d{7}-\d{1}\b/g, "[REDACTED_CNIC]");
+  clean = clean.replace(/\b[1-7]\d{12}\b/g, "[REDACTED_CNIC]");
+
+  // 3. Redact Pakistani Mobile Numbers (+923001234567, 0300-1234567, 03211234567)
+  clean = clean.replace(/(?:\+92|0)?3[0-9]{2}[- ]?[0-9]{7}\b/g, "[REDACTED_PHONE]");
+
+  // 4. Redact Email addresses
+  clean = clean.replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/g, "[REDACTED_EMAIL]");
+
+  // 5. Redact street / house address indicators
+  clean = clean.replace(/\b(House|Flat|Plot|Apartment|Office|Street|Road|Phase|Block)\s+[\w\d\s,-]+/gi, (match) => {
+    // Only redact if contains digits or specific address identifiers
+    if (/\d/.test(match)) return "[REDACTED_ADDRESS]";
+    return match;
+  });
+
+  return clean;
+}
+
 export async function captureError(
   error: Error | null,
   componentStack?: string
 ): Promise<void> {
+  const rawMessage = error?.message || String(error);
   const entry: ReportableError = {
-    message: error?.message || String(error),
-    stack: error?.stack,
-    componentStack,
+    message: scrubPII(rawMessage),
+    stack: scrubPII(error?.stack),
+    componentStack: scrubPII(componentStack),
     platform: "react-native",
     timestamp: new Date().toISOString(),
   };

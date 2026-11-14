@@ -10,9 +10,21 @@ import { requireAuth } from "./middleware/auth";
 const PORT = Number(process.env.PORT) || 8787;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "http://localhost:8081,exp://localhost:8081").split(",");
 
 const hasLLM = !!(OPENAI_API_KEY || GEMINI_API_KEY);
+
+function scrubServerPII(text?: string): string {
+  if (!text) return "";
+  return text
+    .replace(/eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+/g, "[REDACTED_TOKEN]")
+    .replace(/\b\d{5}-\d{7}-\d{1}\b/g, "[REDACTED_CNIC]")
+    .replace(/\b[1-7]\d{12}\b/g, "[REDACTED_CNIC]")
+    .replace(/(?:\+92|0)?3[0-9]{2}[- ]?[0-9]{7}\b/g, "[REDACTED_PHONE]")
+    .replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/g, "[REDACTED_EMAIL]");
+}
 
 const app = express();
 
@@ -143,22 +155,35 @@ async function callLLM(payload: HealPayload): Promise<HealResponse> {
       timestamp,
     };
   }
-  const prompt = buildPrompt(payload);
+
+  // Sanitize payload to strip any accidental PII before prompt generation
+  const sanitizedPayload: HealPayload = {
+    message: scrubServerPII(payload.message),
+    stack: scrubServerPII(payload.stack),
+    componentStack: scrubServerPII(payload.componentStack),
+    file: payload.file,
+    codeSnippet: scrubServerPII(payload.codeSnippet),
+    appContext: scrubServerPII(payload.appContext),
+    platform: payload.platform,
+    timestamp: payload.timestamp,
+  };
+
+  const prompt = buildPrompt(sanitizedPayload);
   if (OPENAI_API_KEY) {
     const { ChatOpenAI } = await import("@langchain/openai");
     const { HumanMessage, SystemMessage } = await import("@langchain/core/messages");
-    const llm = new ChatOpenAI({ model: "gpt-4o-mini", temperature: 0.2, apiKey: OPENAI_API_KEY });
+    const llm = new ChatOpenAI({ model: OPENAI_MODEL, temperature: 0.2, apiKey: OPENAI_API_KEY });
     const res = await llm.invoke([new SystemMessage(SYSTEM_PROMPT), new HumanMessage(prompt)]);
     const text = typeof res.content === "string" ? res.content : JSON.stringify(res.content);
-    return parseLLMOutput(text, "gpt-4o-mini", timestamp);
+    return parseLLMOutput(text, OPENAI_MODEL, timestamp);
   }
   if (GEMINI_API_KEY) {
     const { ChatGoogleGenerativeAI } = await import("@langchain/google-genai");
     const { HumanMessage, SystemMessage } = await import("@langchain/core/messages");
-    const llm = new ChatGoogleGenerativeAI({ model: "gemini-1.5-flash", temperature: 0.2, apiKey: GEMINI_API_KEY });
+    const llm = new ChatGoogleGenerativeAI({ model: GEMINI_MODEL, temperature: 0.2, apiKey: GEMINI_API_KEY });
     const res = await llm.invoke([new SystemMessage(SYSTEM_PROMPT), new HumanMessage(prompt)]);
     const text = typeof res.content === "string" ? res.content : JSON.stringify(res.content);
-    return parseLLMOutput(text, "gemini-1.5-flash", timestamp);
+    return parseLLMOutput(text, GEMINI_MODEL, timestamp);
   }
   throw new Error("Unexpected code path.");
 }

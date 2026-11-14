@@ -53,14 +53,36 @@ function RootNavigator() {
   const colorScheme = useColorScheme();
   const router = useRouter();
 
-  // Tapping a "new message" push opens that booking's chat thread.
+  // Handle notification tap deep-links (runtime + cold start from killed app)
   useEffect(() => {
     if (Platform.OS === "web") return;
-    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      const data = response.notification.request.content.data as any;
-      if (data?.type === "new_message" && data?.bookingId) {
+
+    const handleNotificationRoute = (data: any) => {
+      if (!data) return;
+      if (data.type === "new_message" && data.bookingId) {
+        router.push(`/chat?bookingId=${data.bookingId}`);
+      } else if (data.bookingId && (data.type === "job_accepted" || data.type === "tracking")) {
+        router.push(`/track/${data.bookingId}` as any);
+      } else if (data.type === "invitation" || data.type === "job_confirmed" || data.type === "job_completed") {
+        router.push("/(tabs)/bookings" as any);
+      } else if (data.type === "kyc") {
+        router.push("/(tabs)/profile" as any);
+      } else if (data.bookingId) {
         router.push(`/chat?bookingId=${data.bookingId}`);
       }
+    };
+
+    // Cold-start response check
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) {
+        const data = response.notification.request.content.data as any;
+        handleNotificationRoute(data);
+      }
+    });
+
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+      const data = response.notification.request.content.data as any;
+      handleNotificationRoute(data);
     });
     return () => {
       sub.remove();

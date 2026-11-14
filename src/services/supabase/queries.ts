@@ -106,7 +106,14 @@ export const sendMessage = async (bookingId: string, senderId: string, content: 
     const { data: booking } = await supabase.from('bookings').select('customer_id, provider_id').eq('id', bookingId).single();
     if (booking) {
       const receiverId = booking.customer_id === senderId ? booking.provider_id : booking.customer_id;
-      sendPushToUser(receiverId, 'New Message', content, { bookingId });
+      let bodyText = content;
+      try {
+        const parsed = JSON.parse(content);
+        if (parsed?.text) bodyText = parsed.text;
+      } catch {
+        // use raw string
+      }
+      sendPushToUser(receiverId, 'New Message', bodyText, { type: 'new_message', bookingId });
     }
   } catch (err) {
     console.warn('Failed to send push notification', err);
@@ -336,8 +343,8 @@ export interface TransitionBookingParams {
 export const transitionBookingStatus = async (params: TransitionBookingParams) => {
   const { bookingId, status: newStatus, expectedCurrentStatus, cancelReason } = params;
 
-  let expectedStatus = expectedCurrentStatus;
-  if (!expectedStatus) {
+  let expectedStatus: string;
+  if (!expectedCurrentStatus) {
     const { data: current, error: fetchErr } = await supabase
       .from('bookings')
       .select('status')
@@ -346,6 +353,8 @@ export const transitionBookingStatus = async (params: TransitionBookingParams) =
     if (fetchErr) throw fetchErr;
     if (!current) throw new Error(`Booking ${bookingId} not found.`);
     expectedStatus = current.status;
+  } else {
+    expectedStatus = expectedCurrentStatus;
   }
 
   if (!isValidStatusTransition(expectedStatus, newStatus)) {
