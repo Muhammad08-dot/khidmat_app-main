@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { Platform, Linking } from 'react-native';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '../services/supabase/client';
+import { supabase, DEMO_MODE } from '../services/supabase/client';
 import { profileColumnsFromCamel } from '../services/supabase/legacy';
 import { registerPushToken } from '../services/push';
 import { User as UserProfileModel } from '../types/models'; // Note: update models.ts to match Supabase schema later
@@ -31,6 +32,7 @@ interface AuthContextType {
   updatePassword: (newPassword: string) => Promise<void>;
   sendPhoneOtp: (phone: string) => Promise<void>;
   verifyPhoneOtp: (phone: string, token: string) => Promise<any>;
+  signInWithGoogle: () => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -201,6 +203,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return data;
   };
 
+  const signInWithGoogle = async () => {
+    throttleAuth();
+    if (DEMO_MODE) {
+      return signIn('demo@khidmat.app', '123456');
+    }
+    const redirectTo =
+      Platform.OS === 'web'
+        ? typeof window !== 'undefined'
+          ? window.location.origin
+          : undefined
+        : 'khidmat://';
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo,
+        skipBrowserRedirect: Platform.OS !== 'web',
+      },
+    });
+    if (error) throw error;
+    if (data?.url && Platform.OS !== 'web') {
+      await Linking.openURL(data.url);
+    }
+    return data;
+  };
+
   const PROVIDER_FIELD_MAP: Record<string, string> = {
     category: 'category',
     bio: 'bio',
@@ -253,7 +280,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, userProfile, loading, signIn, signUp, logout, updateProfile, sendPasswordReset, updatePassword, sendPhoneOtp, verifyPhoneOtp }}>
+    <AuthContext.Provider value={{ session, user, userProfile, loading, signIn, signUp, logout, updateProfile, sendPasswordReset, updatePassword, sendPhoneOtp, verifyPhoneOtp, signInWithGoogle }}>
       {children}
     </AuthContext.Provider>
   );

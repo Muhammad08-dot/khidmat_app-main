@@ -37,7 +37,7 @@ const labelClass =
 
 export default function AuthScreen() {
   const router = useRouter();
-  const { signIn, signUp, sendPasswordReset, sendPhoneOtp, verifyPhoneOtp } = useAuth();
+  const { signIn, signUp, sendPasswordReset, sendPhoneOtp, verifyPhoneOtp, signInWithGoogle } = useAuth();
 
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -160,6 +160,26 @@ export default function AuthScreen() {
         friendly = "Please enter a valid email address.";
       }
       setError(friendly);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setNotice(null);
+    setLoading(true);
+    try {
+      await signInWithGoogle();
+      if (Platform.OS === "web") {
+        router.replace("/");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(
+        err.message ||
+          "Could not sign in with Google. Ensure Google provider is enabled in your Supabase Auth settings."
+      );
     } finally {
       setLoading(false);
     }
@@ -316,6 +336,27 @@ export default function AuthScreen() {
                     <Icon icon={ArrowRight} color="#fff" size={16} />
                   </>
                 )}
+              </Pressable>
+
+              <View className="my-4 flex-row items-center">
+                <View className="flex-1 border-t border-border" />
+                <Text className="mx-3 text-[11px] font-semibold uppercase tracking-wider text-ink/40">
+                  or
+                </Text>
+                <View className="flex-1 border-t border-border" />
+              </View>
+
+              <Pressable
+                onPress={handleGoogleSignIn}
+                disabled={loading}
+                className="flex-row items-center justify-center gap-3 rounded-xl border border-border bg-surface py-3 shadow-xs active:bg-surface-raised"
+              >
+                <View className="h-5 w-5 items-center justify-center rounded-full bg-red-500">
+                  <Text className="text-xs font-black text-white">G</Text>
+                </View>
+                <Text className="text-sm font-semibold text-ink">
+                  Continue with Google
+                </Text>
               </Pressable>
 
               {phoneAuthEnabled && (
@@ -563,6 +604,29 @@ export default function AuthScreen() {
                       <Icon icon={ArrowRight} color="#fff" size={16} />
                     </>
                   )}
+                </Pressable>
+              </View>
+
+              <View className="my-4 flex-row items-center justify-center">
+                <View className="flex-1 border-t border-border" />
+                <Text className="mx-3 text-[11px] font-semibold uppercase tracking-wider text-ink/40">
+                  or
+                </Text>
+                <View className="flex-1 border-t border-border" />
+              </View>
+
+              <View className="flex-row justify-center">
+                <Pressable
+                  onPress={handleGoogleSignIn}
+                  disabled={loading}
+                  className="w-full max-w-[320px] flex-row items-center justify-center gap-3 rounded-xl border border-border bg-surface py-3 shadow-xs active:bg-surface-raised"
+                >
+                  <View className="h-5 w-5 items-center justify-center rounded-full bg-red-500">
+                    <Text className="text-xs font-black text-white">G</Text>
+                  </View>
+                  <Text className="text-sm font-semibold text-ink">
+                    Sign up with Google
+                  </Text>
                 </Pressable>
               </View>
             </View>
