@@ -9,7 +9,7 @@ import {
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  ChevronLeft, ShieldCheck, XCircle, Star, Eye, EyeOff, Trash2, Inbox,
+  ChevronLeft, ShieldCheck, XCircle, Star, Eye, EyeOff, Trash2, Inbox, Flag, CheckCircle,
 } from "lucide-react-native";
 import { BRAND } from "@/src/theme/colors";
 import { Icon } from "@/src/components/ui/Icon";
@@ -21,9 +21,11 @@ import {
   getRecentReviews,
   setReviewHidden,
   deleteReview,
+  getPendingReports,
+  resolveUserReport,
 } from "@/src/services/supabase/queries";
 
-type Section = "verification" | "reviews";
+type Section = "verification" | "reviews" | "reports";
 
 const day = (isoStr?: string) => String(isoStr ?? "").slice(0, 10);
 
@@ -78,6 +80,20 @@ export default function AdminScreen() {
     },
   });
 
+  const reportsQ = useQuery({
+    queryKey: ["pending-reports"],
+    queryFn: () => getPendingReports(50),
+    enabled: isAdmin,
+  });
+
+  const resolveReportMut = useMutation({
+    mutationFn: ({ id, action }: { id: string; action: "resolved" | "dismissed" }) =>
+      resolveUserReport(id, action),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pending-reports"] });
+    },
+  });
+
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-surface">
@@ -122,6 +138,7 @@ export default function AdminScreen() {
   const TABS: { id: Section; label: string }[] = [
     { id: "verification", label: `Verifications (${providersQ.data?.length ?? 0})` },
     { id: "reviews", label: "Reviews" },
+    { id: "reports", label: `Reports (${reportsQ.data?.length ?? 0})` },
   ];
 
   return (
@@ -188,7 +205,8 @@ export default function AdminScreen() {
               ))}
             </View>
           )
-        ) : reviewsQ.isLoading ? (
+        ) : section === "reviews" ? (
+          reviewsQ.isLoading ? (
           <View className="items-center py-12"><ActivityIndicator color={BRAND.primary} /></View>
         ) : (reviewsQ.data?.length ?? 0) === 0 ? (
           <Card className="flex-row items-center gap-3 border border-border p-6">
@@ -235,6 +253,53 @@ export default function AdminScreen() {
               </Card>
             ))}
           </View>
+        )) : (
+          /* Reports Tab */
+          reportsQ.isLoading ? (
+            <View className="items-center py-12"><ActivityIndicator color={BRAND.primary} /></View>
+          ) : (reportsQ.data?.length ?? 0) === 0 ? (
+            <Card className="flex-row items-center gap-3 border border-border p-6">
+              <Icon icon={CheckCircle} color={BRAND.success} size={22} />
+              <Text className="flex-1 text-sm text-ink/70">No pending reports to review.</Text>
+            </Card>
+          ) : (
+            <View className="gap-3">
+              {reportsQ.data!.map((rp: any) => (
+                <Card key={rp.id} className="gap-2 border border-border p-4">
+                  <View className="flex-row items-center justify-between">
+                    <View className="flex-row items-center gap-1.5">
+                      <Icon icon={Flag} color={BRAND.danger} size={14} />
+                      <Text className="text-[10px] font-bold uppercase tracking-wider text-red-500">
+                        {rp.target_type || "User"} Report
+                      </Text>
+                    </View>
+                    <Text className="text-[10px] text-ink/40">{day(rp.created_at)}</Text>
+                  </View>
+                  <Text className="text-sm font-bold text-ink">{rp.reason}</Text>
+                  {rp.details && (
+                    <Text className="text-xs text-ink/70">{rp.details}</Text>
+                  )}
+                  <Text className="text-[10px] text-ink/40">Target ID: {rp.target_id}</Text>
+                  <View className="mt-2 flex-row gap-2">
+                    <Pressable
+                      onPress={() => resolveReportMut.mutate({ id: rp.id, action: "resolved" })}
+                      className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg bg-primary py-2"
+                    >
+                      <Icon icon={CheckCircle} color="#fff" size={13} />
+                      <Text className="text-xs font-bold text-white">Resolve &amp; Action</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => resolveReportMut.mutate({ id: rp.id, action: "dismissed" })}
+                      className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border py-2"
+                    >
+                      <Icon icon={XCircle} color={BRAND.muted} size={13} />
+                      <Text className="text-xs font-bold text-ink/70">Dismiss</Text>
+                    </Pressable>
+                  </View>
+                </Card>
+              ))}
+            </View>
+          )
         )}
       </View>
     </ScrollView>

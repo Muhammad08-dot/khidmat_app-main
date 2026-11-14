@@ -44,6 +44,7 @@ export const ProviderHome: React.FC = () => {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [completingBooking, setCompletingBooking] = useState<any | null>(null);
   const [completionPhotos, setCompletionPhotos] = useState<string[]>([]);
+  const [codCashReceived, setCodCashReceived] = useState(true);
   const [finishing, setFinishing] = useState(false);
 
   if (!userProfile) return null;
@@ -122,6 +123,7 @@ export const ProviderHome: React.FC = () => {
 
   const openCompleteModal = (booking: any) => {
     setCompletionPhotos([]);
+    setCodCashReceived(true);
     setCompletingBooking(booking);
   };
 
@@ -142,6 +144,11 @@ export const ProviderHome: React.FC = () => {
     setFinishing(true);
     try {
       const bookingId = completingBooking.bookingId || completingBooking.id;
+      const metaPatch: Record<string, any> = {
+        codReceived: codCashReceived,
+        codReceivedAmount: completingBooking.totalPrice || completingBooking.estimated_price || 0,
+        codMarkedAt: new Date().toISOString(),
+      };
       if (completionPhotos.length > 0) {
         const urls: string[] = [];
         for (const uri of completionPhotos) {
@@ -152,11 +159,10 @@ export const ProviderHome: React.FC = () => {
           }
         }
         if (urls.length > 0) {
-          await mergeBookingMeta(bookingId, {
-            jobPhotos: [...(completingBooking.jobPhotos ?? []), ...urls],
-          });
+          metaPatch.jobPhotos = [...(completingBooking.jobPhotos ?? []), ...urls];
         }
       }
+      await mergeBookingMeta(bookingId, metaPatch);
       await completeBooking(completingBooking);
       setCompletingBooking(null);
     } finally {
@@ -467,6 +473,28 @@ export const ProviderHome: React.FC = () => {
                 {completionPhotos.length} photo(s) captured
               </Text>
             )}
+
+            {/* COD Cash Received Confirmation */}
+            <Pressable
+              onPress={() => setCodCashReceived(!codCashReceived)}
+              className="mt-4 flex-row items-center gap-3 rounded-xl border border-border bg-surface p-3"
+            >
+              <View
+                className={`h-5 w-5 rounded-md border items-center justify-center ${
+                  codCashReceived ? "border-primary bg-primary" : "border-ink/30"
+                }`}
+              >
+                {codCashReceived && <Icon icon={CheckCircle} color="#fff" size={14} />}
+              </View>
+              <View className="flex-1">
+                <Text className="text-xs font-bold text-ink">
+                  Cash payment received (Rs. {completingBooking.totalPrice || completingBooking.estimated_price || 0})
+                </Text>
+                <Text className="text-[10px] text-ink/50">
+                  Check this if the client has handed over the cash.
+                </Text>
+              </View>
+            </Pressable>
 
             <Pressable
               onPress={confirmComplete}

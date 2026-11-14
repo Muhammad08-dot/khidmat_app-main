@@ -189,6 +189,19 @@ const seed: MockDB = {
     { provider_id: BILAL_ID, booking_id: uid('b001'), lat: 31.545, lng: 74.335, updated_at: iso(5) },
   ],
   push_tokens: [],
+  user_reports: [
+    {
+      id: uid('rep1'),
+      reporter_id: CUSTOMER_ID,
+      reported_id: NADIA_ID,
+      target_type: 'provider',
+      target_id: NADIA_ID,
+      reason: 'Late arrival without communication',
+      details: 'Provider did not show up at scheduled hour.',
+      status: 'pending',
+      created_at: iso(60 * 5),
+    },
+  ],
 };
 
 const AUTH_USERS = [

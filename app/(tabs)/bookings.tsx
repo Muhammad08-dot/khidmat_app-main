@@ -58,9 +58,9 @@ interface Booking {
   reviewedAt?: string;
 }
 
-type Tab = "all" | "pending" | "confirmed" | "completed";
+type Tab = "all" | "pending" | "confirmed" | "completed" | "cancelled";
 
-const TABS: Tab[] = ["all", "pending", "confirmed", "completed"];
+const TABS: Tab[] = ["all", "pending", "confirmed", "completed", "cancelled"];
 
 export default function BookingsScreen() {
   const router = useRouter();
@@ -70,6 +70,7 @@ export default function BookingsScreen() {
   const { data: bookingsData, isLoading: loading, refetch, isRefetching } = useBookings(user?.id, role);
   const bookings = (bookingsData as Booking[]) || [];
   const [activeTab, setActiveTab] = useState<Tab>("all");
+  const [pageLimit, setPageLimit] = useState(10);
 
   const [ratingBookingId, setRatingBookingId] = useState<string | null>(null);
   const [selectedRating, setSelectedRating] = useState(5);
@@ -428,7 +429,7 @@ export default function BookingsScreen() {
           </View>
         ) : (
           <View className="gap-4">
-            {filteredBookings.map((b) => {
+            {filteredBookings.slice(0, pageLimit).map((b) => {
               const isCompleted = b.status === "completed";
               const isClosed = b.status === "closed";
               const isPending = b.status === "pending";
@@ -591,10 +592,20 @@ export default function BookingsScreen() {
                   {/* Actions */}
                   <View className="mt-3 flex-row flex-wrap items-center justify-between gap-2 border-t border-border pt-2.5">
                     {b.status === "cancelled" ? (
-                      <Text className="flex-row items-center gap-1 text-[10px] font-bold text-accent-terracotta">
-                        <Icon icon={XCircle} color={BRAND.caution} size={13} /> Booking
-                        Cancelled
-                      </Text>
+                      <View className="flex-row items-center justify-between w-full">
+                        <Text className="flex-row items-center gap-1 text-[10px] font-bold text-accent-terracotta">
+                          <Icon icon={XCircle} color={BRAND.caution} size={13} /> Booking Cancelled
+                        </Text>
+                        {clientView && (
+                          <Pressable
+                            onPress={() => router.push(`/providers?category=${encodeURIComponent(b.providerCategory)}&reassignFrom=${b.bookingId}`)}
+                            className="flex-row items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5"
+                          >
+                            <Icon icon={Sparkles} color="#fff" size={13} />
+                            <Text className="text-xs font-bold text-white">Find Alternative</Text>
+                          </Pressable>
+                        )}
+                      </View>
                     ) : (
                       <Text className="flex-row items-center gap-1 text-[10px] font-bold text-ink/50">
                         <Icon icon={Info} color={BRAND.primary} size={13} /> Contact
@@ -698,6 +709,16 @@ export default function BookingsScreen() {
                 </Card>
               );
             })}
+            {filteredBookings.length > pageLimit && (
+              <Pressable
+                onPress={() => setPageLimit((prev) => prev + 10)}
+                className="mt-2 flex-row items-center justify-center rounded-xl border border-border bg-surface-raised py-3"
+              >
+                <Text className="text-xs font-bold text-primary">
+                  Load More ({filteredBookings.length - pageLimit} more)
+                </Text>
+              </Pressable>
+            )}
           </View>
         )}
       </View>

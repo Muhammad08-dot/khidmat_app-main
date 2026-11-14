@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { scrubPII } from '../errorReporter';
 
 describe('Error Reporter PII Scrubbing', () => {

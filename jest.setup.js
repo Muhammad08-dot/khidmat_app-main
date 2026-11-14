@@ -1,3 +1,4 @@
+/* eslint-env jest, node */
 process.env.EXPO_PUBLIC_DEMO_MODE = process.env.EXPO_PUBLIC_DEMO_MODE || 'true';
 
 // Mock AsyncStorage for Jest

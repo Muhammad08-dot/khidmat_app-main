@@ -22,5 +22,12 @@
   "nav_privacy": "Privacy Policy",
   "nav_terms": "Terms of Service",
   "nav_admin": "Admin Console",
-  "legal_agree": "By continuing you agree to our Terms & Privacy Policy."
+  "legal_agree": "By continuing you agree to our Terms & Privacy Policy.",
+  "delete_account": "Delete Account",
+  "delete_account_title": "Delete Account?",
+  "delete_account_warning": "This action is permanent and cannot be undone. All your personal data and addresses will be permanently deleted.",
+  "report_user": "Report User",
+  "report_submitted": "Report Submitted",
+  "cancel_booking": "Cancel Booking",
+  "reassign_provider": "Find Alternative Provider"
 }

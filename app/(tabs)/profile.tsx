@@ -42,6 +42,7 @@ import {
 } from "lucide-react-native";
 import { useAuth } from "@/src/context/AuthContext";
 import { uploadProfilePhoto } from "@/src/services/supabase/legacy";
+import { deleteUserAccount } from "@/src/services/supabase/queries";
 import { getLang, setLang, type Lang, t } from "@/src/i18n";
 
 import { Avatar } from "@/src/components/ui/Avatar";
@@ -248,6 +249,34 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const [deletingAccount, setDeletingAccount] = useState(false);
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      t("delete_account_title"),
+      t("delete_account_warning"),
+      [
+        { text: t("common_cancel"), style: "cancel" },
+        {
+          text: t("delete_account"),
+          style: "destructive",
+          onPress: async () => {
+            if (!user?.id) return;
+            try {
+              setDeletingAccount(true);
+              await deleteUserAccount(user.id);
+              router.replace("/(auth)/auth");
+            } catch (err: any) {
+              Alert.alert("Failed", err?.message || "Could not delete account. Please try again.");
+            } finally {
+              setDeletingAccount(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (!userProfile) {
     return (
       <View className="flex-1 items-center justify-center bg-surface">
@@ -450,6 +479,13 @@ export default function ProfileScreen() {
                 <LinkRow icon={Lock} label={t("nav_admin")} onPress={() => router.push("/admin")} accent={BRAND.caution} />
               </>
             )}
+            <View className="h-px bg-border/60" />
+            <LinkRow
+              icon={Trash2}
+              label={deletingAccount ? t("common_loading") : t("delete_account")}
+              onPress={handleDeleteAccount}
+              accent={BRAND.danger}
+            />
           </View>
 
           {/* Saved addresses */}

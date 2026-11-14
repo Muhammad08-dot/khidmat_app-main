@@ -21,6 +21,14 @@ export const getProvidersByCategory = async (category: string) => {
   return data;
 };
 
+const lastMessageMap = new Map<string, number>();
+const lastBookingMap = new Map<string, number>();
+
+export const clearAntiSpam = () => {
+  lastMessageMap.clear();
+  lastBookingMap.clear();
+};
+
 export const createBooking = async (
   customerId: string, 
   providerId: string, 
@@ -29,6 +37,13 @@ export const createBooking = async (
   urgency: string, 
   estimatedPrice: number
 ) => {
+  const now = Date.now();
+  const lastBooking = lastBookingMap.get(customerId) || 0;
+  if (now - lastBooking < 2000) {
+    throw new Error("Please wait a moment before submitting another booking request.");
+  }
+  lastBookingMap.set(customerId, now);
+
   const { data, error } = await supabase.from('bookings').insert({
     customer_id: customerId,
     provider_id: providerId,
@@ -93,6 +108,13 @@ export const getMessages = async (bookingId: string) => {
 import { sendPushToUser } from '../push';
 
 export const sendMessage = async (bookingId: string, senderId: string, content: string) => {
+  const now = Date.now();
+  const lastMsg = lastMessageMap.get(senderId) || 0;
+  if (!content.includes('"isSystemEvent":true') && now - lastMsg < 400) {
+    throw new Error("You are sending messages too fast. Please slow down.");
+  }
+  lastMessageMap.set(senderId, now);
+
   const { data, error } = await supabase.from('messages').insert({
     booking_id: bookingId,
     sender_id: senderId,
@@ -198,7 +220,7 @@ export const markNotificationsRead = async (userId: string) => {
  */
 const logAdminAction = async (
   action: string,
-  targetType: 'profile' | 'review',
+  targetType: 'profile' | 'review' | 'user_report',
   targetId: string,
   meta: Record<string, unknown> = {},
 ) => {
@@ -381,4 +403,88 @@ export const transitionBookingStatus = async (params: TransitionBookingParams) =
   }
 
   return data[0];
+};
+
+/**
+ * Permanently deletes/anonymizes a user account and associated personal data.
+ * Required for Play Store privacy compliance.
+ */
+export const deleteUserAccount = async (userId: string): Promise<boolean> => {
+  try {
+    const { error: rpcErr } = await supabase.rpc('delete_user_account', { p_user_id: userId });
+    if (!rpcErr) {
+      await supabase.auth.signOut();
+      return true;
+    }
+  } catch {
+    // Fallback to table deletions
+  }
+
+  await supabase.from('push_tokens').delete().eq('user_id', userId);
+  await supabase.from('notifications').delete().eq('user_id', userId);
+  await supabase.from('profile_contacts').delete().eq('user_id', userId);
+  await supabase.from('providers').delete().eq('id', userId);
+  const { error } = await supabase.from('profiles').delete().eq('id', userId);
+  if (error) throw error;
+
+  await logAdminAction('account.deleted', 'profile', userId, { user_id: userId });
+  await supabase.auth.signOut();
+  return true;
+};
+
+export interface UserReportParams {
+  reporterId?: string;
+  reportedId?: string | null;
+  targetType: 'provider' | 'customer' | 'review';
+  targetId: string;
+  reason: string;
+  details?: string;
+}
+
+export const submitUserReport = async (params: UserReportParams) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  const reporterId = user?.id || params.reporterId;
+  if (!reporterId) throw new Error("Must be logged in to submit a report.");
+
+  const { data, error } = await supabase.from('user_reports').insert({
+    reporter_id: reporterId,
+    reported_id: params.reportedId || null,
+    target_type: params.targetType,
+    target_id: params.targetId,
+    reason: params.reason,
+    details: params.details || null,
+    status: 'pending',
+  }).select().single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const getPendingReports = async (limit = 50) => {
+  const { data, error } = await supabase
+    .from('user_reports')
+    .select('*')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data ?? [];
+};
+
+export const resolveUserReport = async (reportId: string, action: 'resolved' | 'dismissed') => {
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data, error } = await supabase
+    .from('user_reports')
+    .update({
+      status: action,
+      resolved_at: new Date().toISOString(),
+      resolved_by: user?.id || null,
+    })
+    .eq('id', reportId)
+    .select();
+
+  if (error) throw error;
+  await logAdminAction(`report.${action}`, 'user_report', reportId, { status: action });
+  return data?.[0];
 };

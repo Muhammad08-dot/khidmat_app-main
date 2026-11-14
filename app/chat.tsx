@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
   Platform,
   Linking,
+  Alert,
+  Modal,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import {
@@ -24,12 +26,15 @@ import {
   Phone,
   Send,
   Shield,
+  Flag,
+  X,
 } from "lucide-react-native";
 import { useAuth } from "@/src/context/AuthContext";
 import { getDocument } from "@/src/services/supabase/legacy";
 import { sendPushToUser } from "@/src/services/push";
 import { supabase, DEMO_MODE } from "@/src/services/supabase/client";
 import { useChatMessages, useSendMessage, useMarkMessagesSeen } from '@/src/hooks/useSupabase';
+import { submitUserReport } from '@/src/services/supabase/queries';
 import { Card } from "@/src/components/ui/Card";
 import { EmptyState } from "@/src/components/ui/EmptyState";
 import { Icon } from "@/src/components/ui/Icon";
@@ -89,6 +94,43 @@ export default function ChatScreen() {
   const { data: messages = [], isLoading: loadingMessages } = useChatMessages(bookingId as string);
   const { mutateAsync: sendMessageMutation } = useSendMessage();
   const { mutate: markSeen } = useMarkMessagesSeen();
+
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState<string>("Inappropriate or abusive behavior");
+  const [reportDetails, setReportDetails] = useState("");
+  const [submittingReport, setSubmittingReport] = useState(false);
+
+  const REPORT_REASONS = [
+    "Inappropriate or abusive behavior",
+    "Safety concern or harassment",
+    "Scam or fraudulent request",
+    "Did not show up / Unprofessional",
+    "Other issue",
+  ];
+
+  const handleSendReport = async () => {
+    if (!booking) return;
+    try {
+      setSubmittingReport(true);
+      await submitUserReport({
+        reportedId: isWorker ? booking.customerId : booking.providerId,
+        targetType: isWorker ? "customer" : "provider",
+        targetId: isWorker ? booking.customerId : booking.providerId,
+        reason: reportReason,
+        details: reportDetails.trim() || undefined,
+      });
+      setShowReportModal(false);
+      setReportDetails("");
+      Alert.alert(
+        "Report Submitted",
+        "Thank you. Our safety and moderation team has received your report and will take action."
+      );
+    } catch (err: any) {
+      Alert.alert("Submission Failed", err?.message || "Could not submit report.");
+    } finally {
+      setSubmittingReport(false);
+    }
+  };
 
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
@@ -339,6 +381,12 @@ export default function ChatScreen() {
               <Icon icon={Phone} color={BRAND.primary} size={16} />
             </Pressable>
           )}
+          <Pressable
+            onPress={() => setShowReportModal(true)}
+            className="h-8 w-8 items-center justify-center rounded-lg border border-border"
+          >
+            <Icon icon={Flag} color={BRAND.danger} size={14} />
+          </Pressable>
         </View>
       </View>
 
@@ -510,6 +558,81 @@ export default function ChatScreen() {
           </>
         )}
       </View>
+
+      {/* Report User Modal */}
+      <Modal
+        visible={showReportModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowReportModal(false)}
+      >
+        <Pressable className="flex-1 bg-black/50" onPress={() => setShowReportModal(false)}>
+          <View className="flex-1 justify-end">
+            <Pressable
+              className="bg-surface-raised rounded-t-3xl p-6"
+              onPress={(e) => e.stopPropagation()}
+            >
+              <View className="flex-row items-center justify-between pb-3 border-b border-border">
+                <View className="flex-row items-center gap-2">
+                  <Icon icon={Flag} color={BRAND.danger} size={18} />
+                  <Text className="text-base font-bold text-ink">Report User</Text>
+                </View>
+                <Pressable onPress={() => setShowReportModal(false)} className="p-1">
+                  <Icon icon={X} color={BRAND.muted} size={18} />
+                </Pressable>
+              </View>
+
+              <Text className="mb-2 mt-4 text-xs font-semibold text-ink/60">Reason for report</Text>
+              <View className="gap-2">
+                {REPORT_REASONS.map((r) => (
+                  <Pressable
+                    key={r}
+                    onPress={() => setReportReason(r)}
+                    className={`rounded-xl border p-3 ${
+                      reportReason === r ? "border-primary bg-primary/5" : "border-border"
+                    }`}
+                  >
+                    <Text className={`text-xs font-semibold ${reportReason === r ? "text-primary font-bold" : "text-ink"}`}>
+                      {r}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <Text className="mb-1.5 mt-4 text-xs font-semibold text-ink/60">Additional details (optional)</Text>
+              <TextInput
+                value={reportDetails}
+                onChangeText={setReportDetails}
+                placeholder="Explain what happened..."
+                placeholderTextColor="rgba(20,35,28,0.3)"
+                multiline
+                style={{ minHeight: 60 }}
+                className="w-full rounded-xl border border-border bg-surface p-3 text-sm text-ink"
+              />
+
+              <View className="flex-row gap-3 mt-5">
+                <Pressable
+                  onPress={() => setShowReportModal(false)}
+                  className="flex-1 rounded-xl border border-border py-3 items-center"
+                >
+                  <Text className="text-sm font-bold text-ink/70">Cancel</Text>
+                </Pressable>
+                <Pressable
+                  onPress={handleSendReport}
+                  disabled={submittingReport}
+                  className="flex-1 rounded-xl bg-red-600 py-3 items-center"
+                >
+                  {submittingReport ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <Text className="text-sm font-bold text-white">Submit Report</Text>
+                  )}
+                </Pressable>
+              </View>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
