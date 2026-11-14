@@ -78,3 +78,4 @@ This checklist specifies the exact physical device validation procedures for pre
 7. Switch to **Reports** tab.
 8. Verify report is visible with timestamp and reason.
 9. Tap **Resolve & Action** or **Dismiss**.
+

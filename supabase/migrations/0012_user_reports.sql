@@ -36,3 +36,4 @@ CREATE POLICY "Admins can update reports"
 
 CREATE INDEX IF NOT EXISTS idx_reports_status ON public.user_reports(status);
 CREATE INDEX IF NOT EXISTS idx_reports_reported ON public.user_reports(reported_id);
+

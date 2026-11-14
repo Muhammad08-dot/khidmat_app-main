@@ -86,3 +86,4 @@ CREATE TRIGGER trg_booking_status_notification
   AFTER UPDATE OF status ON public.bookings
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_booking_status_notification();
+

@@ -50,3 +50,4 @@ All notable changes made to stabilize, harden, test, and complete the Khidmat pl
   - Added unit and integration suites: `trackingBroadcast.test.ts`, `bookingStatusRace.test.ts`, `errorReporter.test.ts`, `phase3Features.test.ts`.
   - Maintained 100% key parity between English and Urdu (`en.json` & `ur.json`).
   - Strict TypeScript check (`tsc --noEmit`) and ESLint passing with zero errors.
+

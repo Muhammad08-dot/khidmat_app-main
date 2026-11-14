@@ -186,334 +186,329 @@ export const ProviderHome: React.FC = () => {
 
   return (
     <>
-    <ScrollView
-      className="flex-1 bg-surface"
-      contentContainerStyle={{ paddingTop: 20, paddingBottom: 120 }}
-      showsVerticalScrollIndicator={false}
-    >
-      <View className="px-4">
-        {/* Header + availability */}
-        <View className="rounded-2xl border border-border bg-gradient-to-br from-primary/10 to-accent-sage/10 p-5">
-          <View className="flex-row items-center gap-3">
-            <Avatar
-              src={userProfile.photoURL}
-              name={userProfile.name}
-              className="h-14 w-14 border-2 border-surface"
-            />
-            <View className="flex-1">
-              <View className="flex-row flex-wrap items-center gap-2">
-                <Text className="font-display text-lg font-extrabold text-ink">
-                  Welcome, {userProfile.name}!
+      <ScrollView
+        className="flex-1 bg-surface"
+        contentContainerStyle={{ paddingTop: 20, paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="px-4">
+          {/* Header + availability */}
+          <View className="rounded-2xl border border-border bg-gradient-to-br from-primary/10 to-accent-sage/10 p-5">
+            <View className="flex-row items-center gap-3">
+              <Avatar
+                src={userProfile.photoURL}
+                name={userProfile.name}
+                className="h-14 w-14 border-2 border-surface"
+              />
+              <View className="flex-1">
+                <View className="flex-row flex-wrap items-center gap-2">
+                  <Text className="font-display text-lg font-extrabold text-ink">
+                    Welcome, {userProfile.name}!
+                  </Text>
+                  <TierBadge tier={userProfile.tier || "Bronze"} />
+                </View>
+                <Text className="mt-0.5 text-xs text-ink/60">
+                  Manage your services, track earnings, and respond to clients.
                 </Text>
-                <TierBadge tier={userProfile.tier || "Bronze"} />
               </View>
-              <Text className="mt-0.5 text-xs text-ink/60">
-                Manage your services, track earnings, and respond to clients.
-              </Text>
             </View>
+
+            <Pressable
+              onPress={toggleOnline}
+              disabled={toggling}
+              className={`mt-4 flex-row items-center justify-center gap-2 rounded-xl border px-6 py-3.5 ${isOnline
+                  ? "border-primary bg-primary"
+                  : "border-border bg-surface"
+                }`}
+            >
+              {toggling ? (
+                <ActivityIndicator size="small" color={isOnline ? "#fff" : BRAND.primary} />
+              ) : (
+                <View
+                  className={`h-3.5 w-3.5 rounded-full border-2 border-white ${isOnline ? "bg-surface-raised" : "bg-ink/40"
+                    }`}
+                />
+              )}
+              <Text
+                className={`text-sm font-bold ${isOnline ? "text-white" : "text-ink/50"
+                  }`}
+              >
+                {toggling
+                  ? "Updating location..."
+                  : isOnline
+                    ? "You are ONLINE"
+                    : "You are OFFLINE"}
+              </Text>
+            </Pressable>
+            <Text className="mt-2 text-center text-[10px] font-semibold uppercase tracking-wider text-ink/40">
+              {isOnline
+                ? "Visible to customers searching for services"
+                : "Hidden from customer search results"}
+            </Text>
+            {locationError && (
+              <Text className="mt-2 rounded-xl border border-accent-terracotta/20 bg-accent-terracotta/10 p-3 text-xs text-accent-terracotta">
+                {locationError}
+              </Text>
+            )}
           </View>
 
-          <Pressable
-            onPress={toggleOnline}
-            disabled={toggling}
-            className={`mt-4 flex-row items-center justify-center gap-2 rounded-xl border px-6 py-3.5 ${
-              isOnline
-                ? "border-primary bg-primary"
-                : "border-border bg-surface"
-            }`}
-          >
-            {toggling ? (
-              <ActivityIndicator size="small" color={isOnline ? "#fff" : BRAND.primary} />
-            ) : (
+          {/* Stats */}
+          <View className="mt-5 flex-row flex-wrap" style={{ gap: 10 }}>
+            {[
+              {
+                label: "Jobs Completed",
+                icon: CheckCircle,
+                color: BRAND.primary as string,
+                value: String(userProfile.totalJobs || 0),
+              },
+              {
+                label: "Total Earnings",
+                icon: DollarSign,
+                color: BRAND.primary,
+                value: `Rs. ${userProfile.totalEarnings || 0}`,
+              },
+              {
+                label: "Overall Rating",
+                icon: Star,
+                color: BRAND.gold,
+                value:
+                  userProfile.rating != null
+                    ? userProfile.rating.toFixed(1)
+                    : "New",
+              },
+              {
+                label: "Specialty",
+                icon: Briefcase,
+                color: BRAND.primary,
+                value: userProfile.category || "Specialist",
+              },
+            ].map((s) => (
               <View
-                className={`h-3.5 w-3.5 rounded-full border-2 border-white ${
-                  isOnline ? "bg-surface-raised" : "bg-ink/40"
-                }`}
-              />
-            )}
-            <Text
-              className={`text-sm font-bold ${
-                isOnline ? "text-white" : "text-ink/50"
-              }`}
-            >
-              {toggling
-                ? "Updating location..."
-                : isOnline
-                ? "You are ONLINE"
-                : "You are OFFLINE"}
-            </Text>
-          </Pressable>
-          <Text className="mt-2 text-center text-[10px] font-semibold uppercase tracking-wider text-ink/40">
-            {isOnline
-              ? "Visible to customers searching for services"
-              : "Hidden from customer search results"}
-          </Text>
-          {locationError && (
-            <Text className="mt-2 rounded-xl border border-accent-terracotta/20 bg-accent-terracotta/10 p-3 text-xs text-accent-terracotta">
-              {locationError}
-            </Text>
-          )}
-        </View>
-
-        {/* Stats */}
-        <View className="mt-5 flex-row flex-wrap" style={{ gap: 10 }}>
-          {[
-            {
-              label: "Jobs Completed",
-              icon: CheckCircle,
-              color: BRAND.primary as string,
-              value: String(userProfile.totalJobs || 0),
-            },
-            {
-              label: "Total Earnings",
-              icon: DollarSign,
-              color: BRAND.primary,
-              value: `Rs. ${userProfile.totalEarnings || 0}`,
-            },
-            {
-              label: "Overall Rating",
-              icon: Star,
-              color: BRAND.gold,
-              value:
-                userProfile.rating != null
-                  ? userProfile.rating.toFixed(1)
-                  : "New",
-            },
-            {
-              label: "Specialty",
-              icon: Briefcase,
-              color: BRAND.primary,
-              value: userProfile.category || "Specialist",
-            },
-          ].map((s) => (
-            <View
-              key={s.label}
-              className="flex-1 rounded-xl border border-border bg-surface-raised p-4"
-              style={{ minWidth: "45%" }}
-            >
-              <Text className="text-[10px] font-semibold uppercase tracking-wide text-ink/40">
-                {s.label}
-              </Text>
-              <View className="mt-2 flex-row items-center gap-2">
-                <Icon icon={s.icon} color={s.color} size={20} />
-                <Text className="text-lg font-extrabold text-ink">{s.value}</Text>
+                key={s.label}
+                className="flex-1 rounded-xl border border-border bg-surface-raised p-4"
+                style={{ minWidth: "45%" }}
+              >
+                <Text className="text-[10px] font-semibold uppercase tracking-wide text-ink/40">
+                  {s.label}
+                </Text>
+                <View className="mt-2 flex-row items-center gap-2">
+                  <Icon icon={s.icon} color={s.color} size={20} />
+                  <Text className="text-lg font-extrabold text-ink">{s.value}</Text>
+                </View>
               </View>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
 
-        {/* Active requests */}
-        <View className="mt-6">
-          <Text className="flex-row items-center gap-2 text-base font-bold text-ink">
-            <Icon icon={Calendar} color={BRAND.primary} size={18} /> Active Service
-            Requests ({activeBookings.length})
-          </Text>
+          {/* Active requests */}
+          <View className="mt-6">
+            <Text className="flex-row items-center gap-2 text-base font-bold text-ink">
+              <Icon icon={Calendar} color={BRAND.primary} size={18} /> Active Service
+              Requests ({activeBookings.length})
+            </Text>
 
-          {activeBookings.length === 0 ? (
-            <Card className="mt-3 p-6">
-              <Text className="text-center text-sm font-semibold text-ink">
-                No Active Requests
-              </Text>
-              <Text className="mt-1 text-center text-xs text-ink/60">
-                {isOnline
-                  ? "You are online but haven't received any bookings yet. Service requests will appear here in real-time."
-                  : "Go ONLINE above to start receiving service requests from nearby customers."}
-              </Text>
-            </Card>
-          ) : (
-            activeBookings.map((b) => (
-              <Card key={b.bookingId} className="mt-3 p-4">
-                <View className="flex-row items-center gap-2">
-                  <Text
-                    className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                      b.status === "pending"
-                        ? "bg-accent-terracotta/10 text-accent-terracotta"
-                        : "bg-primary/10 text-primary"
-                    }`}
-                  >
-                    {b.status}
-                  </Text>
-                  <Text className="font-mono text-xs font-bold text-ink/40">
-                    #{String(b.bookingId || "").slice(0, 8) || "N/A"}
-                  </Text>
-                </View>
-                <Text className="mt-2 text-base font-bold text-ink">
-                  {b.customerName}
+            {activeBookings.length === 0 ? (
+              <Card className="mt-3 p-6">
+                <Text className="text-center text-sm font-semibold text-ink">
+                  No Active Requests
                 </Text>
-                <View className="mt-1 flex-row flex-wrap gap-x-4 gap-y-1">
-                  <Text className="flex-row items-center gap-1 text-xs font-medium text-ink/60">
-                    <Icon icon={MapPin} color={BRAND.primary} size={13} /> {b.address}
-                  </Text>
-                  <Text className="flex-row items-center gap-1 text-xs font-medium text-ink/60">
-                    <Icon icon={Clock} color={BRAND.primary} size={13} /> {b.timeSlot}{" "}
-                    ({b.date})
-                  </Text>
-                </View>
-                <Text className="mt-2 text-xs font-bold text-primary">
-                  PKR Invoice: Rs. {b.totalPrice}{" "}
-                  <Text className="text-[10px] font-normal text-ink/40">
-                    (Rs. {b.basePrice} base + Rs. {b.travelFee} travel)
-                  </Text>
+                <Text className="mt-1 text-center text-xs text-ink/60">
+                  {isOnline
+                    ? "You are online but haven't received any bookings yet. Service requests will appear here in real-time."
+                    : "Go ONLINE above to start receiving service requests from nearby customers."}
                 </Text>
-                <View className="mt-3 flex-row gap-2">
-                  <Pressable
-                    onPress={() => openChat(b.bookingId)}
-                    className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-surface py-2.5"
-                  >
-                    <Icon icon={MessageSquare} color={BRAND.primary} size={15} />
-                    <Text className="text-xs font-semibold text-ink">
-                      Chat Client
-                    </Text>
-                  </Pressable>
-                  {b.status === "pending" && (
-                    <Pressable
-                      onPress={() => acceptBooking(b)}
-                      className="flex-[2] flex-row items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5"
-                    >
-                      <Icon icon={CheckCircle} color="#fff" size={15} />
-                      <Text className="text-xs font-semibold text-white">
-                        Accept Job
-                      </Text>
-                    </Pressable>
-                  )}
-                  {b.status === "confirmed" && (
-                    <Pressable
-                      onPress={() => openCompleteModal(b)}
-                      className="flex-[2] flex-row items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5"
-                    >
-                      <Icon icon={CheckCircle} color="#fff" size={15} />
-                      <Text className="text-xs font-semibold text-white">
-                        Complete Job
-                      </Text>
-                    </Pressable>
-                  )}
-                </View>
               </Card>
-            ))
-          )}
-        </View>
-
-        {/* Recent earnings */}
-        <View className="mt-6">
-          <Text className="flex-row items-center gap-2 text-base font-bold text-ink">
-            <Icon icon={DollarSign} color={BRAND.primary} size={18} /> Recent Earnings
-            ({recentHistory.length})
-          </Text>
-          <Card className="mt-3 p-4">
-            {recentHistory.length === 0 ? (
-              <Text className="py-6 text-center text-xs text-ink/40">
-                No completed jobs yet. Keep online and complete assignments to
-                earn!
-              </Text>
             ) : (
-              recentHistory.map((h) => (
-                <View
-                  key={h.bookingId}
-                  className="flex-row items-center justify-between border-b border-border py-3 last:border-b-0"
-                >
-                  <View>
-                    <Text className="text-xs font-bold text-ink">
-                      {h.customerName}
+              activeBookings.map((b) => (
+                <Card key={b.bookingId} className="mt-3 p-4">
+                  <View className="flex-row items-center gap-2">
+                    <Text
+                      className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${b.status === "pending"
+                          ? "bg-accent-terracotta/10 text-accent-terracotta"
+                          : "bg-primary/10 text-primary"
+                        }`}
+                    >
+                      {b.status}
                     </Text>
-                    <Text className="text-[10px] font-medium text-ink/40">
-                      {h.date}
+                    <Text className="font-mono text-xs font-bold text-ink/40">
+                      #{String(b.bookingId || "").slice(0, 8) || "N/A"}
                     </Text>
                   </View>
-                  <View className="items-end">
-                    <Text className="text-xs font-extrabold text-primary">
-                      +Rs. {h.totalPrice}
+                  <Text className="mt-2 text-base font-bold text-ink">
+                    {b.customerName}
+                  </Text>
+                  <View className="mt-1 flex-row flex-wrap gap-x-4 gap-y-1">
+                    <Text className="flex-row items-center gap-1 text-xs font-medium text-ink/60">
+                      <Icon icon={MapPin} color={BRAND.primary} size={13} /> {b.address}
                     </Text>
-                    <Text className="text-[9px] text-ink/40">Completed</Text>
+                    <Text className="flex-row items-center gap-1 text-xs font-medium text-ink/60">
+                      <Icon icon={Clock} color={BRAND.primary} size={13} /> {b.timeSlot}{" "}
+                      ({b.date})
+                    </Text>
                   </View>
-                </View>
+                  <Text className="mt-2 text-xs font-bold text-primary">
+                    PKR Invoice: Rs. {b.totalPrice}{" "}
+                    <Text className="text-[10px] font-normal text-ink/40">
+                      (Rs. {b.basePrice} base + Rs. {b.travelFee} travel)
+                    </Text>
+                  </Text>
+                  <View className="mt-3 flex-row gap-2">
+                    <Pressable
+                      onPress={() => openChat(b.bookingId)}
+                      className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-surface py-2.5"
+                    >
+                      <Icon icon={MessageSquare} color={BRAND.primary} size={15} />
+                      <Text className="text-xs font-semibold text-ink">
+                        Chat Client
+                      </Text>
+                    </Pressable>
+                    {b.status === "pending" && (
+                      <Pressable
+                        onPress={() => acceptBooking(b)}
+                        className="flex-[2] flex-row items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5"
+                      >
+                        <Icon icon={CheckCircle} color="#fff" size={15} />
+                        <Text className="text-xs font-semibold text-white">
+                          Accept Job
+                        </Text>
+                      </Pressable>
+                    )}
+                    {b.status === "confirmed" && (
+                      <Pressable
+                        onPress={() => openCompleteModal(b)}
+                        className="flex-[2] flex-row items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5"
+                      >
+                        <Icon icon={CheckCircle} color="#fff" size={15} />
+                        <Text className="text-xs font-semibold text-white">
+                          Complete Job
+                        </Text>
+                      </Pressable>
+                    )}
+                  </View>
+                </Card>
               ))
             )}
-          </Card>
-        </View>
-      </View>
-    </ScrollView>
+          </View>
 
-    {/* Job completion photo modal */}
-    <Modal
-      visible={!!completingBooking}
-      transparent
-      animationType="fade"
-      onRequestClose={() => setCompletingBooking(null)}
-    >
-      <Pressable className="flex-1 bg-black/50" onPress={() => setCompletingBooking(null)}>
-        <View className="flex-1 justify-end">
-          <Pressable className="bg-surface-raised rounded-t-3xl p-6" onPress={(e) => e.stopPropagation()}>
-            <View className="flex-row items-center justify-between">
-              <Text className="text-lg font-bold text-ink">Complete Job</Text>
-              <Pressable onPress={() => setCompletingBooking(null)} hitSlop={8}>
-                <Icon icon={X} color={BRAND.muted} size={20} />
-              </Pressable>
-            </View>
-            <Text className="text-sm text-ink/60 mt-1">
-              Add optional before/after photos so the client can verify the work.
+          {/* Recent earnings */}
+          <View className="mt-6">
+            <Text className="flex-row items-center gap-2 text-base font-bold text-ink">
+              <Icon icon={DollarSign} color={BRAND.primary} size={18} /> Recent Earnings
+              ({recentHistory.length})
             </Text>
-
-            <View className="flex-row gap-3 mt-5">
-              {completionPhotos.map((uri, i) => (
-                <View key={i} className="h-20 w-20 rounded-xl bg-ink/10 items-center justify-center">
-                  <Icon icon={CheckCircle} color={BRAND.primary} size={24} />
-                </View>
-              ))}
-              {completionPhotos.length < 3 && (
-                <Pressable
-                  onPress={pickCompletionPhoto}
-                  className="h-20 w-20 rounded-xl border border-dashed border-primary/40 items-center justify-center"
-                >
-                  <Icon icon={Camera} color={BRAND.primary} size={24} />
-                </Pressable>
-              )}
-            </View>
-            {completionPhotos.length > 0 && (
-              <Text className="text-xs text-ink/50 mt-2">
-                {completionPhotos.length} photo(s) captured
-              </Text>
-            )}
-
-            {/* COD Cash Received Confirmation */}
-            <Pressable
-              onPress={() => setCodCashReceived(!codCashReceived)}
-              className="mt-4 flex-row items-center gap-3 rounded-xl border border-border bg-surface p-3"
-            >
-              <View
-                className={`h-5 w-5 rounded-md border items-center justify-center ${
-                  codCashReceived ? "border-primary bg-primary" : "border-ink/30"
-                }`}
-              >
-                {codCashReceived && <Icon icon={CheckCircle} color="#fff" size={14} />}
-              </View>
-              <View className="flex-1">
-                <Text className="text-xs font-bold text-ink">
-                  Cash payment received (Rs. {completingBooking.totalPrice || completingBooking.estimated_price || 0})
+            <Card className="mt-3 p-4">
+              {recentHistory.length === 0 ? (
+                <Text className="py-6 text-center text-xs text-ink/40">
+                  No completed jobs yet. Keep online and complete assignments to
+                  earn!
                 </Text>
-                <Text className="text-[10px] text-ink/50">
-                  Check this if the client has handed over the cash.
-                </Text>
-              </View>
-            </Pressable>
-
-            <Pressable
-              onPress={confirmComplete}
-              disabled={finishing}
-              className="mt-6 rounded-xl bg-primary py-3.5 flex-row items-center justify-center gap-2"
-            >
-              {finishing ? (
-                <ActivityIndicator color="#fff" />
               ) : (
-                <Icon icon={CheckCircle} color="#fff" size={18} />
+                recentHistory.map((h) => (
+                  <View
+                    key={h.bookingId}
+                    className="flex-row items-center justify-between border-b border-border py-3 last:border-b-0"
+                  >
+                    <View>
+                      <Text className="text-xs font-bold text-ink">
+                        {h.customerName}
+                      </Text>
+                      <Text className="text-[10px] font-medium text-ink/40">
+                        {h.date}
+                      </Text>
+                    </View>
+                    <View className="items-end">
+                      <Text className="text-xs font-extrabold text-primary">
+                        +Rs. {h.totalPrice}
+                      </Text>
+                      <Text className="text-[9px] text-ink/40">Completed</Text>
+                    </View>
+                  </View>
+                ))
               )}
-              <Text className="text-sm font-bold text-white">
-                {finishing ? "Uploading…" : "Mark as Completed"}
-              </Text>
-            </Pressable>
-          </Pressable>
+            </Card>
+          </View>
         </View>
-      </Pressable>
-    </Modal>
+      </ScrollView>
+
+      {/* Job completion photo modal */}
+      <Modal
+        visible={!!completingBooking}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCompletingBooking(null)}
+      >
+        <Pressable className="flex-1 bg-black/50" onPress={() => setCompletingBooking(null)}>
+          <View className="flex-1 justify-end">
+            <Pressable className="bg-surface-raised rounded-t-3xl p-6" onPress={(e) => e.stopPropagation()}>
+              <View className="flex-row items-center justify-between">
+                <Text className="text-lg font-bold text-ink">Complete Job</Text>
+                <Pressable onPress={() => setCompletingBooking(null)} hitSlop={8}>
+                  <Icon icon={X} color={BRAND.muted} size={20} />
+                </Pressable>
+              </View>
+              <Text className="text-sm text-ink/60 mt-1">
+                Add optional before/after photos so the client can verify the work.
+              </Text>
+
+              <View className="flex-row gap-3 mt-5">
+                {completionPhotos.map((uri, i) => (
+                  <View key={i} className="h-20 w-20 rounded-xl bg-ink/10 items-center justify-center">
+                    <Icon icon={CheckCircle} color={BRAND.primary} size={24} />
+                  </View>
+                ))}
+                {completionPhotos.length < 3 && (
+                  <Pressable
+                    onPress={pickCompletionPhoto}
+                    className="h-20 w-20 rounded-xl border border-dashed border-primary/40 items-center justify-center"
+                  >
+                    <Icon icon={Camera} color={BRAND.primary} size={24} />
+                  </Pressable>
+                )}
+              </View>
+              {completionPhotos.length > 0 && (
+                <Text className="text-xs text-ink/50 mt-2">
+                  {completionPhotos.length} photo(s) captured
+                </Text>
+              )}
+
+              {/* COD Cash Received Confirmation */}
+              <Pressable
+                onPress={() => setCodCashReceived(!codCashReceived)}
+                className="mt-4 flex-row items-center gap-3 rounded-xl border border-border bg-surface p-3"
+              >
+                <View
+                  className={`h-5 w-5 rounded-md border items-center justify-center ${codCashReceived ? "border-primary bg-primary" : "border-ink/30"
+                    }`}
+                >
+                  {codCashReceived && <Icon icon={CheckCircle} color="#fff" size={14} />}
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xs font-bold text-ink">
+                    Cash payment received (Rs. {completingBooking.totalPrice || completingBooking.estimated_price || 0})
+                  </Text>
+                  <Text className="text-[10px] text-ink/50">
+                    Check this if the client has handed over the cash.
+                  </Text>
+                </View>
+              </Pressable>
+
+              <Pressable
+                onPress={confirmComplete}
+                disabled={finishing}
+                className="mt-6 rounded-xl bg-primary py-3.5 flex-row items-center justify-center gap-2"
+              >
+                {finishing ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Icon icon={CheckCircle} color="#fff" size={18} />
+                )}
+                <Text className="text-sm font-bold text-white">
+                  {finishing ? "Uploading…" : "Mark as Completed"}
+                </Text>
+              </Pressable>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </>
   );
 };

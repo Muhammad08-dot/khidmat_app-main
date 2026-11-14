@@ -69,3 +69,4 @@ This document records the verification results for every required feature specif
 | **X3** | Legal screens | `/privacy`, `/terms`, `/safety` reachable from settings and signup | **PASS** | Routes implemented with bilingual content, linked directly from Auth screen and Profile Legal card. |
 | **X4** | Demo mode | Full app usable with zero API keys | **PASS** | `mockClient.ts` provides full in-memory database, auth simulation, and realtime broadcast routing with no keys required. |
 | **X5** | Network | Offline banner, retry, no infinite spinners | **PASS** | TanStack React Query handles stale cache with timeout retry, and local fallback intent parser handles offline search. |
+

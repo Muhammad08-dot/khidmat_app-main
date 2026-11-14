@@ -83,3 +83,4 @@ BEGIN
   RETURN to_jsonb(v_booking);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
