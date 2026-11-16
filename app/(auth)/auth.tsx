@@ -3,6 +3,7 @@ import { BRAND } from "@/src/theme/colors";
 import {
   View,
   Text,
+  Image,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -252,7 +253,13 @@ export default function AuthScreen() {
       >
         {/* Brand header */}
         <View className="mb-7 items-center">
-          <View className="flex-row items-center rounded-2xl border border-border bg-surface-raised px-6 py-3 shadow-soft">
+          <Image
+            source={require("@/assets/logo.jpeg")}
+            style={{ width: 80, height: 80, borderRadius: 20 }}
+            className="mb-3 border border-border shadow-soft"
+            resizeMode="cover"
+          />
+          <View className="flex-row items-center rounded-2xl border border-border bg-surface-raised px-6 py-2.5 shadow-soft">
             <Text className="font-display text-xl font-bold tracking-tight text-primary">
               Khidmat
             </Text>
@@ -260,7 +267,7 @@ export default function AuthScreen() {
               خدمت
             </Text>
           </View>
-          <Text className="mt-3 text-center text-sm font-semibold leading-relaxed text-ink">
+          <Text className="mt-2.5 text-center text-xs font-semibold leading-relaxed text-ink/70">
             Professional &amp; localized service providers at your doorstep.
           </Text>
         </View>

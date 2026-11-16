@@ -97,3 +97,4 @@ During this testing cycle, no blocking defects (P0/P1) remain open. All previous
    - Host the contents of `app/privacy.tsx` at a public URL (e.g., `https://khidmat.app/privacy`) to satisfy Google Play Data Safety requirements.
 3. **Configure Live Google OAuth Credentials:**
    - To enable live Google Sign-In on the live Supabase project, generate Google Web/Android Client IDs in Google Cloud Console and paste them into Supabase Dashboard -> Authentication -> Providers -> Google.
+

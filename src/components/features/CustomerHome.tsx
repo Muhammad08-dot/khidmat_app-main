@@ -3,6 +3,7 @@ import { BRAND } from "@/src/theme/colors";
 import {
   View,
   Text,
+  Image,
   TextInput,
   Pressable,
   ScrollView,
@@ -116,6 +117,21 @@ export const CustomerHome: React.FC = () => {
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: "timing", duration: 500 }}
           >
+            <View className="flex-row items-center gap-2.5 mb-3.5">
+              <Image
+                source={require("@/assets/logo.jpeg")}
+                style={{ width: 36, height: 36, borderRadius: 10 }}
+                resizeMode="cover"
+              />
+              <View className="flex-row items-center">
+                <Text className="font-display text-lg font-bold text-primary">
+                  Khidmat
+                </Text>
+                <Text className="ml-1 text-xs font-semibold text-accent-gold">
+                  خدمت
+                </Text>
+              </View>
+            </View>
             <Text className="font-display text-3xl font-semibold leading-tight text-primary">
               Professional Help,{"\n"}Right at Your Doorstep
             </Text>
