@@ -1,259 +1,229 @@
-# Khidmat — On-Demand Home Services Platform
+<p align="center">
+  <img src="assets/icon.png" alt="Khidmat Logo" width="120" style="border-radius: 24px;" />
+</p>
 
-Khidmat connects customers with vetted local workers (electricians, plumbers, carpenters, cleaners, AC technicians) across Pakistan. Mobile-first Expo Router / React Native app, Supabase backend (Postgres + Auth + Realtime + Storage + Edge Functions), Express proxy for AI + payment gateway, NativeWind design system with a warm forest-green + gold palette.
+<h1 align="center">
+  Khidmat · خدمت
+</h1>
 
-**Status today** → **Stabilized & Production-Hardened** (Zero TypeScript errors, 10/10 passing Jest suites, 38 passing tests, in-memory Supabase mock for full offline demo mode, plus production migration set `0001 → 0012` ready for `supabase db push`).
+<p align="center">
+  <b>Hyperlocal On-Demand Home Services Marketplace tailored for Pakistan.</b><br>
+  Connecting customers with vetted local electricians, plumbers, carpenters, cleaners, and technicians.
+</p>
 
----
+<p align="center">
+  <a href="https://github.com/Muhammad08-dot/khidmat_app-main/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/Muhammad08-dot/khidmat_app-main/ci.yml?style=flat-square&label=CI%20Pipeline&logo=github" alt="CI Pipeline" />
+  </a>
+  <a href="https://expo.dev">
+    <img src="https://img.shields.io/badge/Expo-SDK%2057-000020?style=flat-square&logo=expo" alt="Expo SDK 57" />
+  </a>
+  <a href="https://reactnative.dev">
+    <img src="https://img.shields.io/badge/React%20Native-0.86-61DAFB?style=flat-square&logo=react" alt="React Native 0.86" />
+  </a>
+  <a href="https://supabase.com">
+    <img src="https://img.shields.io/badge/Supabase-PostgreSQL%2015-3ECF8E?style=flat-square&logo=supabase" alt="Supabase" />
+  </a>
+  <a href="docs/TEST_REPORT.md">
+    <img src="https://img.shields.io/badge/Tests-38%2F38%20Passed-brightgreen?style=flat-square" alt="Tests Passed" />
+  </a>
+  <a href="docs/QA_AGENT_REPORT.md">
+    <img src="https://img.shields.io/badge/E2E%20QA-30%2F30%20Verified-brightgreen?style=flat-square" alt="E2E QA" />
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License MIT" />
+  </a>
+</p>
 
-## Features
-
-### Customer
-- Email password sign-up / sign-in, password reset, phone-OTP sign-in behind a feature flag
-- Service-intent capture (AI-parsed, with a graceful local fallback when `agent-server` is offline)
-- Category browse + provider directory with tier badges, ratings, verification check
-- Booking flow: address picker (map or manual), time slot, urgency, description, price estimate
-- Live booking status: `pending → confirmed → in_progress → completed → reviewed → closed`
-- Realtime chat with the assigned provider (text-only, quick-reply chips, seen receipts)
-- Live map tracking of the worker on `in_progress` bookings
-- Reviews + 1–5 star rating after job completion
-- Reschedule an upcoming booking (with the provider)
-- Saved addresses (home / office / custom labels, one-tap fill on booking form)
-- Notifications inbox (in-app, realtime; expo push on native)
-
-### Provider
-- Same auth, worker mode toggle
-- Job acceptance flow with base-price + travel-fee transparency
-- Availability, bio, category, per-job pricing on their public page
-- In-app chat with the customer + live location sharing on `in_progress`
-- Earnings summary and job history
-
-### Admin / back-office (`/admin`)
-- Provider KYC verification queue — approve / reject; approve flips `verification_status`
-- Review moderation — hide / unhide / delete, average rating auto-recomputes
-- **Append-only audit log** (`admin_actions`) — every mutation records who / what / when
-
-### Platform
-- Legal screens shipped: `/privacy`, `/terms`, `/safety` (Play Store required)
-- Bilingual string surface (`src/i18n/{en,ur}.json`) with parity tests, wired into auth + profile + legal
-- Semantic design tokens (NativeWind + `BRAND` palette): `success / danger / warning / caution / info / muted`, cross-screen consistent
-
----
-
-## Tech Stack
-
-| Layer | Choice |
-|---|---|
-| Runtime | Expo SDK 57 · React Native 0.86 · React 19.2 |
-| Navigation | Expo Router (typed routes) |
-| Backend | Supabase (Postgres 15 + Auth + Realtime + Storage) |
-| Data fetching | TanStack React Query v5 |
-| Styling | NativeWind 4 · Tailwind 3 |
-| AI proxy | Express + LangChain (`agent-server/`) — Gemini or OpenAI |
-| Payments (stubbed) | JazzCash / EasyPaisa server-side HMAC signing, feature-flagged off |
-| Push | Expo Notifications (with an in-app notifications fallback) |
-| Maps | `expo-maps` + `react-native-maps` (LiveMap) |
-| Testing | Jest + jest-expo (10 test suites / 38 unit & integration tests passing) |
-| CI | GitHub Actions — lint + tsc + jest |
+<p align="center">
+  <a href="#-features-by-role">Features</a> •
+  <a href="#-engineering--architecture">Architecture</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-tech-stack">Tech Stack</a> •
+  <a href="#-automated-testing--qa">Testing & QA</a> •
+  <a href="#-docs--runbooks">Docs</a>
+</p>
 
 ---
 
-## Quick Start
+## 📱 Features by Role
 
-### Option A — Demo Mode (zero config, works offline)
+### 👤 Customer Experience
+* **AI-Powered Intent Discovery:** Natural search in Roman Urdu and English (e.g., *"kitchen pipe leaking"*) powered by Google Gemini 2.5 Flash with zero-latency local fallback.
+* **Hyperlocal Provider Ranking:** Workers sorted dynamically by Haversine GPS distance, star ratings, and tier badges.
+* **Transparent Pricing:** Base rates + distance-based travel fees displayed in PKR prior to confirmation.
+* **Realtime Ephemeral Tracking:** Live worker GPS broadcast over WebSockets during active jobs.
+* **In-App Messaging:** Realtime chat with quick-reply chips and read receipts.
+* **Google Play Compliance:** In-app self-service account deletion and content/user abuse reporting.
 
-Runs the entire app against an in-memory Supabase-shaped mock. No DB, no keys.
+### 🛠️ Provider (Worker) Hub
+* **Worker Mode Switch:** Seamless single-tap toggle between Customer and Provider modes.
+* **Availability Control:** Realtime Online/Offline status switch.
+* **Race-Condition-Free Job Dispatch:** Accept/Reject requests with transparent base-fee and customer distance.
+* **COD Settlement Confirmation:** Provider cash-collected toggle integrated with customer star ratings.
+* **Public Profile & Portfolio:** Bio, hourly rates, verified credentials, and customer review ledger.
 
-```bash
-npm install
-cp .env.example .env          # defaults to EXPO_PUBLIC_DEMO_MODE=true
-npm run web                   # or: npx expo start (QR for Expo Go on device)
+### 🛡️ Admin & Back-Office (`/admin`)
+* **Role-Based Access Control:** Strict security gate restricting access to `role = 'admin'` users.
+* **KYC Verification Queue:** Document and CNIC inspection queue with instant Approve/Reject triggers.
+* **Content & Review Moderation:** Hide, unhide, or delete reviews with automatic provider rating re-computation.
+* **Abuse & Harassment Reports:** Resolve or dismiss customer and provider abuse flags.
+* **Append-Only Audit Trail:** Immutable `admin_actions` table tracking all administrative mutations.
+
+---
+
+## 🏗️ Engineering & Architecture
+
+```
+                  +----------------------------------------------+
+                  |         Khidmat Client (Expo SDK 57)         |
+                  |  Customer Flow  |  Provider Hub  |  Admin UI |
+                  +----------------------------------------------+
+                                   /            \
+                Realtime WebSockets              REST / RPC
+                                 /                \
+                                v                  v
+    +--------------------------------+      +-------------------------------+
+    |        Supabase Backend        |      |       AI Agent Server         |
+    |  * PostgreSQL 15 (RLS Enabled) |<---->|  * Express + Gemini 2.5 Flash |
+    |  * Broadcast Channels (GPS)    |      |  * PII Regex Scrubber         |
+    |  * Push Dispatcher (Deno EF)   |      |  * Audio Transcription Proxy  |
+    +--------------------------------+      +-------------------------------+
 ```
 
-**Demo accounts** (password for all: `123456`):
+### Key Engineering Innovations:
+1. **Low-Overhead Live GPS Tracking:** Migrated continuous 6-second PostgreSQL write polling to Supabase Realtime **Broadcast Channels** (`tracking:{bookingId}`). Database write load dropped to near zero during active navigation.
+2. **Atomic Booking State Machine:** Enforced mutual exclusion on status updates via conditional SQL (`UPDATE bookings SET status = $target WHERE id = $id AND status = $expected`) backed by PostgreSQL trigger `0009_booking_state_machine.sql`.
+3. **Automated Push Dispatcher:** Deno Edge Function (`supabase/functions/push-dispatcher`) sends automated Expo push notifications on KYC updates, booking transitions, and offline chat messages.
+4. **PII-Scrubbed Telemetry:** Client and server-side regex scrubbers redact Pakistani CNIC, mobile numbers, JWT tokens, and street addresses prior to error reporting or AI analysis.
 
-| Role | Email | Notes |
-|---|---|---|
-| Customer | `demo@khidmat.app` | Ali Raza, Lahore |
-| Provider | `bilal@khidmat.app` | Bilal Ahmed (Electrician, Gold tier) |
-| Admin | `admin@khidmat.app` | Khidmat Ops — unlocks `/admin` console |
+---
 
-Pending-KYC provider (Nadia Karim) sits in the verification queue so you can exercise approve / reject + the audit trail.
+## ⚡ Quick Start
 
-### Option B — Real Supabase backend
+### Option A: Zero-Config Demo Mode (Recommended)
+Run the complete multi-role app locally with zero external accounts or API keys using the built-in in-memory mock client:
 
-1. Provision a Supabase project, copy URL + anon key into `.env`.
-2. Set `EXPO_PUBLIC_DEMO_MODE=false`.
-3. Apply migrations `0001 → 0008`:
+```bash
+# 1. Clone repository
+git clone https://github.com/Muhammad08-dot/khidmat_app-main.git
+cd khidmat_app-main
+
+# 2. Install dependencies
+npm install
+
+# 3. Start development server (defaults to EXPO_PUBLIC_DEMO_MODE=true)
+npm run web
+```
+
+**Pre-seeded Demo Credentials** (Password for all: `123456`):
+* **Customer:** `demo@khidmat.app` (Ali Raza, Lahore)
+* **Provider:** `bilal@khidmat.app` (Bilal Ahmed, Electrician)
+* **Admin:** `admin@khidmat.app` (Khidmat Operations)
+
+---
+
+### Option B: Real Supabase Backend
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Configure `.env` in repository root:
+   ```env
+   EXPO_PUBLIC_DEMO_MODE=false
+   EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=your-publishable-or-anon-key
+   ```
+3. Apply all database migrations in 1 click by executing [`supabase/complete_setup.sql`](supabase/complete_setup.sql) in your **Supabase SQL Editor**, or use the CLI:
    ```bash
-   npx supabase link --project-ref <your-ref>
    npx supabase db push
    ```
-4. Bootstrap your admin account (run once in the SQL editor):
+4. Promote your user to admin in the Supabase SQL editor:
    ```sql
-   update public.profiles set role = 'admin' where email = 'you@example.com';
+   UPDATE public.profiles SET role = 'admin' WHERE email = 'you@example.com';
    ```
-5. Optional — start `agent-server/` for AI + payment proxy:
+5. *(Optional)* Start the AI Agent Server:
    ```bash
-   cd agent-server
-   npm install
-   cp .env.example .env      # set GEMINI_API_KEY (or OPENAI_API_KEY), SUPABASE_JWT_SECRET
-   npm run dev               # http://localhost:8787
+   cd agent-server && npm install && npm run dev
    ```
 
 ---
 
-## Environment Variables
+## 🛠️ Tech Stack
 
-### Mobile app (`.env` at repo root)
-
-| Variable | Purpose | Default |
-|---|---|---|
-| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL | — (required when `DEMO_MODE=false`) |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key | — (required when `DEMO_MODE=false`) |
-| `EXPO_PUBLIC_DEMO_MODE` | Use in-memory mock instead of network | `true` |
-| `EXPO_PUBLIC_AGENT_SERVER_URL` | AI/payments proxy URL | `http://localhost:8787` |
-| `EXPO_PUBLIC_EMAIL_ENABLED` | Email-based invites | `false` |
-| `EXPO_PUBLIC_PHONE_AUTH_ENABLED` | Twilio SMS OTP sign-in (needs Twilio creds in Supabase) | `false` |
-| `EXPO_PUBLIC_PAYMENTS_ENABLED` | Wallet payments (needs `PAYMENTS_ENABLED=true` + merchant creds on `agent-server`) | `false` |
-| `EXPO_PUBLIC_BG_LOCATION_ENABLED` | Background provider tracking during `in_progress` jobs | `false` |
-| `EXPO_PUBLIC_POSTHOG_KEY` | Product analytics (leave empty for strict no-op) | — |
-
-### Agent server (`agent-server/.env`)
-
-| Variable | Purpose | Required |
-|---|---|---|
-| `PORT` | Server port (default `8787`) | No |
-| `GEMINI_API_KEY` or `OPENAI_API_KEY` | AI provider credential | Yes for `/api/heal` |
-| `SUPABASE_JWT_SECRET` | Verifies Bearer tokens from the mobile client | Yes for authenticated routes |
-| `ALLOWED_ORIGINS` | CORS allow-list (comma-separated) | Recommended for prod |
-| `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX_REQUESTS` | Global limiter config | No |
-| `PAYMENTS_ENABLED` | Flip wallet flow on/off | No (`false` default) |
-| `GW_MOBILE_ACCOUNT`, `GW_MERCHANT_KEY`, `GW_MERCHANT_ID`, `GW_VERSION_NUMBER`, `GW_PASSWORD_SALT`, `GW_TXN_TYPE`, `GW_RETURN_URL` | JazzCash / EasyPaisa merchant creds | Yes when payments enabled |
-
-> Real `.env` files are gitignored. Never commit `SUPABASE_SERVICE_ROLE_KEY` or gateway merchant secrets.
+| Layer | Technology |
+|---|---|
+| **Mobile Runtime** | Expo SDK 57 · React Native 0.86 · React 19 |
+| **Navigation** | Expo Router v57 (File-based typed routing) |
+| **State & Cache** | TanStack React Query v5 + Zustand |
+| **Styling & UI** | NativeWind v4 (Tailwind CSS, class-based dark mode) |
+| **Backend & DB** | Supabase (PostgreSQL 15, Auth, Storage, Edge Functions) |
+| **Realtime Engine** | Supabase Realtime WebSockets Broadcast |
+| **AI Proxy Server** | Node.js Express + Google Gemini 2.5 Flash |
+| **Testing** | Jest + jest-expo + Headless Chrome Puppeteer E2E |
 
 ---
 
-## Supabase Schema & Migrations
+## 🧪 Automated Testing & QA
 
-Migrations live in `supabase/migrations/`. All applied **locally to demo seed** — real project needs `npx supabase db push`:
-
-| # | File | What it does |
-|---|---|---|
-| 0001 | `0001_init.sql` | Base schema: profiles, providers, categories, bookings, messages, reviews, provider_locations, push_tokens; RLS on every table; `handle_new_user()` signup trigger |
-| 0002 | `0002_legacy_bridge.sql` | `bookings.meta JSONB`, `profiles.current_mode`, `notifications` table, avatars storage bucket, extra booking statuses (`confirmed`, `closed`) |
-| 0003 | `0003_phase3_features.sql` | `profiles.verification_status`, `payments` table, `job_media` bucket, hardened notifications |
-| 0004 | `0004_chat_push.sql` | Chat thread participant policies, `push_tokens` booking-partner reads |
-| 0005 | `0005_chat_seen_receipts.sql` | `messages.seen_at` + participant-scope update policy |
-| 0006 | `0006_saved_addresses.sql` | `saved_addresses` table (owner-scoped) |
-| 0007 | `0007_admin_moderation.sql` | `admin` enum value, `reviews.is_hidden`, `is_admin()` SECURITY DEFINER helper, admin-only UPDATE/DELETE policies |
-| 0008 | `0008_security_hardening.sql` | **PII split** (`profile_contacts`), notifications INSERT scoped, job-media private, `admin_actions` audit table, signup trigger re-pointed |
-| 0009 | `0009_booking_state_machine.sql` | **Atomic State Transitions**: Trigger & guard function enforcing strict state machine transitions (`pending → confirmed → in_progress → completed → reviewed → closed`) |
-| 0010 | `0010_push_notifications_trigger.sql` | **Push Trigger Queue**: Dispatches notifications on KYC status change and booking updates to Edge Function / webhooks |
-| 0011 | `0011_account_deletion.sql` | **Account Deletion & Anonymization**: Google Play & GDPR compliant RPC `delete_user_account` |
-| 0012 | `0012_user_reports.sql` | **User & Abuse Reporting**: Flagging system for inappropriate behavior, harassment, spam, and fraud with admin resolution |
-
-Full change log lives in [changes.md](changes.md).
-
----
-
-## Security Posture
-
-Audited against Play Store launch standards. Highlights:
-
-- **Postgres RLS default-deny** on every table; every policy narrows access (self / admin / booking counterparty) — never `USING (true)` for sensitive rows.
-- **PII split**: `phone` moved into `profile_contacts` table with owner/admin/counterparty-only SELECT; provider browse never leaks a number until a booking exists.
-- **Append-only admin audit trail** for moderation mutations (who, what, when).
-- **AI / LLM endpoints** (`/api/heal`, `/api/gemini/generateContent`) require a valid Supabase Bearer token.
-- **Helmet + CORS allowlist + `express-rate-limit` + Zod body validation + 1 MB JSON cap** on `agent-server`.
-- **Session storage**: `expo-secure-store` (Keychain / Keystore) on native; `sessionStorage` on web (tab-scoped, XSS blast radius minimized).
-- **Secrets hygiene**: `.env`, `agent-server/.env`, and `supabase/.temp` gitignored; merchant credentials live only on `agent-server`.
-
-Remaining items are listed in [docs/LAUNCH_CHECKLIST.md](docs/LAUNCH_CHECKLIST.md) §5.
-
----
-
-## Development Commands
+Continuous integration runs on every push and pull request via GitHub Actions.
 
 ```bash
-npm run web                 # Metro dev server (browser)
-npx expo start              # Expo Go QR for physical device
-npm run typecheck           # TypeScript compiler check (0 errors)
-npm run lint                # ESLint check (0 errors)
-npm test                    # Jest test suites (10 suites / 38 tests passing)
-npx jest src/services/supabase/__tests__   # Supabase state machine, tracking, and feature tests
+# Run unit & integration test suites (10 suites / 38 tests)
+npm test
+
+# Run strict TypeScript compiler verification
+npm run typecheck
+
+# Run ESLint validation
+npm run lint
+
+# Run headless Chrome E2E browser test suite (30 user flows)
+node scripts/e2e-qa-suite.mjs
 ```
 
----
-
-## Play Store Launch Status
-
-| Area | State |
-|---|---|
-| Feature surface (customer / provider / admin) | ✅ Demo-ready |
-| Legal screens (privacy / terms / safety) | ✅ Shipped |
-| Admin console (verification queue + moderation + audit log) | ✅ Shipped |
-| Database migrations (`0002 → 0008`) | ⚙️ **Needs `db push` on live Supabase** |
-| RLS / PII split / notifications forge-resistance | ✅ Cutover with 0008 |
-| Payments | 💰 Stubbed (needs merchant credentials; COD-only ships today) |
-| SMS OTP | 💰 Stubbed (needs Twilio in Supabase Auth) |
-| Push notifications | ✅ Wired for native via `push.ts` |
-| Analytics | 💰 Free PostHog signup available (optional) |
-| Data-safety form + $25 Google Play developer account | ⚙️ Owner action |
-| Full Urdu content rollout + wired light/dark toggle | 🗺️ Roadmap |
-| Component / e2e test coverage | 🗺️ Roadmap |
-
-See [docs/LAUNCH_CHECKLIST.md](docs/LAUNCH_CHECKLIST.md) for the cutover runbook.
+### Verification Highlights:
+* ✅ **38/38 Unit & Integration Tests Passing** (State machine, Haversine, broadcast tracking, PII scrubbers, i18n parity).
+* ✅ **30/30 E2E Browser Flows Verified** with full visual screenshot artifacts in [`docs/qa-artifacts/`](docs/qa-artifacts/).
+* ✅ **Zero TypeScript & ESLint Errors**.
 
 ---
 
-## Architecture
+## 📂 Repository Structure
 
 ```
 khidmat_app-main/
-├── app/                  # Expo Router screens & stacks
-│   ├── (auth)/           # Login / signup / password reset
-│   ├── (booking)/        # Booking form, matching, live tracking
-│   ├── (tabs)/           # Home, Bookings, Inbox, Notifications, Profile
-│   ├── admin.tsx         # Admin console (role-gated)
-│   ├── privacy.tsx       # Legal screen
-│   ├── terms.tsx         # Legal screen
-│   └── safety.tsx        # Legal screen
+├── app/                  # Expo Router screens (Auth, Tabs, Bookings, Admin, Legal)
+│   ├── (auth)/           # Authentication screens & Google Sign-In
+│   ├── (booking)/        # Booking creation, matching, and live tracking
+│   ├── (tabs)/           # Customer & Provider navigation tabs
+│   └── admin.tsx         # Role-gated Admin console
+├── assets/               # Branding assets (App icons, splash screen, logo)
 ├── src/
-│   ├── components/       # features / layout / ui
-│   ├── context/          # AuthContext, providers
-│   ├── hooks/            # useDebounce, useSupabase, etc.
-│   ├── services/
-│   │   ├── supabase/     # client, queries, legacy, mockClient
-│   │   ├── api/          # agentClient (heal + errors)
-│   │   ├── payments.ts   # Feature-flagged client wrapper
-│   │   ├── push.ts       # Expo push registration + send
-│   │   └── analytics.ts  # PostHog wrapper (no-op when key empty)
-│   ├── theme/            # global.css, tailwind bridge, colors.ts (BRAND)
-│   ├── i18n/             # en.json, ur.json, index.ts, t()
-│   ├── types/            # database.types.ts (Supabase codegen), models.ts
-│   └── utils/            # geolocation, ratings, eventEmitter
-├── agent-server/         # Express proxy: /heal, /gemini/*, /payments/*
+│   ├── components/       # Reusable UI primitives & feature composites
+│   ├── context/          # AuthContext (Supabase Auth & OAuth)
+│   ├── services/         # Supabase client, queries, broadcast, error reporter
+│   ├── theme/            # Semantic brand palette (BRAND) & global CSS
+│   └── i18n/             # Synchronized bilingual dictionaries (en.json, ur.json)
+├── agent-server/         # Express AI proxy server (Gemini 2.5 intent parsing)
 ├── supabase/
-│   ├── migrations/       # 0001 → 0008
-│   └── seed.sql
-├── docs/                 # ARCHITECTURE, SETUP, LAUNCH_CHECKLIST, web_errors
-└── changes.md            # Running changelog (Sections 1 → 16)
+│   ├── migrations/       # Incremental SQL migrations (0001 -> 0012)
+│   ├── complete_setup.sql# Single-file master database initialization script
+│   └── functions/        # Push notification dispatcher (Deno Edge Function)
+└── docs/                 # System architecture, test reports, and QA artifacts
 ```
 
 ---
 
-## Repository
+## 📑 Documentation & Runbooks
 
-**Remote**: `https://github.com/Muhammad08-dot/khidmat_app-main.git`
+* 📊 **[E2E QA Execution Report](docs/QA_AGENT_REPORT.md)** — Comprehensive 30-flow verification matrix and evidence.
+* 🧪 **[Automated Test Report](docs/TEST_REPORT.md)** — Unit & integration test verification records.
+* 📱 **[Manual Device Test Checklist](docs/MANUAL_TESTS.md)** — Low-end device, slow network, and RTL test procedures.
+* 🏛️ **[System Architecture Guide](docs/ARCHITECTURE.md)** — Deep dive into state machines and push triggers.
+* 🚀 **[Play Store Launch Checklist](docs/LAUNCH_CHECKLIST.md)** — Pre-launch compliance and deployment runbook.
+* 📝 **[Changelog](CHANGELOG.md)** — Chronological engineering modifications and fixes.
 
 ---
 
-## Contribution Notes
+## 📄 License
 
-- Every user-visible change must be logged in `changes.md` under a new section heading.
-- Reusable UI primitives live under `src/components/ui/`; feature-level composites under `src/components/features/`.
-- Colors used in imperative props (`Icon`, `ActivityIndicator`, `RefreshControl`, SVG) reference `BRAND.*` from `src/theme/colors.ts` — no raw hex in TS/TSX except in the theme file itself.
-- Tailwind semantic tokens (`success / danger / warning / caution / info / muted`) are the only allowed status colors on class-based styling.
-- Supabase queries stay in `src/services/supabase/`; screens should not import `supabase` directly.
+This project is licensed under the [MIT License](LICENSE).
