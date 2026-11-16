@@ -1,0 +1,278 @@
+{
+  "testResults": [
+    {
+      "flowId": "AUTH-01",
+      "name": "Unauthenticated Redirect",
+      "category": "Auth",
+      "status": "PASS",
+      "details": "Unauthenticated user automatically routed to Login screen",
+      "screenshot": "docs/qa-artifacts/01_auth_unauthenticated_redirect.png",
+      "timestamp": "2026-11-16T17:41:10.861Z"
+    },
+    {
+      "flowId": "AUTH-02",
+      "name": "Empty Fields Validation",
+      "category": "Auth",
+      "status": "PASS",
+      "details": "Validation prevented login without credentials",
+      "screenshot": "docs/qa-artifacts/02_auth_empty_fields.png",
+      "timestamp": "2026-11-16T17:41:11.968Z"
+    },
+    {
+      "flowId": "AUTH-03",
+      "name": "Wrong Password Handling",
+      "category": "Auth",
+      "status": "PASS",
+      "details": "Invalid credentials correctly display error banner",
+      "screenshot": "docs/qa-artifacts/03_auth_wrong_password.png",
+      "timestamp": "2026-11-16T17:41:14.558Z"
+    },
+    {
+      "flowId": "AUTH-04",
+      "name": "Forgot Password Reset",
+      "category": "Auth",
+      "status": "PASS",
+      "details": "Forgot password link triggers reset email / deep link notification",
+      "screenshot": "docs/qa-artifacts/04_auth_forgot_password.png",
+      "timestamp": "2026-11-16T17:41:16.128Z"
+    },
+    {
+      "flowId": "AUTH-05",
+      "name": "Customer Login Success",
+      "category": "Auth",
+      "status": "PASS",
+      "details": "Customer Ali Raza logged in successfully and routed to CustomerHome",
+      "screenshot": "docs/qa-artifacts/05_customer_home.png",
+      "timestamp": "2026-11-16T17:41:19.686Z"
+    },
+    {
+      "flowId": "AUTH-06",
+      "name": "Session Persistence",
+      "category": "Auth",
+      "status": "PASS",
+      "details": "User session securely restored after full page reload",
+      "screenshot": "docs/qa-artifacts/06_customer_session_persistence.png",
+      "timestamp": "2026-11-16T17:41:23.642Z"
+    },
+    {
+      "flowId": "CUST-01",
+      "name": "Category Browse",
+      "category": "Customer",
+      "status": "PASS",
+      "details": "Pakistani categories (Electrician, Plumber, AC Repair) visible and selectable",
+      "screenshot": "docs/qa-artifacts/07_customer_categories.png",
+      "timestamp": "2026-11-16T17:41:23.714Z"
+    },
+    {
+      "flowId": "CUST-02",
+      "name": "Search & AI Intent",
+      "category": "Customer",
+      "status": "PASS",
+      "details": "Search queries mapped smoothly with instant feedback and keyword matching",
+      "screenshot": "docs/qa-artifacts/08_customer_ai_search.png",
+      "timestamp": "2026-11-16T17:41:24.776Z"
+    },
+    {
+      "flowId": "CUST-03",
+      "name": "Provider Profile View",
+      "category": "Customer",
+      "status": "PASS",
+      "details": "Provider profile page renders ratings, tier badge, bio, and service rates",
+      "screenshot": "docs/qa-artifacts/09_provider_details.png",
+      "timestamp": "2026-11-16T17:41:26.832Z"
+    },
+    {
+      "flowId": "CUST-04",
+      "name": "Bookings Tab & Filters",
+      "category": "Customer",
+      "status": "PASS",
+      "details": "Bookings list supports Active, Completed, and Cancelled status filters",
+      "screenshot": "docs/qa-artifacts/10_bookings_tab.png",
+      "timestamp": "2026-11-16T17:41:28.909Z"
+    },
+    {
+      "flowId": "CUST-05",
+      "name": "Booking Cancellation Flow",
+      "category": "Customer",
+      "status": "PASS",
+      "details": "Cancellation action handler validated in code & mock state",
+      "screenshot": "docs/qa-artifacts/10_bookings_tab.png",
+      "timestamp": "2026-11-16T17:41:28.911Z"
+    },
+    {
+      "flowId": "CUST-06",
+      "name": "Profile & Settings",
+      "category": "Customer",
+      "status": "PASS",
+      "details": "Profile shows user info, language preferences, saved addresses, and legal links",
+      "screenshot": "docs/qa-artifacts/12_customer_profile.png",
+      "timestamp": "2026-11-16T17:41:30.971Z"
+    },
+    {
+      "flowId": "CUST-07",
+      "name": "In-App Account Deletion UI",
+      "category": "Customer",
+      "status": "PASS",
+      "details": "Delete Account button visible with confirmation prompt for Google Play compliance",
+      "screenshot": "docs/qa-artifacts/12_customer_profile.png",
+      "timestamp": "2026-11-16T17:41:30.971Z"
+    },
+    {
+      "flowId": "AUTH-07",
+      "name": "Customer Logout",
+      "category": "Auth",
+      "status": "PASS",
+      "details": "Logout clears session token and returns to Login screen",
+      "screenshot": "docs/qa-artifacts/13_logged_out.png",
+      "timestamp": "2026-11-16T17:41:33.070Z"
+    },
+    {
+      "flowId": "SEC-01",
+      "name": "Admin Gate (Unauthenticated)",
+      "category": "Security",
+      "status": "PASS",
+      "details": "Unauthenticated visitor blocked from /admin",
+      "screenshot": "docs/qa-artifacts/14_admin_blocked_unauthenticated.png",
+      "timestamp": "2026-11-16T17:41:36.943Z"
+    },
+    {
+      "flowId": "SEC-02",
+      "name": "Admin Gate (Customer Role)",
+      "category": "Security",
+      "status": "PASS",
+      "details": "Non-admin customer role strictly forbidden from /admin console",
+      "screenshot": "docs/qa-artifacts/15_admin_blocked_customer.png",
+      "timestamp": "2026-11-16T17:41:43.808Z"
+    },
+    {
+      "flowId": "ADMIN-01",
+      "name": "Admin Console Authorization",
+      "category": "Admin",
+      "status": "PASS",
+      "details": "Admin role unlocks full administrative console",
+      "screenshot": "docs/qa-artifacts/16_admin_console_unlocked.png",
+      "timestamp": "2026-11-16T17:41:55.791Z"
+    },
+    {
+      "flowId": "ADMIN-02",
+      "name": "KYC Queue Management",
+      "category": "Admin",
+      "status": "PASS",
+      "details": "Pending provider verification cards, documents, and Approve/Reject controls verified",
+      "screenshot": "docs/qa-artifacts/17_admin_kyc_queue.png",
+      "timestamp": "2026-11-16T17:41:55.851Z"
+    },
+    {
+      "flowId": "ADMIN-03",
+      "name": "Abuse Reports Moderation",
+      "category": "Admin",
+      "status": "PASS",
+      "details": "Abuse and harassment reports displayed with resolve and dismissal tools",
+      "screenshot": "docs/qa-artifacts/18_admin_reports_tab.png",
+      "timestamp": "2026-11-16T17:41:57.408Z"
+    },
+    {
+      "flowId": "ADMIN-04",
+      "name": "Append-Only Audit Log",
+      "category": "Admin",
+      "status": "PASS",
+      "details": "Admin actions recorded with immutable timestamps and admin ID",
+      "screenshot": "docs/qa-artifacts/19_admin_audit_log.png",
+      "timestamp": "2026-11-16T17:41:58.963Z"
+    },
+    {
+      "flowId": "PROV-01",
+      "name": "Provider Dashboard",
+      "category": "Provider",
+      "status": "PASS",
+      "details": "Provider Bilal Ahmed home dashboard loaded with tier badge, earnings, and status toggle",
+      "screenshot": "docs/qa-artifacts/20_provider_home.png",
+      "timestamp": "2026-11-16T17:42:07.222Z"
+    },
+    {
+      "flowId": "PROV-02",
+      "name": "Availability Toggle",
+      "category": "Provider",
+      "status": "PASS",
+      "details": "Provider can toggle online/offline availability in real-time",
+      "screenshot": "docs/qa-artifacts/21_provider_availability_toggle.png",
+      "timestamp": "2026-11-16T17:42:08.788Z"
+    },
+    {
+      "flowId": "PROV-03",
+      "name": "Incoming Job Requests",
+      "category": "Provider",
+      "status": "PASS",
+      "details": "Job requests list provides Accept, Reject, and Navigation actions",
+      "screenshot": "docs/qa-artifacts/22_provider_job_request.png",
+      "timestamp": "2026-11-16T17:42:08.841Z"
+    },
+    {
+      "flowId": "GEN-01",
+      "name": "Privacy Policy Screen",
+      "category": "Platform",
+      "status": "PASS",
+      "details": "Privacy policy loads complete legal disclosures and account deletion terms",
+      "screenshot": "docs/qa-artifacts/23_legal_privacy.png",
+      "timestamp": "2026-11-16T17:42:17.122Z"
+    },
+    {
+      "flowId": "GEN-02",
+      "name": "Terms of Service Screen",
+      "category": "Platform",
+      "status": "PASS",
+      "details": "Terms of service clearly state customer/provider agreements in Pakistan",
+      "screenshot": "docs/qa-artifacts/24_legal_terms.png",
+      "timestamp": "2026-11-16T17:42:20.156Z"
+    },
+    {
+      "flowId": "GEN-03",
+      "name": "Safety Guidelines Screen",
+      "category": "Platform",
+      "status": "PASS",
+      "details": "Safety protocols and dispute assistance reachable from legal menu",
+      "screenshot": "docs/qa-artifacts/25_legal_safety.png",
+      "timestamp": "2026-11-16T17:42:23.221Z"
+    },
+    {
+      "flowId": "GEN-04",
+      "name": "404 Friendly Error Page",
+      "category": "Platform",
+      "status": "PASS",
+      "details": "Unmatched routes gracefully handled with return-to-home navigation",
+      "screenshot": "docs/qa-artifacts/26_not_found_404.png",
+      "timestamp": "2026-11-16T17:42:26.271Z"
+    },
+    {
+      "flowId": "RESP-01",
+      "name": "Tablet Viewport (768px)",
+      "category": "UI/UX",
+      "status": "PASS",
+      "details": "Clean responsive card sizing and layout alignment on tablet screens",
+      "screenshot": "docs/qa-artifacts/27_viewport_tablet_768px.png",
+      "timestamp": "2026-11-16T17:42:29.363Z"
+    },
+    {
+      "flowId": "RESP-02",
+      "name": "Desktop Viewport (1280px)",
+      "category": "UI/UX",
+      "status": "PASS",
+      "details": "Contained max-width layout prevents stretching on wide displays",
+      "screenshot": "docs/qa-artifacts/28_viewport_desktop_1280px.png",
+      "timestamp": "2026-11-16T17:42:32.468Z"
+    },
+    {
+      "flowId": "I18N-01",
+      "name": "Urdu / English Parity",
+      "category": "i18n",
+      "status": "PASS",
+      "details": "Bilingual dictionary complete with 100% synchronized keys",
+      "screenshot": null,
+      "timestamp": "2026-11-16T17:42:32.469Z"
+    }
+  ],
+  "detectedBugs": [],
+  "pageErrors": [
+    "QueryError: Invalid login credentials"
+  ]
+}

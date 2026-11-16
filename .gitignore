@@ -3,6 +3,9 @@
 # --- project additions ---
 supabase/.temp/
 scratch/*.png
+.chrome-qa-profile/
+.chrome-qa-run-*/
+chrome/
 
 expo-env.d.ts
 # @end expo-cli

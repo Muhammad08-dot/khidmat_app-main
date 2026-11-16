@@ -10,6 +10,8 @@ module.exports = {
     'scratch/',
     'refactor_tracking.js',
     'supabase/functions/',
+    'chrome/',
+    'scripts/',
   ],
   rules: {
     'prettier/prettier': 'warn',
