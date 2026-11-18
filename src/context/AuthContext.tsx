@@ -223,6 +223,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
     if (error) throw error;
     if (data?.url && Platform.OS !== 'web') {
+      try {
+        const resp = await fetch(data.url);
+        if (resp.status === 400) {
+          const body = await resp.text();
+          if (body.includes('Unsupported provider') || body.includes('provider is not enabled')) {
+            throw new Error('Google Sign-In is not enabled in your Supabase dashboard yet. Please log in using Email & Password or use the 1-Tap Demo Login.');
+          }
+        }
+      } catch (checkErr: any) {
+        if (checkErr.message?.includes('Google Sign-In is not enabled')) {
+          throw checkErr;
+        }
+      }
       await Linking.openURL(data.url);
     }
     return data;

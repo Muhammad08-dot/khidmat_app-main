@@ -18,7 +18,7 @@ export type Lang = 'en' | 'ur';
 const DICTS: Record<Lang, Record<string, string>> = { en, ur };
 const STORAGE_KEY = 'khidmat.lang';
 
-let currentLang: Lang = Localization.getLocales()?.[0]?.languageCode === 'ur' ? 'ur' : 'en';
+let currentLang: Lang = 'en';
 
 export const getLang = (): Lang => currentLang;
 
@@ -26,7 +26,7 @@ export function setLang(lang: Lang): void {
   currentLang = lang;
   const wantsRTL = lang === 'ur';
   if (I18nManager.isRTL !== wantsRTL) {
-    if (wantsRTL) I18nManager.allowRTL(true);
+    I18nManager.allowRTL(wantsRTL);
     I18nManager.forceRTL(wantsRTL);
   }
   AsyncStorage.setItem(STORAGE_KEY, lang).catch(() => {});
@@ -36,9 +36,20 @@ export function setLang(lang: Lang): void {
 export async function initI18n(): Promise<void> {
   try {
     const stored = await AsyncStorage.getItem(STORAGE_KEY);
-    if (stored === 'en' || stored === 'ur') currentLang = stored;
+    if (stored === 'en' || stored === 'ur') {
+      currentLang = stored;
+      const wantsRTL = stored === 'ur';
+      if (I18nManager.isRTL !== wantsRTL) {
+        I18nManager.allowRTL(wantsRTL);
+        I18nManager.forceRTL(wantsRTL);
+      }
+    } else {
+      I18nManager.allowRTL(false);
+      I18nManager.forceRTL(false);
+    }
   } catch {
-    // keep device default
+    I18nManager.allowRTL(false);
+    I18nManager.forceRTL(false);
   }
 }
 

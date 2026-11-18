@@ -32,9 +32,9 @@ const SPECIALTIES = [
 ];
 
 const inputClass =
-  "rounded-xl border border-border bg-surface px-4 py-3 text-sm text-ink";
+  "rounded-xl border border-border bg-surface px-4 py-3 text-sm text-ink text-left";
 const labelClass =
-  "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink/50";
+  "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink/50 text-left";
 
 export default function AuthScreen() {
   const router = useRouter();
@@ -177,9 +177,15 @@ export default function AuthScreen() {
       }
     } catch (err: any) {
       console.error(err);
-      setError(
+      const msg =
         err.message ||
-          "Could not sign in with Google. Ensure Google provider is enabled in your Supabase Auth settings."
+        "Could not sign in with Google. Ensure Google provider is enabled in your Supabase Auth settings.";
+      setError(msg);
+      Alert.alert(
+        "Google Sign-In",
+        msg.includes("Google Sign-In is not enabled")
+          ? msg
+          : "Google login requires enabling the Google Provider with OAuth credentials in your Supabase dashboard.\n\nTip: You can use Email/Password or the 1-Tap Quick Demo Login to test the app."
       );
     } finally {
       setLoading(false);
@@ -287,8 +293,8 @@ export default function AuthScreen() {
           {isLogin ? (
             /* LOGIN */
             <View>
-              <Text className="mb-1 text-xl font-bold text-ink">Welcome Back</Text>
-              <Text className="mb-5 text-xs leading-relaxed text-ink/50">
+              <Text className="mb-1 text-xl font-bold text-ink text-left">Welcome Back</Text>
+              <Text className="mb-5 text-xs leading-relaxed text-ink/50 text-left">
                 Login with your credentials to search and book services.
               </Text>
 
@@ -302,6 +308,7 @@ export default function AuthScreen() {
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   autoCapitalize="none"
                   keyboardType="email-address"
+                  style={{ textAlign: 'left' }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
               </View>
@@ -315,6 +322,7 @@ export default function AuthScreen() {
                   placeholder="••••••••"
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   secureTextEntry
+                  style={{ textAlign: 'left' }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
               </View>
@@ -363,6 +371,38 @@ export default function AuthScreen() {
                 </View>
                 <Text className="text-sm font-semibold text-ink">
                   Continue with Google
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={async () => {
+                  setError(null);
+                  setLoading(true);
+                  try {
+                    try {
+                      await signIn("testuser@khidmat.app", "Test123456!");
+                    } catch {
+                      await signUp(
+                        "testuser@khidmat.app",
+                        "Test123456!",
+                        "Test User",
+                        "+923001234567",
+                        "Lahore",
+                        "customer",
+                        { lat: 31.5204, lng: 74.3587 }
+                      );
+                    }
+                  } catch (e: any) {
+                    setError(e.message || "Could not log in with test account.");
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={loading}
+                className="mt-2.5 flex-row items-center justify-center gap-2 rounded-xl border border-emerald-600/30 bg-emerald-50/60 py-2.5 active:bg-emerald-100"
+              >
+                <Text className="text-xs font-semibold text-emerald-800">
+                  ⚡ Quick Test Login (1-Tap Demo)
                 </Text>
               </Pressable>
 
@@ -417,8 +457,8 @@ export default function AuthScreen() {
           ) : (
             /* SIGNUP */
             <View>
-              <Text className="mb-1 text-xl font-bold text-ink">Create Account</Text>
-              <Text className="mb-5 text-xs leading-relaxed text-ink/50">
+              <Text className="mb-1 text-xl font-bold text-ink text-left">Create Account</Text>
+              <Text className="mb-5 text-xs leading-relaxed text-ink/50 text-left">
                 Sign up to register as a client or provide home services across
                 Pakistan.
               </Text>
@@ -435,7 +475,7 @@ export default function AuthScreen() {
                   )}
                 </Pressable>
                 <Pressable onPress={pickPhoto} className="flex-1">
-                  <Text className="text-[11px] font-semibold text-primary">
+                  <Text className="text-[11px] font-semibold text-primary text-left">
                     {photoUri
                       ? "Change Profile Photo"
                       : "Upload Profile Photo (Optional)"}
@@ -464,7 +504,7 @@ export default function AuthScreen() {
                 ))}
               </View>
 
-              <Text className="mb-1.5 text-xs font-bold uppercase tracking-wide text-primary">
+              <Text className="mb-1.5 text-xs font-bold uppercase tracking-wide text-primary text-left">
                 1. Personal Information
               </Text>
 
@@ -476,6 +516,7 @@ export default function AuthScreen() {
                   onChangeText={setName}
                   placeholder="e.g. Muhammad Bilal"
                   placeholderTextColor="rgba(20,35,28,0.3)"
+                  style={{ textAlign: 'left' }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
               </View>
@@ -493,6 +534,7 @@ export default function AuthScreen() {
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   keyboardType="phone-pad"
                   maxLength={10}
+                  style={{ textAlign: 'left' }}
                   className="ml-2 flex-1 py-3 text-sm text-ink"
                 />
               </View>
@@ -507,6 +549,7 @@ export default function AuthScreen() {
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   autoCapitalize="none"
                   keyboardType="email-address"
+                  style={{ textAlign: 'left' }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
               </View>
@@ -520,11 +563,12 @@ export default function AuthScreen() {
                   placeholder="••••••••"
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   secureTextEntry
+                  style={{ textAlign: 'left' }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
               </View>
 
-              <Text className="mb-1.5 mt-2 text-xs font-bold uppercase tracking-wide text-primary">
+              <Text className="mb-1.5 mt-2 text-xs font-bold uppercase tracking-wide text-primary text-left">
                 2. Service &amp; Location Details
               </Text>
 
@@ -547,7 +591,7 @@ export default function AuthScreen() {
 
               {role === "provider" && (
                 <View className="mt-2 flex-col gap-4 border-t border-border pt-4">
-                  <Text className="flex-row items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
+                  <Text className="flex-row items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary text-left">
                     <Icon icon={Briefcase} color={BRAND.primary} size={14} /> Provider
                     Specialty info
                   </Text>
@@ -570,6 +614,7 @@ export default function AuthScreen() {
                       placeholder="e.g. 800"
                       placeholderTextColor="rgba(20,35,28,0.3)"
                       keyboardType="numeric"
+                      style={{ textAlign: 'left' }}
                       className="ml-2 flex-1 py-3 text-sm text-ink"
                     />
                   </View>
@@ -583,7 +628,7 @@ export default function AuthScreen() {
                       placeholder="Describe your skills, experience, and certifications..."
                       placeholderTextColor="rgba(20,35,28,0.3)"
                       multiline
-                      style={{ minHeight: 80 }}
+                      style={{ minHeight: 80, textAlign: 'left' }}
                       className="ml-3 flex-1 py-3 text-sm text-ink"
                     />
                   </View>
@@ -622,7 +667,7 @@ export default function AuthScreen() {
                 <View className="flex-1 border-t border-border" />
               </View>
 
-              <View className="flex-row justify-center">
+              <View className="flex-col items-center justify-center gap-2.5">
                 <Pressable
                   onPress={handleGoogleSignIn}
                   disabled={loading}
@@ -633,6 +678,38 @@ export default function AuthScreen() {
                   </View>
                   <Text className="text-sm font-semibold text-ink">
                     Sign up with Google
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={async () => {
+                    setError(null);
+                    setLoading(true);
+                    try {
+                      try {
+                        await signIn("testuser@khidmat.app", "Test123456!");
+                      } catch {
+                        await signUp(
+                          "testuser@khidmat.app",
+                          "Test123456!",
+                          "Test User",
+                          "+923001234567",
+                          "Lahore",
+                          "customer",
+                          { lat: 31.5204, lng: 74.3587 }
+                        );
+                      }
+                    } catch (e: any) {
+                      setError(e.message || "Could not log in with test account.");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                  className="w-full max-w-[320px] flex-row items-center justify-center gap-2 rounded-xl border border-emerald-600/30 bg-emerald-50/60 py-2.5 active:bg-emerald-100"
+                >
+                  <Text className="text-xs font-semibold text-emerald-800">
+                    ⚡ Quick Test Login (1-Tap Demo)
                   </Text>
                 </Pressable>
               </View>

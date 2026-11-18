@@ -33,7 +33,7 @@ export const Select: React.FC<SelectProps> = ({
   return (
     <View>
       {label && (
-        <Text className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink/50">
+        <Text className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink/50 text-left">
           {label}
         </Text>
       )}
@@ -41,7 +41,7 @@ export const Select: React.FC<SelectProps> = ({
         onPress={() => setOpen(true)}
         className="flex-row items-center justify-between rounded-xl border border-border bg-surface px-4 py-3.5"
       >
-        <Text className="text-sm text-ink">{selected?.label ?? "Select..."}</Text>
+        <Text className="text-sm text-ink text-left">{selected?.label ?? "Select..."}</Text>
         <Icon icon={ChevronDown} color={BRAND.primary + "66"} size={16} />
       </Pressable>
 

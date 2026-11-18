@@ -112,8 +112,9 @@ function RootNavigator() {
   );
 }
 
-// Enable RTL support for Urdu
-I18nManager.allowRTL(true);
+// Force LTR layout so English text, inputs, and icons align cleanly to the left
+I18nManager.allowRTL(false);
+I18nManager.forceRTL(false);
 
 export default function RootLayout() {
   const [fontsLoaded] = useAppFonts();
