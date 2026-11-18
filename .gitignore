@@ -20,3 +20,5 @@ web-build/
 .env.local
 .env.*.local
 agent-server/.env
+.idea/
+*.apk

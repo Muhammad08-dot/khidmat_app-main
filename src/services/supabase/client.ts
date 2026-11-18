@@ -50,31 +50,28 @@ const ExpoSecureStoreAdapter: AuthStorageAdapter = {
   },
 };
 
-const rawSupabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+const defaultSupabaseUrl = 'https://sodxwchaqpqnwvnrnsaj.supabase.co';
+const defaultAnonKey = 'sb_publishable_KYRYhqhTDJSohgptEx5GVg_GooKFAqw';
+
+const rawSupabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || defaultSupabaseUrl;
 const supabaseUrl = rawSupabaseUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || defaultAnonKey;
 
-// Demo mode: everything runs against the in-memory mock DB (no network, no
-// Supabase project needed). Toggle EXPO_PUBLIC_DEMO_MODE in .env.
+// Demo mode: Toggle EXPO_PUBLIC_DEMO_MODE in .env. Defaults to false when valid URL is present.
 export const DEMO_MODE = process.env.EXPO_PUBLIC_DEMO_MODE === 'true';
-
-// Fail fast with an actionable message instead of opaque runtime request errors.
-if (!DEMO_MODE && (!supabaseUrl || !supabaseAnonKey)) {
-  throw new Error(
-    'Supabase is not configured. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in the root .env file (see .env.example), or set EXPO_PUBLIC_DEMO_MODE=true to run against the built-in mock data.'
-  );
-}
 
 export const supabase: SupabaseClient = DEMO_MODE
   ? (createMockSupabase() as unknown as SupabaseClient)
-  : createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        storage: ExpoSecureStoreAdapter,
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: false,
-      },
-    });
+  : (supabaseUrl && supabaseAnonKey)
+    ? createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          storage: ExpoSecureStoreAdapter,
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: false,
+        },
+      })
+    : (createMockSupabase() as unknown as SupabaseClient);
 
 // Manage auto-refresh based on app state
 AppState.addEventListener('change', (state) => {

@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 10.0.0"
+    "version": ">= 10.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -11,6 +12,12 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_DEMO_MODE": "false",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://sodxwchaqpqnwvnrnsaj.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_KYRYhqhTDJSohgptEx5GVg_GooKFAqw",
+        "EXPO_PUBLIC_AGENT_SERVER_URL": "http://localhost:8787"
       }
     },
     "production": {
