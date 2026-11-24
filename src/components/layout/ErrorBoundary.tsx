@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { captureError } from '@/src/services/api/errorReporter';
+import { colors } from '@/src/theme/tokens';
+import { Button } from '@/src/components/ui/Button';
 
 interface Props {
   children: React.ReactNode;
@@ -9,39 +11,82 @@ interface Props {
 interface State {
   hasError: boolean;
   message?: string;
+  isConfigError?: boolean;
 }
 
 /**
  * Global React error boundary. On a caught error it logs to the agent reporter
  * and shows a friendly fallback with a retry action instead of a blank screen.
+ * Gated with dedicated Configuration Error display per PRD D-04 & P3-1 handoff.
  */
 export class ErrorBoundary extends React.Component<Props, State> {
   state: State = { hasError: false };
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, message: error.message };
+    const isConfig =
+      error.name === 'ConfigError' ||
+      (error.message && error.message.toLowerCase().includes('configuration error')) ||
+      (error.message && error.message.toLowerCase().includes('supabase url'));
+
+    return {
+      hasError: true,
+      message: error.message,
+      isConfigError: isConfig,
+    };
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     void captureError(error, info.componentStack ?? undefined);
   }
 
-  private reset = () => this.setState({ hasError: false, message: undefined });
+  private reset = () => this.setState({ hasError: false, message: undefined, isConfigError: false });
 
   render() {
     if (this.state.hasError) {
+      if (this.state.isConfigError) {
+        return (
+          <View className="flex-1 items-center justify-center bg-background px-8">
+            <View className="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 items-center justify-center mb-4">
+              <Text className="text-2xl">⚠️</Text>
+            </View>
+            <Text className="text-xl font-bold text-gray-900 text-center">
+              Configuration Error
+            </Text>
+            <Text className="mt-2 text-center text-xs text-gray-600 leading-relaxed max-w-xs">
+              {this.state.message ||
+                'Required backend configuration is missing. Please verify your environment setup.'}
+            </Text>
+            <Text className="mt-2 text-center text-[11px] text-gray-400">
+              Silent mock fallback is disabled in production to protect data integrity.
+            </Text>
+            <Button
+              title="Retry Connection"
+              onPress={this.reset}
+              className="mt-6 min-w-[180px]"
+            />
+          </View>
+        );
+      }
+
       return (
-        <View className="flex-1 items-center justify-center bg-surface px-8">
-          <Text className="font-display text-xl font-bold text-ink">Something went wrong</Text>
-          <Text className="mt-2 text-center text-sm text-ink/70">
+        <View className="flex-1 items-center justify-center bg-background px-8">
+          <View className="w-16 h-16 rounded-full bg-red-50 border border-red-200 items-center justify-center mb-4">
+            <Text className="text-2xl">💥</Text>
+          </View>
+          <Text className="text-xl font-bold text-gray-900 text-center">
+            Something went wrong
+          </Text>
+          <Text className="mt-2 text-center text-xs text-gray-600 leading-relaxed max-w-xs">
             {this.state.message || 'An unexpected error occurred.'}
           </Text>
-          <Text className="mt-1 text-center text-xs text-ink/50">
-            The issue has been reported to the Khidmat self-healing agent.
+          <Text className="mt-2 text-center text-[11px] text-gray-400">
+            The issue has been automatically captured for self-healing resolution.
           </Text>
-          <Pressable onPress={this.reset} className="mt-6 rounded-xl bg-primary px-6 py-3">
-            <Text className="font-bold text-white">Try again</Text>
-          </Pressable>
+          <Button
+            title="Try Again"
+            onPress={this.reset}
+            className="mt-6 min-w-[160px]"
+          />
         </View>
       );
     }
