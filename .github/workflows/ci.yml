@@ -59,11 +59,6 @@ jobs:
 
   integration-tests:
     runs-on: ubuntu-latest
-    if: ${{ secrets.SUPABASE_TEST_URL != '' }}
-    env:
-      SUPABASE_TEST_URL: ${{ secrets.SUPABASE_TEST_URL }}
-      SUPABASE_TEST_ANON_KEY: ${{ secrets.SUPABASE_TEST_ANON_KEY }}
-      SUPABASE_TEST_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_TEST_SERVICE_ROLE_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -77,5 +72,10 @@ jobs:
         run: npm ci
 
       - name: Run Cloud Integration Tests
+        if: ${{ secrets.SUPABASE_TEST_URL != '' }}
+        env:
+          SUPABASE_TEST_URL: ${{ secrets.SUPABASE_TEST_URL }}
+          SUPABASE_TEST_ANON_KEY: ${{ secrets.SUPABASE_TEST_ANON_KEY }}
+          SUPABASE_TEST_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_TEST_SERVICE_ROLE_KEY }}
         run: node scripts/test-integration.js
 
