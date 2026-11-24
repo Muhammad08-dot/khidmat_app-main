@@ -1,5 +1,6 @@
 import { getDistanceKm, type LocationCoords } from '@/src/utils/location';
 import { DEMO_MODE } from '../supabase/client';
+import { captureError } from './errorReporter';
 
 const getEnv = (key: string): string => (process.env as any)[key] || '';
 
@@ -253,6 +254,7 @@ Output your response as JSON matching this schema:
 
     return parsedJson;
   } catch (error) {
+    void captureError(error instanceof Error ? error : new Error(String(error)));
     console.warn('[Gemini] API Call failed. Falling back to local keyword parsing. Error:', error);
     return localFallbackParser(userInput);
   }
@@ -405,6 +407,7 @@ Output your response as a JSON array of objects matching this schema:
     const parsedJson = JSON.parse(responseText.trim()) as RankedProviderResult[];
     return parsedJson;
   } catch (error) {
+    void captureError(error instanceof Error ? error : new Error(String(error)));
     console.warn(
       '[Gemini] Provider ranking call failed. Falling back to local ranking. Error:',
       error
@@ -536,6 +539,7 @@ Output your response as JSON matching this schema:
     const parsedJson = JSON.parse(responseText.trim()) as PriceEstimateResult;
     return parsedJson;
   } catch (error) {
+    void captureError(error instanceof Error ? error : new Error(String(error)));
     console.warn(
       '[Gemini] Job price estimation call failed. Falling back to local pricing. Error:',
       error
@@ -653,6 +657,7 @@ User Question: "${question}"`,
 
     return responseText.trim();
   } catch (error) {
+    void captureError(error instanceof Error ? error : new Error(String(error)));
     console.warn('[Gemini] Site Agent call failed. Error:', error);
     return localSiteAgentFallback(question);
   }
