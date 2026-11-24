@@ -11,7 +11,8 @@ describe('parseAuthRedirectUrl', () => {
   });
 
   it('parses implicit/fragment tokens correctly', () => {
-    const url = 'khidmat://auth/callback#access_token=eyJhbGciOi...&refresh_token=ref-token-789&token_type=bearer';
+    const url =
+      'khidmat://auth/callback#access_token=eyJhbGciOi...&refresh_token=ref-token-789&token_type=bearer';
     const result = parseAuthRedirectUrl(url);
 
     expect(result.type).toBe('token');
@@ -20,7 +21,8 @@ describe('parseAuthRedirectUrl', () => {
   });
 
   it('parses error query parameters with decoded description', () => {
-    const url = 'khidmat://auth/callback?error=access_denied&error_description=The+user+denied+any+permissions';
+    const url =
+      'khidmat://auth/callback?error=access_denied&error_description=The+user+denied+any+permissions';
     const result = parseAuthRedirectUrl(url);
 
     expect(result.type).toBe('error');
@@ -29,7 +31,8 @@ describe('parseAuthRedirectUrl', () => {
   });
 
   it('parses error in fragment parameter', () => {
-    const url = 'khidmat://auth/callback#error=unauthorized_client&error_description=Client+is+not+allowed';
+    const url =
+      'khidmat://auth/callback#error=unauthorized_client&error_description=Client+is+not+allowed';
     const result = parseAuthRedirectUrl(url);
 
     expect(result.type).toBe('error');
@@ -50,4 +53,3 @@ describe('parseAuthRedirectUrl', () => {
     expect(result.type).toBe('empty');
   });
 });
-

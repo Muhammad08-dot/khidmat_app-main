@@ -33,7 +33,9 @@ export function parseAuthRedirectUrl(url: string | null | undefined): ParsedAuth
         return {
           type: 'error',
           error,
-          errorDescription: errorDescription ? decodeURIComponent(errorDescription.replace(/\+/g, ' ')) : undefined,
+          errorDescription: errorDescription
+            ? decodeURIComponent(errorDescription.replace(/\+/g, ' '))
+            : undefined,
         };
       }
 
@@ -58,7 +60,9 @@ export function parseAuthRedirectUrl(url: string | null | undefined): ParsedAuth
         return {
           type: 'error',
           error,
-          errorDescription: errorDescription ? decodeURIComponent(errorDescription.replace(/\+/g, ' ')) : undefined,
+          errorDescription: errorDescription
+            ? decodeURIComponent(errorDescription.replace(/\+/g, ' '))
+            : undefined,
         };
       }
 
@@ -76,4 +80,3 @@ export function parseAuthRedirectUrl(url: string | null | undefined): ParsedAuth
     return { type: 'error', error: 'invalid_url', errorDescription: 'Malformed redirect URL' };
   }
 }
-

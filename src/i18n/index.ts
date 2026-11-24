@@ -8,7 +8,6 @@
  * mirrors after reload).
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Localization from 'expo-localization';
 import en from './en.json';
 import ur from './ur.json';
 import { isRTL, syncDirection, SupportedLang } from './direction';

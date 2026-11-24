@@ -9,7 +9,8 @@ describe('authRedirect deep link handling', () => {
   });
 
   it('identifies OAuth error redirect correctly', () => {
-    const callbackUrl = 'khidmat://auth/callback?error=user_cancelled&error_description=User+cancelled+flow';
+    const callbackUrl =
+      'khidmat://auth/callback?error=user_cancelled&error_description=User+cancelled+flow';
     const parsed = parseAuthRedirectUrl(callbackUrl);
     expect(parsed.type).toBe('error');
     expect(parsed.error).toBe('user_cancelled');

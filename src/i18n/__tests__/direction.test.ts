@@ -1,4 +1,10 @@
-import { isRTL, syncDirection, getLogicalTextAlign, PHONE_CONTAINER_STYLE, PHONE_TEXT_STYLE } from '../direction';
+import {
+  isRTL,
+  syncDirection,
+  getLogicalTextAlign,
+  PHONE_CONTAINER_STYLE,
+  PHONE_TEXT_STYLE,
+} from '../direction';
 import { I18nManager } from 'react-native';
 
 describe('direction utilities (P1-2)', () => {
