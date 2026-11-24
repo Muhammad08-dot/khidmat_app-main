@@ -23,15 +23,16 @@ export class ErrorBoundary extends React.Component<Props, State> {
   state: State = { hasError: false };
 
   static getDerivedStateFromError(error: Error): State {
+    const msg = error.message ? error.message.toLowerCase() : '';
     const isConfig =
       error.name === 'ConfigError' ||
-      (error.message && error.message.toLowerCase().includes('configuration error')) ||
-      (error.message && error.message.toLowerCase().includes('supabase url'));
+      msg.includes('configuration error') ||
+      msg.includes('supabase url');
 
     return {
       hasError: true,
       message: error.message,
-      isConfigError: isConfig,
+      isConfigError: Boolean(isConfig),
     };
   }
 
