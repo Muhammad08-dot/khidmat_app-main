@@ -9,3 +9,9 @@
 - **File:** `package.json`
 - **Change:** Add `"test:integration": "jest --config jest.integration.config.js"` to `"scripts"`.
 - **Reason:** Enables developers to execute cloud integration tests from the repository root via `npm run test:integration`. Agent 1 owns the root `package.json`.
+
+## Task P4-8: E2E and Chrome Testing Scripts Relocation
+- **Files Moved:**
+  - `scripts/e2e-qa-suite.mjs` $\rightarrow$ `e2e/e2e-qa-suite.mjs`
+  - `scripts/test-chrome.mjs` $\rightarrow$ `e2e/test-chrome.mjs`
+- **Notice for Agent 1:** The Chrome testing and screenshot capture script has been consolidated into the `e2e/` folder per PRD Phase 4. Please invoke it from `e2e/test-chrome.mjs` (`node e2e/test-chrome.mjs`).
