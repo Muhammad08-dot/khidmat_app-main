@@ -1,6 +1,5 @@
-
-import React, { useState, useEffect } from "react";
-import { BRAND } from "@/src/theme/colors";
+import React, { useState, useEffect } from 'react';
+import { BRAND } from '@/src/theme/colors';
 import {
   View,
   Text,
@@ -11,8 +10,8 @@ import {
   ActivityIndicator,
   Modal,
   Platform,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+} from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft,
   Calendar,
@@ -21,21 +20,21 @@ import {
   FileText,
   Truck,
   CheckCircle,
-} from "lucide-react-native";
-import { useAuth } from "@/src/context/AuthContext";
-import { getDocument, writeDocument } from "@/src/services/supabase/legacy";
-import { track, AnalyticsEvents } from "@/src/services/analytics";
+} from 'lucide-react-native';
+import { useAuth } from '@/src/context/AuthContext';
+import { getDocument, writeDocument } from '@/src/services/supabase/legacy';
+import { track, AnalyticsEvents } from '@/src/services/analytics';
 
 import {
   getDistanceKm,
   calculateTravelFeePKR,
   estimateTravelTimeMinutes,
   type LocationCoords,
-} from "@/src/utils/location";
-import { getCurrentCoords } from "@/src/utils/geolocation";
-import { Card } from "@/src/components/ui/Card";
-import { Avatar } from "@/src/components/ui/Avatar";
-import { Icon } from "@/src/components/ui/Icon";
+} from '@/src/utils/location';
+import { getCurrentCoords } from '@/src/utils/geolocation';
+import { Card } from '@/src/components/ui/Card';
+import { Avatar } from '@/src/components/ui/Avatar';
+import { Icon } from '@/src/components/ui/Icon';
 
 interface ProviderData {
   userId: string;
@@ -49,11 +48,7 @@ interface ProviderData {
   photoURL?: string;
 }
 
-const TIME_SLOTS = [
-  "Morning (9 AM - 12 PM)",
-  "Afternoon (12 PM - 4 PM)",
-  "Evening (4 PM - 8 PM)",
-];
+const TIME_SLOTS = ['Morning (9 AM - 12 PM)', 'Afternoon (12 PM - 4 PM)', 'Evening (4 PM - 8 PM)'];
 
 function getDates() {
   const dates: { value: string; label: string; isToday: boolean }[] = [];
@@ -61,11 +56,11 @@ function getDates() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
-    const value = d.toISOString().split("T")[0];
-    const label = d.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
+    const value = d.toISOString().split('T')[0];
+    const label = d.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
     });
     dates.push({ value, label, isToday: i === 0 });
   }
@@ -83,10 +78,10 @@ export default function ConfirmBookingScreen() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState('');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(TIME_SLOTS[0]);
-  const [detailedAddress, setDetailedAddress] = useState("");
-  const [notes, setNotes] = useState("");
+  const [detailedAddress, setDetailedAddress] = useState('');
+  const [notes, setNotes] = useState('');
   const [locationError, setLocationError] = useState<string | null>(null);
 
   const [jobCoordinates, setJobCoordinates] = useState<LocationCoords>({
@@ -132,22 +127,22 @@ export default function ConfirmBookingScreen() {
   useEffect(() => {
     const fetchProvider = async () => {
       if (!providerId) {
-        setError("No provider selected for booking.");
+        setError('No provider selected for booking.');
         setLoading(false);
         return;
       }
       try {
         setLoading(true);
         setError(null);
-        const data = await getDocument("providers", providerId);
+        const data = await getDocument('providers', providerId);
         if (data) {
           setProvider(data as ProviderData);
         } else {
-          setError("Selected provider profile could not be found.");
+          setError('Selected provider profile could not be found.');
         }
       } catch (err) {
         console.error(err);
-        setError("Failed to fetch provider details.");
+        setError('Failed to fetch provider details.');
       } finally {
         setLoading(false);
       }
@@ -177,13 +172,11 @@ export default function ConfirmBookingScreen() {
       return;
     }
     if (!selectedDate) {
-      setError("Please select a booking date.");
+      setError('Please select a booking date.');
       return;
     }
     if (!detailedAddress.trim()) {
-      setError(
-        "Please enter a detailed street address so the worker can find you."
-      );
+      setError('Please enter a detailed street address so the worker can find you.');
       return;
     }
     setBookingInProgress(true);
@@ -193,9 +186,9 @@ export default function ConfirmBookingScreen() {
       const bookingId = `booking_${Math.random().toString(36).substring(2, 11)}`;
       const payload = {
         bookingId,
-        customerId: user?.id || "",
-        customerName: userProfile?.name || "Customer",
-        customerPhone: userProfile?.phone || "",
+        customerId: user?.id || '',
+        customerName: userProfile?.name || 'Customer',
+        customerPhone: userProfile?.phone || '',
         providerId: provider?.userId,
         providerName: provider?.name,
         providerCategory: provider?.category,
@@ -204,15 +197,15 @@ export default function ConfirmBookingScreen() {
         address: detailedAddress,
         coordinates: jobCoordinates,
         notes,
-        status: "pending",
+        status: 'pending',
         distanceKm: distance,
         basePrice: provider?.basePrice || 0,
         travelFee,
         totalPrice,
         createdAt: new Date().toISOString(),
       };
-      const createdId = await writeDocument("bookings", bookingId, payload);
-            track(AnalyticsEvents.BOOKING_CREATED, { totalPrice });
+      const createdId = await writeDocument('bookings', bookingId, payload);
+      track(AnalyticsEvents.BOOKING_CREATED, { totalPrice });
       setShowSuccessModal(true);
       setTimeout(() => {
         setShowSuccessModal(false);
@@ -220,9 +213,7 @@ export default function ConfirmBookingScreen() {
       }, 2600);
     } catch (err) {
       console.error(err);
-      setError(
-        "Failed to book service. Please check your network and try again."
-      );
+      setError('Failed to book service. Please check your network and try again.');
     } finally {
       setBookingInProgress(false);
     }
@@ -232,9 +223,7 @@ export default function ConfirmBookingScreen() {
     return (
       <View className="flex-1 items-center justify-center bg-surface">
         <ActivityIndicator size="large" color={BRAND.primary} />
-        <Text className="mt-3 text-sm text-ink/60">
-          Loading booking details...
-        </Text>
+        <Text className="mt-3 text-sm text-ink/60">Loading booking details...</Text>
       </View>
     );
   }
@@ -258,7 +247,7 @@ export default function ConfirmBookingScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1"
     >
       <ScrollView
@@ -277,12 +266,8 @@ export default function ConfirmBookingScreen() {
               <Icon icon={ArrowLeft} color={BRAND.ink} size={20} />
             </Pressable>
             <View className="flex-1">
-              <Text className="font-display text-lg font-medium text-ink">
-                Confirm Booking
-              </Text>
-              <Text className="text-xs text-ink/60">
-                Schedule &amp; pin your job location
-              </Text>
+              <Text className="font-display text-lg font-medium text-ink">Confirm Booking</Text>
+              <Text className="text-xs text-ink/60">Schedule &amp; pin your job location</Text>
             </View>
           </View>
 
@@ -305,32 +290,24 @@ export default function ConfirmBookingScreen() {
                     key={date.value}
                     onPress={() => setSelectedDate(date.value)}
                     className={`items-center rounded-lg border px-3 py-2 ${
-                      selectedDate === date.value
-                        ? "border-primary bg-primary/5"
-                        : "border-border"
+                      selectedDate === date.value ? 'border-primary bg-primary/5' : 'border-border'
                     }`}
                   >
                     <Text
                       className={`font-mono text-[10px] uppercase tracking-wider ${
-                        selectedDate === date.value
-                          ? "text-primary"
-                          : "text-ink/40"
+                        selectedDate === date.value ? 'text-primary' : 'text-ink/40'
                       }`}
                     >
-                      {date.isToday ? "Today" : date.label.split(" ")[0]}
+                      {date.isToday ? 'Today' : date.label.split(' ')[0]}
                     </Text>
                     <Text
                       className={`mt-0.5 text-lg font-bold ${
-                        selectedDate === date.value
-                          ? "text-primary"
-                          : "text-ink"
+                        selectedDate === date.value ? 'text-primary' : 'text-ink'
                       }`}
                     >
-                      {date.label.split(" ")[1]?.replace(",", "")}
+                      {date.label.split(' ')[1]?.replace(',', '')}
                     </Text>
-                    <Text className="text-[10px] text-ink/40">
-                      {date.label.split(" ")[0]}
-                    </Text>
+                    <Text className="text-[10px] text-ink/40">{date.label.split(' ')[0]}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -347,14 +324,12 @@ export default function ConfirmBookingScreen() {
                     key={slot}
                     onPress={() => setSelectedTimeSlot(slot)}
                     className={`rounded-lg border p-3 ${
-                      selectedTimeSlot === slot
-                        ? "border-primary bg-primary/5"
-                        : "border-border"
+                      selectedTimeSlot === slot ? 'border-primary bg-primary/5' : 'border-border'
                     }`}
                   >
                     <Text
                       className={`text-center text-sm font-semibold ${
-                        selectedTimeSlot === slot ? "text-primary" : "text-ink"
+                        selectedTimeSlot === slot ? 'text-primary' : 'text-ink'
                       }`}
                     >
                       {slot}
@@ -428,11 +403,8 @@ export default function ConfirmBookingScreen() {
                       {provider.category} • {provider.city}
                     </Text>
                     <Text className="text-[10px] font-bold text-accent-gold">
-                      ★{" "}
-                      {provider.rating != null
-                        ? provider.rating.toFixed(1)
-                        : "New"}{" "}
-                      ({provider.tier})
+                      ★ {provider.rating != null ? provider.rating.toFixed(1) : 'New'} (
+                      {provider.tier})
                     </Text>
                   </View>
                 </View>
@@ -441,22 +413,17 @@ export default function ConfirmBookingScreen() {
               <View className="gap-2 text-sm">
                 <View className="flex-row justify-between">
                   <Text className="text-ink/75">Base Service Rate</Text>
-                  <Text className="font-semibold text-ink">
-                    Rs. {provider?.basePrice} / hr
-                  </Text>
+                  <Text className="font-semibold text-ink">Rs. {provider?.basePrice} / hr</Text>
                 </View>
                 <View className="flex-row justify-between">
-                  <Text className="text-ink/75">
-                    Travel Fee ({distance.toFixed(1)} km)
-                  </Text>
+                  <Text className="text-ink/75">Travel Fee ({distance.toFixed(1)} km)</Text>
                   <Text className="font-semibold text-ink">Rs. {travelFee}</Text>
                 </View>
 
                 <View className="flex-row items-center gap-2 rounded bg-accent-sky/10 p-2">
                   <Icon icon={Truck} color={BRAND.info} size={16} />
                   <Text className="text-[11px] font-medium text-accent-sky">
-                    Travel time estimate: ~{estimateTravelTimeMinutes(distance)} mins
-                    away
+                    Travel time estimate: ~{estimateTravelTimeMinutes(distance)} mins away
                   </Text>
                 </View>
 
@@ -473,8 +440,8 @@ export default function ConfirmBookingScreen() {
                   Cash on Delivery
                 </Text>
                 <Text className="mt-1 text-center text-[11px] text-ink/75">
-                  No advanced payments required. Pay the worker in cash once the
-                  service is successfully completed.
+                  No advanced payments required. Pay the worker in cash once the service is
+                  successfully completed.
                 </Text>
               </View>
             </Card>
@@ -488,9 +455,7 @@ export default function ConfirmBookingScreen() {
               {bookingInProgress ? (
                 <>
                   <ActivityIndicator size="small" color="#fff" />
-                  <Text className="text-base font-bold text-white">
-                    Booking Worker...
-                  </Text>
+                  <Text className="text-base font-bold text-white">Booking Worker...</Text>
                 </>
               ) : (
                 <>
@@ -534,9 +499,7 @@ export default function ConfirmBookingScreen() {
               </View>
             </View>
 
-            <Text className="text-2xl font-semibold text-ink">
-              Booking Confirmed!
-            </Text>
+            <Text className="text-2xl font-semibold text-ink">Booking Confirmed!</Text>
             <Text className="mt-2 text-center text-sm text-ink/75">
               Redirecting you to chat with {provider?.name}...
             </Text>

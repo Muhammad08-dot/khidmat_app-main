@@ -7,10 +7,10 @@ services:
       dockerfile: docker/Dockerfile
     container_name: khidmat-app
     ports:
-      - "8081:8081"      # Expo Web
-      - "3000:3000"      # Fallback web port
-      - "19000:19000"    # Expo DevTools
-      - "19001:19001"    # Expo DevTools WebSocket
+      - '8081:8081' # Expo Web
+      - '3000:3000' # Fallback web port
+      - '19000:19000' # Expo DevTools
+      - '19001:19001' # Expo DevTools WebSocket
     environment:
       - NODE_ENV=development
       - EXPO_PUBLIC_SUPABASE_URL=${EXPO_PUBLIC_SUPABASE_URL}

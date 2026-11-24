@@ -55,4 +55,3 @@ describe('Realtime Tracking Broadcast', () => {
     expect(received.length).toBe(1);
   });
 });
-

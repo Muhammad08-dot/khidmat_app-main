@@ -1,9 +1,9 @@
-import React from "react";
-import { BRAND } from "@/src/theme/colors";
-import { View, Text, Pressable } from "react-native";
-import { useRouter } from "expo-router";
-import { Home, Hammer, Droplet, Zap, Wrench } from "lucide-react-native";
-import { Icon } from "@/src/components/ui/Icon";
+import React from 'react';
+import { BRAND } from '@/src/theme/colors';
+import { View, Text, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Home, Hammer, Droplet, Zap, Wrench } from 'lucide-react-native';
+import { Icon } from '@/src/components/ui/Icon';
 
 export default function NotFoundScreen() {
   const router = useRouter();
@@ -25,28 +25,24 @@ export default function NotFoundScreen() {
         </View>
 
         <Text className="text-center font-display text-[46px] font-extrabold leading-tight text-ink">
-          Unexpected{"\n"}Application Error!
+          Unexpected{'\n'}Application Error!
         </Text>
 
-        <Text className="mt-3 text-center text-2xl font-bold text-primary">
-          404 Not Found
-        </Text>
+        <Text className="mt-3 text-center text-2xl font-bold text-primary">404 Not Found</Text>
 
         <View className="my-5 h-[3px] w-10 self-start rounded-full bg-primary" />
 
         <Text className="text-sm leading-relaxed text-ink/65">
-          We couldn't find the page you're looking for.{"\n"}It might have been
-          moved or doesn't exist.
+          We couldn't find the page you're looking for.{'\n'}It might have been moved or doesn't
+          exist.
         </Text>
 
         <Pressable
-          onPress={() => router.replace("/")}
+          onPress={() => router.replace('/')}
           className="mt-7 flex-row items-center justify-center gap-2 rounded-2xl border border-border bg-surface-raised px-6 py-4 shadow-sm"
         >
           <Icon icon={Home} color={BRAND.primary} size={18} />
-          <Text className="text-xs font-bold text-primary">
-            Go Back to Home
-          </Text>
+          <Text className="text-xs font-bold text-primary">Go Back to Home</Text>
         </Pressable>
       </View>
     </View>

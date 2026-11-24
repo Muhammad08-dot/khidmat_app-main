@@ -1,18 +1,18 @@
-import React, { useEffect } from "react";
-import { BRAND } from "@/src/theme/colors";
-import { View, Text, ScrollView, RefreshControl, Pressable } from "react-native";
-import { useRouter } from "expo-router";
-import { Bell, BellOff, CalendarCheck, ShieldCheck } from "lucide-react-native";
-import { useAuth } from "@/src/context/AuthContext";
-import { useNotifications, useMarkNotificationsRead } from "@/src/hooks/useSupabase";
-import { Icon } from "@/src/components/ui/Icon";
-import { EmptyState } from "@/src/components/ui/EmptyState";
+import React, { useEffect } from 'react';
+import { BRAND } from '@/src/theme/colors';
+import { View, Text, ScrollView, RefreshControl, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Bell, BellOff, CalendarCheck, ShieldCheck } from 'lucide-react-native';
+import { useAuth } from '@/src/context/AuthContext';
+import { useNotifications, useMarkNotificationsRead } from '@/src/hooks/useSupabase';
+import { Icon } from '@/src/components/ui/Icon';
+import { EmptyState } from '@/src/components/ui/EmptyState';
 
 /** Relative "x min ago" stamp; notifications are informational, minute precision is enough. */
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return "Just now";
+  if (mins < 1) return 'Just now';
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
@@ -21,11 +21,11 @@ function timeAgo(iso: string): string {
 
 /** DB schema only carries `message`; titles are derived from the event type. */
 const TYPE_TITLES: Record<string, string> = {
-  job_accepted: "Booking accepted",
-  job_completed: "Job completed",
-  job_confirmed: "Booking update",
-  booking_rescheduled: "Booking rescheduled",
-  invitation: "New service request",
+  job_accepted: 'Booking accepted',
+  job_completed: 'Job completed',
+  job_confirmed: 'Booking update',
+  booking_rescheduled: 'Booking rescheduled',
+  invitation: 'New service request',
 };
 
 export default function NotificationsScreen() {
@@ -47,14 +47,14 @@ export default function NotificationsScreen() {
   const handlePress = (n: any) => {
     if (n.booking_id) {
       router.push(`/track/${n.booking_id}` as any);
-    } else if (n.type === "invitation") {
-      router.push("/(tabs)/bookings" as any);
+    } else if (n.type === 'invitation') {
+      router.push('/(tabs)/bookings' as any);
     }
   };
 
   const iconFor = (type: string) => {
-    if (type === "booking") return CalendarCheck;
-    if (type === "safety" || type === "kyc") return ShieldCheck;
+    if (type === 'booking') return CalendarCheck;
+    if (type === 'safety' || type === 'kyc') return ShieldCheck;
     return Bell;
   };
 
@@ -71,7 +71,11 @@ export default function NotificationsScreen() {
         className="flex-1 px-5"
         contentContainerStyle={{ paddingBottom: 32, flexGrow: 1 }}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} tintColor={BRAND.primary} />
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={() => refetch()}
+            tintColor={BRAND.primary}
+          />
         }
       >
         {isLoading ? (
@@ -90,7 +94,9 @@ export default function NotificationsScreen() {
               key={n.id}
               onPress={() => handlePress(n)}
               className={`flex-row items-start gap-3 rounded-2xl border p-4 mb-3 ${
-                n.read ? "bg-surface-container-low border-outline-variant" : "bg-secondary-container/30 border-secondary"
+                n.read
+                  ? 'bg-surface-container-low border-outline-variant'
+                  : 'bg-secondary-container/30 border-secondary'
               }`}
             >
               <View className="h-10 w-10 items-center justify-center rounded-full bg-secondary-container">
@@ -98,10 +104,12 @@ export default function NotificationsScreen() {
               </View>
               <View className="flex-1">
                 <Text className="text-base font-semibold text-on-surface">
-                  {TYPE_TITLES[n.type] ?? "Notification"}
+                  {TYPE_TITLES[n.type] ?? 'Notification'}
                 </Text>
                 <Text className="text-sm text-on-surface-variant mt-0.5">{n.message}</Text>
-                <Text className="text-xs text-on-surface-variant/70 mt-1.5">{timeAgo(n.created_at)}</Text>
+                <Text className="text-xs text-on-surface-variant/70 mt-1.5">
+                  {timeAgo(n.created_at)}
+                </Text>
               </View>
               {!n.read && <View className="mt-1 h-2.5 w-2.5 rounded-full bg-secondary" />}
             </Pressable>

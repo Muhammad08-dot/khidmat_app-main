@@ -77,13 +77,22 @@ if (oldTrackingLogicStart !== -1 && oldTrackingLogicEndBracket !== -1) {
       supabase.removeChannel(channel);
     };
   `;
-  
-  code = code.substring(0, oldTrackingLogicStart) + newLogic + code.substring(oldTrackingLogicEndBracket);
+
+  code =
+    code.substring(0, oldTrackingLogicStart) +
+    newLogic +
+    code.substring(oldTrackingLogicEndBracket);
 }
 
 // 4. Update the Map render to use live locations instead of booking.workerLocation
-code = code.replace(/workerLocation=\{booking\.workerLocation\}/g, 'workerLocation={liveWorkerLocation || booking?.workerLocation}');
-code = code.replace(/clientLocation=\{booking\.clientLocation\}/g, 'clientLocation={liveClientLocation || booking?.clientLocation}');
+code = code.replace(
+  /workerLocation=\{booking\.workerLocation\}/g,
+  'workerLocation={liveWorkerLocation || booking?.workerLocation}'
+);
+code = code.replace(
+  /clientLocation=\{booking\.clientLocation\}/g,
+  'clientLocation={liveClientLocation || booking?.clientLocation}'
+);
 
 fs.writeFileSync('app/(booking)/track/[id].tsx', code);
 console.log('Successfully refactored Location Tracking to use Supabase Realtime Broadcast');

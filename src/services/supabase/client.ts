@@ -1,4 +1,4 @@
- import 'react-native-url-polyfill/auto';
+import 'react-native-url-polyfill/auto';
 import { AppState, Platform } from 'react-native';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
@@ -23,8 +23,12 @@ const getWebStore = (): Storage | null => {
     const mem = new Map<string, string>();
     return {
       getItem: (k: string) => mem.get(k) ?? null,
-      setItem: (k: string, v: string) => { mem.set(k, v); },
-      removeItem: (k: string) => { mem.delete(k); },
+      setItem: (k: string, v: string) => {
+        mem.set(k, v);
+      },
+      removeItem: (k: string) => {
+        mem.delete(k);
+      },
       clear: () => mem.clear(),
       key: () => null,
       length: 0,
@@ -40,12 +44,18 @@ const ExpoSecureStoreAdapter: AuthStorageAdapter = {
   },
   setItem: async (key: string, value: string) => {
     const web = getWebStore();
-    if (web) { web.setItem(key, value); return; }
+    if (web) {
+      web.setItem(key, value);
+      return;
+    }
     await SecureStore.setItemAsync(key, value);
   },
   removeItem: async (key: string) => {
     const web = getWebStore();
-    if (web) { web.removeItem(key); return; }
+    if (web) {
+      web.removeItem(key);
+      return;
+    }
     await SecureStore.deleteItemAsync(key);
   },
 };
@@ -62,7 +72,7 @@ export const DEMO_MODE = process.env.EXPO_PUBLIC_DEMO_MODE === 'true';
 
 export const supabase: SupabaseClient = DEMO_MODE
   ? (createMockSupabase() as unknown as SupabaseClient)
-  : (supabaseUrl && supabaseAnonKey)
+  : supabaseUrl && supabaseAnonKey
     ? createClient(supabaseUrl, supabaseAnonKey, {
         auth: {
           storage: ExpoSecureStoreAdapter,

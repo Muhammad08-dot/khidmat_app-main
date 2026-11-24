@@ -272,7 +272,5 @@
     }
   ],
   "detectedBugs": [],
-  "pageErrors": [
-    "QueryError: Invalid login credentials"
-  ]
+  "pageErrors": ["QueryError: Invalid login credentials"]
 }

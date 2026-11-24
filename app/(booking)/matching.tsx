@@ -1,29 +1,64 @@
-import React, { useEffect, useState } from "react";
-import { BRAND } from "@/src/theme/colors";
-import { View, Text, Pressable } from "react-native";
+import React, { useEffect, useState } from 'react';
+import { BRAND } from '@/src/theme/colors';
+import { View, Text, Pressable } from 'react-native';
 import { MotiView } from 'moti';
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
-  Zap, Droplet, Hammer, Paintbrush, Snowflake, Sparkles, Settings, Car,
-  Sprout, Truck, Bug, Eye, Flame, Layers, Wrench, Camera, Video,
-  PartyPopper, Music, Utensils, UserCheck, Compass, AlertCircle,
-  CheckCircle2, ArrowRight,
-} from "lucide-react-native";
+  Zap,
+  Droplet,
+  Hammer,
+  Paintbrush,
+  Snowflake,
+  Sparkles,
+  Settings,
+  Car,
+  Sprout,
+  Truck,
+  Bug,
+  Eye,
+  Flame,
+  Layers,
+  Wrench,
+  Camera,
+  Video,
+  PartyPopper,
+  Music,
+  Utensils,
+  UserCheck,
+  Compass,
+  AlertCircle,
+  CheckCircle2,
+  ArrowRight,
+} from 'lucide-react-native';
 import { parseServiceIntent, type ParsedIntent } from '@/src/services/api/agentClient';
 import { useAuth } from '@/src/context/AuthContext';
-import { Card } from "@/src/components/ui/Card";
-import { Icon } from "@/src/components/ui/Icon";
+import { Card } from '@/src/components/ui/Card';
+import { Icon } from '@/src/components/ui/Icon';
 
 type LucideIcon = React.ComponentType<{ color?: string; size?: number }>;
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
-  Electrician: Zap, Plumber: Droplet, Carpenter: Hammer, Painter: Paintbrush,
-  "AC Technician": Snowflake, "House Cleaner": Sparkles,
-  "Appliance Repair": Settings, Mechanic: Car, Gardener: Sprout,
-  "Movers & Packers": Truck, "Pest Control": Bug, "CCTV Technician": Eye,
-  Welder: Flame, Mason: Layers, Handyman: Wrench, Photographer: Camera,
-  Videographer: Video, "Event Decorator": PartyPopper, DJ: Music,
-  Caterer: Utensils, "Waiter/Server": UserCheck,
+  Electrician: Zap,
+  Plumber: Droplet,
+  Carpenter: Hammer,
+  Painter: Paintbrush,
+  'AC Technician': Snowflake,
+  'House Cleaner': Sparkles,
+  'Appliance Repair': Settings,
+  Mechanic: Car,
+  Gardener: Sprout,
+  'Movers & Packers': Truck,
+  'Pest Control': Bug,
+  'CCTV Technician': Eye,
+  Welder: Flame,
+  Mason: Layers,
+  Handyman: Wrench,
+  Photographer: Camera,
+  Videographer: Video,
+  'Event Decorator': PartyPopper,
+  DJ: Music,
+  Caterer: Utensils,
+  'Waiter/Server': UserCheck,
 };
 
 export default function MatchingScreen() {
@@ -31,8 +66,8 @@ export default function MatchingScreen() {
   const { q, category } = useLocalSearchParams<{ q?: string; category?: string }>();
   const { userProfile } = useAuth();
 
-  const query = typeof q === "string" ? q : "";
-  const categoryPreset = typeof category === "string" ? category : "";
+  const query = typeof q === 'string' ? q : '';
+  const categoryPreset = typeof category === 'string' ? category : '';
 
   const [loading, setLoading] = useState(true);
   const [statusIndex, setStatusIndex] = useState(0);
@@ -40,11 +75,11 @@ export default function MatchingScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const loadingStatuses = [
-    "Contacting Gemini AI Engine...",
-    "Analyzing search request keywords...",
-    "Interpreting work requirements and mapping coordinates...",
-    "Optimizing matching categories across Pakistan...",
-    "Sorting matching priority scores...",
+    'Contacting Gemini AI Engine...',
+    'Analyzing search request keywords...',
+    'Interpreting work requirements and mapping coordinates...',
+    'Optimizing matching categories across Pakistan...',
+    'Sorting matching priority scores...',
   ];
 
   useEffect(() => {
@@ -65,7 +100,7 @@ export default function MatchingScreen() {
         await new Promise((resolve) => setTimeout(resolve, 800));
         setResult({
           category: categoryPreset,
-          urgency: "medium",
+          urgency: 'medium',
           summary: `Request for ${categoryPreset} services.`,
         });
         setLoading(false);
@@ -73,9 +108,7 @@ export default function MatchingScreen() {
       }
 
       if (!query.trim()) {
-        setError(
-          "Please enter a description of what you need on the home screen."
-        );
+        setError('Please enter a description of what you need on the home screen.');
         setLoading(false);
         return;
       }
@@ -85,9 +118,7 @@ export default function MatchingScreen() {
         setResult(parsed);
       } catch (err) {
         console.error(err);
-        setError(
-          "AI Matching service encountered an error. Please try again."
-        );
+        setError('AI Matching service encountered an error. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -106,12 +137,12 @@ export default function MatchingScreen() {
 
   const getUrgency = (urgency: string) => {
     switch (urgency) {
-      case "high":
-        return { color: BRAND.danger, label: "Critical / Emergency Action" };
-      case "medium":
-        return { color: BRAND.warning, label: "Standard Scheduled Repair" };
+      case 'high':
+        return { color: BRAND.danger, label: 'Critical / Emergency Action' };
+      case 'medium':
+        return { color: BRAND.warning, label: 'Standard Scheduled Repair' };
       default:
-        return { color: BRAND.success, label: "Routine Maintenance" };
+        return { color: BRAND.success, label: 'Routine Maintenance' };
     }
   };
 
@@ -126,20 +157,24 @@ export default function MatchingScreen() {
               from={{ opacity: 0.8, scale: 0.4 }}
               animate={{ opacity: 0, scale: 1.6 }}
               transition={{ type: 'timing', duration: 2500, loop: true, delay: i * 800 }}
-              style={{ position: 'absolute', width: '100%', height: '100%', borderRadius: 100, borderWidth: 2, borderColor: 'rgba(31, 93, 63, 0.4)', backgroundColor: 'rgba(31, 93, 63, 0.05)' }}
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                borderRadius: 100,
+                borderWidth: 2,
+                borderColor: 'rgba(31, 93, 63, 0.4)',
+                backgroundColor: 'rgba(31, 93, 63, 0.05)',
+              }}
             />
           ))}
           <View className="h-24 w-24 items-center justify-center rounded-full border border-primary/30 bg-primary shadow-xl">
             <Sparkles color="#ffffff" size={40} />
           </View>
         </View>
-        <Text className="mt-10 font-display text-xl font-medium text-ink">
-          Gemini AI Engine
-        </Text>
+        <Text className="mt-10 font-display text-xl font-medium text-ink">Gemini AI Engine</Text>
         <View className="mt-4 h-6 justify-center">
-          <Text className="text-center text-sm text-ink/60">
-            {loadingStatuses[statusIndex]}
-          </Text>
+          <Text className="text-center text-sm text-ink/60">{loadingStatuses[statusIndex]}</Text>
         </View>
       </View>
     );
@@ -158,7 +193,7 @@ export default function MatchingScreen() {
             </Text>
             <Text className="mt-2 text-center text-sm text-ink/60">{error}</Text>
             <Pressable
-              onPress={() => router.replace("/")}
+              onPress={() => router.replace('/')}
               className="mt-6 rounded-xl bg-primary px-8 py-3"
             >
               <Text className="text-sm font-bold text-white">Return Home</Text>
@@ -169,7 +204,7 @@ export default function MatchingScreen() {
     );
   }
 
-  const urgencyInfo = result ? getUrgency(result.urgency) : getUrgency("medium");
+  const urgencyInfo = result ? getUrgency(result.urgency) : getUrgency('medium');
 
   return (
     <View className="flex-1 bg-surface">
@@ -179,9 +214,7 @@ export default function MatchingScreen() {
           <View className="h-14 w-14 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-100">
             <Icon icon={CheckCircle2} color={BRAND.success} size={28} />
           </View>
-          <Text className="mt-3 font-display text-xl font-medium text-ink">
-            Request Analyzed!
-          </Text>
+          <Text className="mt-3 font-display text-xl font-medium text-ink">Request Analyzed!</Text>
           <Text className="mt-1 text-center text-sm text-ink/60">
             Our Gemini AI mapped your task to the best matching specialty.
           </Text>
@@ -194,9 +227,7 @@ export default function MatchingScreen() {
               <Text className="font-mono text-[10px] uppercase tracking-wider text-ink/40">
                 Your Input Query
               </Text>
-              <Text className="mt-1 text-sm font-medium italic text-ink">
-                "{query}"
-              </Text>
+              <Text className="mt-1 text-sm font-medium italic text-ink">"{query}"</Text>
             </View>
           ) : null}
 
@@ -209,9 +240,7 @@ export default function MatchingScreen() {
                 <Text className="font-mono text-[10px] uppercase tracking-wider text-ink/40">
                   Identified Specialty
                 </Text>
-                <Text className="text-base font-bold text-ink">
-                  {result?.category}
-                </Text>
+                <Text className="text-base font-bold text-ink">{result?.category}</Text>
               </View>
             </View>
 
@@ -251,8 +280,8 @@ export default function MatchingScreen() {
           <View className="mt-4 flex-row items-center gap-2 border-t border-border pt-3">
             <Icon icon={Compass} color={BRAND.primary} size={14} />
             <Text className="text-[11px] text-ink/60">
-              Finding local {result?.category} workers registered in{" "}
-              {userProfile?.city || "your city"}...
+              Finding local {result?.category} workers registered in{' '}
+              {userProfile?.city || 'your city'}...
             </Text>
           </View>
         </Card>
@@ -261,9 +290,7 @@ export default function MatchingScreen() {
           onPress={handleFindProviders}
           className="mt-6 flex-row items-center justify-center gap-2 rounded-xl bg-primary py-4"
         >
-          <Text className="text-base font-bold text-white">
-            Search Best Rated Workers
-          </Text>
+          <Text className="text-base font-bold text-white">Search Best Rated Workers</Text>
           <Icon icon={ArrowRight} color="#fff" size={20} />
         </Pressable>
       </View>

@@ -8,12 +8,14 @@ What must happen before a **public** release. Items marked ✅ are done in code;
 ## 🎯 Priority Matrix
 
 ### P0: Launch Blockers (Must Have)
+
 - [ ] ⚙️ **App Icon & Splash Screen:** Generate/setup high-quality assets in `app.json` for professional store presence.
 - [ ] ⚙️ **Push Notifications:** Setup Expo Push Tokens and Supabase triggers (`supabase/functions/push-dispatcher`) to alert users on chat messages, KYC, and booking updates.
 - [ ] ⚙️ **Live Backend Migration:** Apply migrations `0001 → 0012` to production Supabase project (`EXPO_PUBLIC_DEMO_MODE=false`).
 - [ ] ⚙️ **Legal & Privacy Submission:** Submit public Privacy Policy URL and Data Safety form in Play Console.
 
 ### P1: Production Readiness (High Priority)
+
 - [x] ✅ **In-App Account Deletion:** Google Play compliant self-serve account deletion & data anonymization in Profile (`0011_account_deletion.sql`).
 - [x] ✅ **User Reporting & Moderation:** Reporting flow for inappropriate content and provider harassment with admin console moderation (`0012_user_reports.sql`).
 - [x] ✅ **Realtime Low-Overhead Tracking:** Live GPS tracking migrated to Supabase Realtime Broadcast channels (`tracking:{bookingId}`).
@@ -23,6 +25,7 @@ What must happen before a **public** release. Items marked ✅ are done in code;
 - [ ] ⚙️ **First Admin Bootstrap:** Promote ops email to `role = 'admin'` in Supabase SQL editor.
 
 ### P2: Future Enhancements (Post-Launch)
+
 - [ ] 💰 **Payment Gateway Integration:** Implement JazzCash, EasyPaisa, or Stripe for in-app cashless transactions (v1 launches with Cash on Delivery / Hand).
 - [ ] 💰 **Phone / SMS OTP:** Configure Twilio / SMS provider in Supabase Auth when expanding beyond email login.
 
@@ -31,6 +34,7 @@ What must happen before a **public** release. Items marked ✅ are done in code;
 ## Detailed Launch Steps
 
 ### 1. Cut over from demo to the live backend
+
 The app currently runs on in-memory mock data (`EXPO_PUBLIC_DEMO_MODE=true` in `.env`).
 
 ```bash
@@ -41,6 +45,7 @@ npx supabase db push
 # 2. Turn demo mode OFF for a production build.
 #    .env / EAS env:  EXPO_PUBLIC_DEMO_MODE=false
 ```
+
 - ✅ Migrations `0001_init` … `0012_user_reports` exist and are tested.
 - ⚙️ Verify against the live DB: sign up → browse providers → book → chat →
   complete → review → reschedule → cancel → notifications.
@@ -48,6 +53,7 @@ npx supabase db push
   public; real protection is RLS). Never put the `service_role` key in the app.
 
 ### 2. Legal (Play Store hard requirement)
+
 - ✅ In-app `Privacy Policy` (`/privacy`), `Terms of Service` (`/terms`), and `Safety Guidelines` (`/safety`) screens,
   linked from Profile → Legal & Support.
 - ⚙️ Publish a **public privacy-policy URL** (host `privacy.tsx` content on a website)
@@ -59,6 +65,7 @@ npx supabase db push
   is referenced; account deletion flow built into app).
 
 ### 3. Admin / provider vetting & moderation
+
 - ✅ `admin` role, `is_admin()` RLS helper, provider **verification queue** and
   **review moderation** (hide/unhide/delete) in `app/admin.tsx`.
 - ⚙️ Bootstrap the first admin. After signup, in the Supabase SQL editor:
@@ -71,22 +78,26 @@ npx supabase db push
   human must run the checks.
 
 ### 4. Auth & contactability
+
 - ✅ Email/password auth, password reset deep link (`khidmat://reset-password`).
 - 💰 Phone/SMS OTP is **flag-gated OFF** (`EXPO_PUBLIC_PHONE_AUTH_ENABLED`). Enabling
   needs a Twilio (or similar) sender configured under Supabase Auth → Phone.
 
 ### 5. Payments
+
 - ✅ COD ledger works end-to-end (providers are paid in cash).
 - 💰 JazzCash / EasyPaisa / card are **stubs** on `agent-server` gated by
   `PAYMENTS_ENABLED`. Going live needs merchant accounts + `GW_*` secrets on the
   server. Launch with COD; add gateways later.
 
 ### 6. Push notifications
+
 - ✅ Expo push + Alerts tab + deep-links.
 - ⚙️ Provide a **Google Cloud FCM** server key in EAS project creds so Android
   deliveries work in production (`eas.json` / Expo application id).
 
 ### 7. Build, signing & store listing
+
 - ⚙️ Create an EAS build profile: `eas build -p android --profile production`.
 - ⚙️ Generate an **upload keystore** + Play App Signing; set version/build number
   (currently `1.0.0`).
@@ -95,16 +106,19 @@ npx supabase db push
 - 💡 Optional: `EXPO_PUBLIC_EMAIL_ENABLED`, PostHog `key` for analytics (both inert now).
 
 ### 8. Quality gates (must be green before shipping)
+
 ```bash
 npm run typecheck   # tsc --noEmit
 npm run lint        # eslint .
 npm test            # jest
 ```
+
 - CI (`.github/workflows/ci.yml`) already runs all three on push/PR.
 
 ---
 
 ## Definition of "ready"
+
 Items **1, 2, 3** are free and blocking for a compliant Play Store release — done in
 code here; the ⚙️ owner-config steps remain. **4/5/6** (OTP, gateways, FCM) and
 💰 analytics depend on paid accounts/credentials and can ship as COD-only v1.

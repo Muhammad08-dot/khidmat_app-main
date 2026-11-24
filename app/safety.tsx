@@ -1,53 +1,51 @@
-import React from "react";
-import { BRAND } from "@/src/theme/colors";
-import { View, Text, ScrollView, Pressable } from "react-native";
-import { useRouter } from "expo-router";
-import {
-  Shield, ChevronLeft, CheckCircle2, PhoneCall, MapPin, Star,
-} from "lucide-react-native";
-import { Card } from "@/src/components/ui/Card";
-import { Icon } from "@/src/components/ui/Icon";
+import React from 'react';
+import { BRAND } from '@/src/theme/colors';
+import { View, Text, ScrollView, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Shield, ChevronLeft, CheckCircle2, PhoneCall, MapPin, Star } from 'lucide-react-native';
+import { Card } from '@/src/components/ui/Card';
+import { Icon } from '@/src/components/ui/Icon';
 
 const SAFETY_STEPS = [
   {
-    num: "01",
-    title: "Active Phone Verification",
+    num: '01',
+    title: 'Active Phone Verification',
     icon: PhoneCall,
     description:
-      "Contact numbers are validated via one-time passwords (OTP) to ensure clients can always reach the assigned professional in real-time.",
+      'Contact numbers are validated via one-time passwords (OTP) to ensure clients can always reach the assigned professional in real-time.',
     color: BRAND.warning,
-    bgColor: "bg-amber-500/10",
-    borderColor: "border-amber-500/20",
+    bgColor: 'bg-amber-500/10',
+    borderColor: 'border-amber-500/20',
   },
   {
-    num: "02",
-    title: "Address & Location Confirmation",
+    num: '02',
+    title: 'Address & Location Confirmation',
     icon: MapPin,
     description:
-      "Physical addresses are collected and verified. Geolocation pinning registers their exact service dispatch coordinates on our local maps.",
+      'Physical addresses are collected and verified. Geolocation pinning registers their exact service dispatch coordinates on our local maps.',
     color: BRAND.success,
-    bgColor: "bg-emerald-500/10",
-    borderColor: "border-emerald-500/20",
+    bgColor: 'bg-emerald-500/10',
+    borderColor: 'border-emerald-500/20',
   },
   {
-    num: "03",
-    title: "Background & Reference Audit",
+    num: '03',
+    title: 'Background & Reference Audit',
     icon: Shield,
     description:
-      "We review local police records clearance (character certificate) and interview reference checks for initial screening before listing.",
-    color: "#E11D48",
-    bgColor: "bg-rose-500/10",
-    borderColor: "border-rose-500/20",
+      'We review local police records clearance (character certificate) and interview reference checks for initial screening before listing.',
+    color: '#E11D48',
+    bgColor: 'bg-rose-500/10',
+    borderColor: 'border-rose-500/20',
   },
   {
-    num: "04",
-    title: "In-App Performance Monitoring",
+    num: '04',
+    title: 'In-App Performance Monitoring',
     icon: Star,
     description:
-      "Ratings and feedback are monitored dynamically. Low ratings (under 4.2 stars) trigger warning notifications and system review, ensuring service standards.",
-    color: "#7C3AED",
-    bgColor: "bg-violet-500/10",
-    borderColor: "border-violet-500/20",
+      'Ratings and feedback are monitored dynamically. Low ratings (under 4.2 stars) trigger warning notifications and system review, ensuring service standards.',
+    color: '#7C3AED',
+    bgColor: 'bg-violet-500/10',
+    borderColor: 'border-violet-500/20',
   },
 ];
 
@@ -93,9 +91,9 @@ export default function SafetyScreen() {
                 Verified Service Professionals
               </Text>
               <Text className="mt-2 text-sm leading-relaxed text-ink/75">
-                At Khidmat, your safety and satisfaction are our top priorities.
-                Every registered service provider undergoes a comprehensive 4-step
-                background and validation check before they can accept bookings.
+                At Khidmat, your safety and satisfaction are our top priorities. Every registered
+                service provider undergoes a comprehensive 4-step background and validation check
+                before they can accept bookings.
               </Text>
             </View>
           </View>
@@ -106,10 +104,7 @@ export default function SafetyScreen() {
           {SAFETY_STEPS.map((step) => {
             const StepIcon = step.icon;
             return (
-              <Card
-                key={step.num}
-                className="overflow-hidden border border-border p-6"
-              >
+              <Card key={step.num} className="overflow-hidden border border-border p-6">
                 {/* Step number watermark */}
                 <Text className="absolute bottom-1 right-4 text-7xl font-black text-ink/5">
                   {step.num}

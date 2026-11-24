@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { BRAND } from "@/src/theme/colors";
+import React, { useState, useEffect, useRef } from 'react';
+import { BRAND } from '@/src/theme/colors';
 import {
   View,
   Text,
@@ -12,8 +12,8 @@ import {
   Linking,
   Alert,
   Modal,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+} from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft,
   Check,
@@ -28,16 +28,16 @@ import {
   Shield,
   Flag,
   X,
-} from "lucide-react-native";
-import { useAuth } from "@/src/context/AuthContext";
-import { getDocument } from "@/src/services/supabase/legacy";
-import { sendPushToUser } from "@/src/services/push";
-import { supabase, DEMO_MODE } from "@/src/services/supabase/client";
+} from 'lucide-react-native';
+import { useAuth } from '@/src/context/AuthContext';
+import { getDocument } from '@/src/services/supabase/legacy';
+import { sendPushToUser } from '@/src/services/push';
+import { supabase, DEMO_MODE } from '@/src/services/supabase/client';
 import { useChatMessages, useSendMessage, useMarkMessagesSeen } from '@/src/hooks/useSupabase';
 import { submitUserReport } from '@/src/services/supabase/queries';
-import { Card } from "@/src/components/ui/Card";
-import { EmptyState } from "@/src/components/ui/EmptyState";
-import { Icon } from "@/src/components/ui/Icon";
+import { Card } from '@/src/components/ui/Card';
+import { EmptyState } from '@/src/components/ui/EmptyState';
+import { Icon } from '@/src/components/ui/Icon';
 
 interface Booking {
   bookingId: string;
@@ -50,7 +50,7 @@ interface Booking {
   date: string;
   timeSlot: string;
   address: string;
-  status: "pending" | "confirmed" | "in_progress" | "completed" | "closed" | "cancelled";
+  status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'closed' | 'cancelled';
   totalPrice: number;
   distanceKm: number;
   createdAt?: string;
@@ -67,12 +67,7 @@ interface ChatMessage {
   seenAt?: string | null;
 }
 
-const QUICK_REPLIES = [
-  "I'm on the way",
-  "Aa gaya hoon",
-  "Please confirm the time",
-  "Thank you!",
-];
+const QUICK_REPLIES = ["I'm on the way", 'Aa gaya hoon', 'Please confirm the time', 'Thank you!'];
 
 export default function ChatScreen() {
   const router = useRouter();
@@ -80,7 +75,7 @@ export default function ChatScreen() {
   const { user, userProfile } = useAuth();
 
   const [booking, setBooking] = useState<Booking | null>(null);
-  const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState('');
   const [loadingBooking, setLoadingBooking] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [partnerTyping, setPartnerTyping] = useState(false);
@@ -89,23 +84,23 @@ export default function ChatScreen() {
   const typingChannel = useRef<any>(null);
   const typingHideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const lastTypedPing = useRef(0);
-  const isWorker = userProfile?.current_mode === "worker";
+  const isWorker = userProfile?.current_mode === 'worker';
 
   const { data: messages = [], isLoading: loadingMessages } = useChatMessages(bookingId as string);
   const { mutateAsync: sendMessageMutation } = useSendMessage();
   const { mutate: markSeen } = useMarkMessagesSeen();
 
   const [showReportModal, setShowReportModal] = useState(false);
-  const [reportReason, setReportReason] = useState<string>("Inappropriate or abusive behavior");
-  const [reportDetails, setReportDetails] = useState("");
+  const [reportReason, setReportReason] = useState<string>('Inappropriate or abusive behavior');
+  const [reportDetails, setReportDetails] = useState('');
   const [submittingReport, setSubmittingReport] = useState(false);
 
   const REPORT_REASONS = [
-    "Inappropriate or abusive behavior",
-    "Safety concern or harassment",
-    "Scam or fraudulent request",
-    "Did not show up / Unprofessional",
-    "Other issue",
+    'Inappropriate or abusive behavior',
+    'Safety concern or harassment',
+    'Scam or fraudulent request',
+    'Did not show up / Unprofessional',
+    'Other issue',
   ];
 
   const handleSendReport = async () => {
@@ -114,19 +109,19 @@ export default function ChatScreen() {
       setSubmittingReport(true);
       await submitUserReport({
         reportedId: isWorker ? booking.customerId : booking.providerId,
-        targetType: isWorker ? "customer" : "provider",
+        targetType: isWorker ? 'customer' : 'provider',
         targetId: isWorker ? booking.customerId : booking.providerId,
         reason: reportReason,
         details: reportDetails.trim() || undefined,
       });
       setShowReportModal(false);
-      setReportDetails("");
+      setReportDetails('');
       Alert.alert(
-        "Report Submitted",
-        "Thank you. Our safety and moderation team has received your report and will take action."
+        'Report Submitted',
+        'Thank you. Our safety and moderation team has received your report and will take action.'
       );
     } catch (err: any) {
-      Alert.alert("Submission Failed", err?.message || "Could not submit report.");
+      Alert.alert('Submission Failed', err?.message || 'Could not submit report.');
     } finally {
       setSubmittingReport(false);
     }
@@ -139,10 +134,10 @@ export default function ChatScreen() {
   // Ephemeral typing indicator over a Realtime broadcast channel (no DB, no
   // storage cost). Skipped on web/demo where broadcast isn't available.
   useEffect(() => {
-    if (!bookingId || !user || DEMO_MODE || Platform.OS === "web") return;
+    if (!bookingId || !user || DEMO_MODE || Platform.OS === 'web') return;
     const ch = supabase
       .channel(`typing_${bookingId}`)
-      .on("broadcast", { event: "typing" }, ({ payload }: any) => {
+      .on('broadcast', { event: 'typing' }, ({ payload }: any) => {
         if (payload?.userId && payload.userId !== user.id) {
           setPartnerTyping(true);
           clearTimeout(typingHideTimer.current);
@@ -164,21 +159,21 @@ export default function ChatScreen() {
     if (now - lastTypedPing.current < 1500) return; // throttle
     lastTypedPing.current = now;
     typingChannel.current.send({
-      type: "broadcast",
-      event: "typing",
+      type: 'broadcast',
+      event: 'typing',
       payload: { userId: user.id },
     });
   };
 
   useEffect(() => {
     if (!bookingId) {
-      setError("No booking context provided.");
+      setError('No booking context provided.');
       setLoadingBooking(false);
       return;
     }
     const fetchBooking = async () => {
       try {
-        const data = await getDocument("bookings", bookingId as string);
+        const data = await getDocument('bookings', bookingId as string);
         if (data) {
           const next = data as Booking;
           // Only re-render when the booking actually changed. The 3s poll used
@@ -204,7 +199,7 @@ export default function ChatScreen() {
   const sendText = async (raw: string) => {
     const text = raw.trim();
     if (!text || !user || !bookingId) return;
-    setInputText("");
+    setInputText('');
     try {
       await sendMessageMutation({
         bookingId: bookingId as string,
@@ -218,13 +213,13 @@ export default function ChatScreen() {
         const senderName = userProfile?.name?.trim();
         void sendPushToUser(
           recipientId,
-          senderName ? `New message from ${senderName}` : "New message",
+          senderName ? `New message from ${senderName}` : 'New message',
           text.length > 120 ? `${text.slice(0, 117)}...` : text,
-          { type: "new_message", bookingId }
+          { type: 'new_message', bookingId }
         );
       }
     } catch (err) {
-      console.warn("Send fail:", err);
+      console.warn('Send fail:', err);
     }
   };
 
@@ -246,17 +241,11 @@ export default function ChatScreen() {
   const GRACE_MS = 24 * 60 * 60 * 1000;
   const [withinGrace, setWithinGrace] = useState(false);
   useEffect(() => {
-    if (
-      !booking ||
-      !["completed", "closed"].includes(booking.status) ||
-      !booking.updatedAt
-    ) {
+    if (!booking || !['completed', 'closed'].includes(booking.status) || !booking.updatedAt) {
       setWithinGrace(false);
       return;
     }
-    setWithinGrace(
-      Date.now() - new Date(booking.updatedAt).getTime() < GRACE_MS
-    );
+    setWithinGrace(Date.now() - new Date(booking.updatedAt).getTime() < GRACE_MS);
   }, [booking]);
 
   if (loading) {
@@ -275,9 +264,9 @@ export default function ChatScreen() {
           <EmptyState
             icon={MessageSquare}
             title="Chat Context Missing"
-            description={error || "No booking context was found for this discussion thread."}
+            description={error || 'No booking context was found for this discussion thread.'}
             actionLabel="Back to Bookings"
-            onAction={() => router.push("/bookings")}
+            onAction={() => router.push('/bookings')}
           />
         </Card>
       </View>
@@ -285,37 +274,37 @@ export default function ChatScreen() {
   }
 
   const chatPartnerName = isWorker ? booking.customerName : booking.providerName;
-  const chatPartnerRole = isWorker ? "Client" : booking.providerCategory;
+  const chatPartnerRole = isWorker ? 'Client' : booking.providerCategory;
   const chatPartnerInitials = chatPartnerName
     ? chatPartnerName
-        .split(" ")
+        .split(' ')
         .map((w) => w[0])
-        .join("")
+        .join('')
         .toUpperCase()
         .slice(0, 2)
-    : "?";
+    : '?';
 
   // Cancelled → always locked. Completed/closed → locked only after the grace
   // window (computed in the effect above).
-  const isCancelled = booking.status === "cancelled";
-  const isTerminal = ["completed", "closed"].includes(booking.status);
+  const isCancelled = booking.status === 'cancelled';
+  const isTerminal = ['completed', 'closed'].includes(booking.status);
   const isChatLocked = isCancelled || (isTerminal && !withinGrace);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "confirmed":
-        return { color: BRAND.success, label: "Confirmed" };
-      case "in_progress":
-        return { color: BRAND.warning, label: "In Progress" };
-      case "completed":
-        return { color: BRAND.info, label: "Completed" };
-      case "closed":
-        return { color: BRAND.muted, label: "Closed" };
-      case "cancelled":
-        return { color: BRAND.danger, label: "Cancelled" };
-      case "pending":
+      case 'confirmed':
+        return { color: BRAND.success, label: 'Confirmed' };
+      case 'in_progress':
+        return { color: BRAND.warning, label: 'In Progress' };
+      case 'completed':
+        return { color: BRAND.info, label: 'Completed' };
+      case 'closed':
+        return { color: BRAND.muted, label: 'Closed' };
+      case 'cancelled':
+        return { color: BRAND.danger, label: 'Cancelled' };
+      case 'pending':
       default:
-        return { color: BRAND.caution, label: "Pending" };
+        return { color: BRAND.caution, label: 'Pending' };
     }
   };
 
@@ -323,29 +312,27 @@ export default function ChatScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       className="flex-1 bg-[#F8F8F4]"
     >
       {/* Header */}
       <View className="flex-row items-center justify-between border-b border-border bg-surface-raised px-3 py-3">
         <View className="flex-row items-center gap-2.5">
           <Pressable
-            onPress={() => router.push("/inbox")}
+            onPress={() => router.push('/inbox')}
             className="h-9 w-9 items-center justify-center"
           >
             <Icon icon={ArrowLeft} color={BRAND.ink} size={20} />
           </Pressable>
           <View className="h-10 w-10 items-center justify-center rounded-2xl border border-primary/10 bg-primary/15">
-            <Text className="text-xs font-bold text-primary">
-              {chatPartnerInitials}
-            </Text>
+            <Text className="text-xs font-bold text-primary">{chatPartnerInitials}</Text>
           </View>
           <View className="min-w-0 flex-1">
             <Text className="text-sm font-bold capitalize leading-tight text-ink">
               {chatPartnerName}
             </Text>
             <Text className="text-[10px] text-ink/50">
-              {chatPartnerRole} • {booking.address.split(",")[0]}
+              {chatPartnerRole} • {booking.address.split(',')[0]}
             </Text>
           </View>
         </View>
@@ -358,14 +345,11 @@ export default function ChatScreen() {
               borderColor: `${statusBadge.color}33`,
             }}
           >
-            <Text
-              className="text-[10px] font-bold"
-              style={{ color: statusBadge.color }}
-            >
+            <Text className="text-[10px] font-bold" style={{ color: statusBadge.color }}>
               {statusBadge.label}
             </Text>
           </View>
-          {(booking.status === "confirmed" || booking.status === "in_progress") && (
+          {(booking.status === 'confirmed' || booking.status === 'in_progress') && (
             <Pressable
               onPress={() => router.push(`/track/${booking.bookingId}`)}
               className="flex-row items-center gap-1 rounded-xl bg-primary px-3 py-1.5"
@@ -420,7 +404,7 @@ export default function ChatScreen() {
           let isSystemMessage = msg.isSystem === true;
           let displayMsgText = msg.text;
           try {
-            if (msg.text.startsWith("{") && msg.text.endsWith("}")) {
+            if (msg.text.startsWith('{') && msg.text.endsWith('}')) {
               const parsed = JSON.parse(msg.text);
               if (parsed.isSystemEvent) {
                 isSystemMessage = true;
@@ -434,9 +418,7 @@ export default function ChatScreen() {
               <View key={msg.id || index} className="my-3 flex-row justify-center">
                 <View className="flex-row items-center gap-1.5 rounded-full border border-sky-500/15 bg-sky-500/10 px-4 py-1.5">
                   <Icon icon={Info} color={BRAND.info} size={12} />
-                  <Text className="text-[10px] font-semibold text-sky-700">
-                    {displayMsgText}
-                  </Text>
+                  <Text className="text-[10px] font-semibold text-sky-700">{displayMsgText}</Text>
                 </View>
               </View>
             );
@@ -444,27 +426,25 @@ export default function ChatScreen() {
 
           const isMe = msg.senderId === user?.id;
           const msgTime = new Date(msg.createdAt).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
+            hour: '2-digit',
+            minute: '2-digit',
           });
 
           return (
             <View
               key={msg.id || index}
-              className={`mb-3 flex-row ${isMe ? "justify-end" : "justify-start"}`}
+              className={`mb-3 flex-row ${isMe ? 'justify-end' : 'justify-start'}`}
             >
               {!isMe && (
                 <View className="mr-2 mt-1 h-7 w-7 items-center justify-center rounded-lg border border-primary/10 bg-primary/10">
-                  <Text className="text-[9px] font-bold text-primary">
-                    {chatPartnerInitials}
-                  </Text>
+                  <Text className="text-[9px] font-bold text-primary">{chatPartnerInitials}</Text>
                 </View>
               )}
               <View
                 className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 ${
                   isMe
-                    ? "rounded-br-md bg-primary"
-                    : "rounded-bl-md border border-border bg-surface-raised"
+                    ? 'rounded-br-md bg-primary'
+                    : 'rounded-bl-md border border-border bg-surface-raised'
                 }`}
               >
                 {!isMe && (
@@ -472,25 +452,19 @@ export default function ChatScreen() {
                     {msg.senderName}
                   </Text>
                 )}
-                <Text
-                  className={`text-sm leading-relaxed ${
-                    isMe ? "text-white" : "text-ink"
-                  }`}
-                >
+                <Text className={`text-sm leading-relaxed ${isMe ? 'text-white' : 'text-ink'}`}>
                   {displayMsgText}
                 </Text>
                 <View className="mt-1 flex-row items-center justify-end gap-1">
                   <Text
-                    className={`text-[9px] font-medium ${
-                      isMe ? "text-white/50" : "text-ink/30"
-                    }`}
+                    className={`text-[9px] font-medium ${isMe ? 'text-white/50' : 'text-ink/30'}`}
                   >
                     {msgTime}
                   </Text>
                   {isMe && (
                     <Icon
                       icon={msg.seenAt ? CheckCheck : Check}
-                      color={msg.seenAt ? "#BBF7D0" : "rgba(255,255,255,0.5)"}
+                      color={msg.seenAt ? '#BBF7D0' : 'rgba(255,255,255,0.5)'}
                       size={12}
                     />
                   )}
@@ -507,8 +481,7 @@ export default function ChatScreen() {
           <View className="flex-row items-center justify-center gap-2 py-2">
             <Icon icon={Clock} color={BRAND.muted} size={14} />
             <Text className="text-xs font-medium text-ink/40">
-              This conversation is{" "}
-              {isCancelled ? "cancelled" : "closed"}. Messaging is disabled.
+              This conversation is {isCancelled ? 'cancelled' : 'closed'}. Messaging is disabled.
             </Text>
           </View>
         ) : (
@@ -536,24 +509,24 @@ export default function ChatScreen() {
               ))}
             </ScrollView>
             <View className="flex-row items-end gap-2">
-            <TextInput
-              value={inputText}
-              onChangeText={(v) => {
-                setInputText(v);
-                if (v.trim()) broadcastTyping();
-              }}
-              placeholder="Type a message..."
-              placeholderTextColor="rgba(20,35,28,0.3)"
-              multiline
-              className="flex-1 rounded-2xl border border-border bg-slate-50 px-4 py-3 text-sm text-ink"
-            />
-            <Pressable
-              onPress={handleSendMessage}
-              disabled={!inputText.trim()}
-              className="h-11 w-11 items-center justify-center rounded-2xl bg-primary disabled:opacity-40"
-            >
-              <Icon icon={Send} color="#fff" size={18} />
-            </Pressable>
+              <TextInput
+                value={inputText}
+                onChangeText={(v) => {
+                  setInputText(v);
+                  if (v.trim()) broadcastTyping();
+                }}
+                placeholder="Type a message..."
+                placeholderTextColor="rgba(20,35,28,0.3)"
+                multiline
+                className="flex-1 rounded-2xl border border-border bg-slate-50 px-4 py-3 text-sm text-ink"
+              />
+              <Pressable
+                onPress={handleSendMessage}
+                disabled={!inputText.trim()}
+                className="h-11 w-11 items-center justify-center rounded-2xl bg-primary disabled:opacity-40"
+              >
+                <Icon icon={Send} color="#fff" size={18} />
+              </Pressable>
             </View>
           </>
         )}
@@ -589,17 +562,21 @@ export default function ChatScreen() {
                     key={r}
                     onPress={() => setReportReason(r)}
                     className={`rounded-xl border p-3 ${
-                      reportReason === r ? "border-primary bg-primary/5" : "border-border"
+                      reportReason === r ? 'border-primary bg-primary/5' : 'border-border'
                     }`}
                   >
-                    <Text className={`text-xs font-semibold ${reportReason === r ? "text-primary font-bold" : "text-ink"}`}>
+                    <Text
+                      className={`text-xs font-semibold ${reportReason === r ? 'text-primary font-bold' : 'text-ink'}`}
+                    >
                       {r}
                     </Text>
                   </Pressable>
                 ))}
               </View>
 
-              <Text className="mb-1.5 mt-4 text-xs font-semibold text-ink/60">Additional details (optional)</Text>
+              <Text className="mb-1.5 mt-4 text-xs font-semibold text-ink/60">
+                Additional details (optional)
+              </Text>
               <TextInput
                 value={reportDetails}
                 onChangeText={setReportDetails}

@@ -1,15 +1,7 @@
-
-import React, { useEffect, useState } from "react";
-import { BRAND } from "@/src/theme/colors";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  ActivityIndicator,
-  RefreshControl,
-} from "react-native";
-import { useRouter } from "expo-router";
+import React, { useEffect, useState } from 'react';
+import { BRAND } from '@/src/theme/colors';
+import { View, Text, ScrollView, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
+import { useRouter } from 'expo-router';
 import {
   MessageSquare,
   User,
@@ -17,13 +9,13 @@ import {
   Calendar,
   MapPin,
   ChevronRight,
-} from "lucide-react-native";
-import { useAuth } from "@/src/context/AuthContext";
-import { listenToBookings } from "@/src/services/supabase/legacy";
+} from 'lucide-react-native';
+import { useAuth } from '@/src/context/AuthContext';
+import { listenToBookings } from '@/src/services/supabase/legacy';
 
-import { Card } from "@/src/components/ui/Card";
-import { EmptyState } from "@/src/components/ui/EmptyState";
-import { Icon } from "@/src/components/ui/Icon";
+import { Card } from '@/src/components/ui/Card';
+import { EmptyState } from '@/src/components/ui/EmptyState';
+import { Icon } from '@/src/components/ui/Icon';
 
 interface Booking {
   bookingId: string;
@@ -33,13 +25,7 @@ interface Booking {
   providerName: string;
   providerCategory: string;
   date: string;
-  status:
-    | "pending"
-    | "confirmed"
-    | "in_progress"
-    | "completed"
-    | "closed"
-    | "cancelled";
+  status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'closed' | 'cancelled';
   address: string;
 }
 
@@ -51,12 +37,12 @@ export default function InboxScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [nonce, setNonce] = useState(0);
 
-  const isWorker = userProfile?.current_mode === "worker";
+  const isWorker = userProfile?.current_mode === 'worker';
 
   useEffect(() => {
     if (!user || !userProfile) return;
     if (!nonce) setLoading(true);
-    const fieldName = isWorker ? "providerId" : "customerId";
+    const fieldName = isWorker ? 'providerId' : 'customerId';
     const unsubscribe = listenToBookings(fieldName, user.id, (data) => {
       setConversations(data as Booking[]);
       setLoading(false);
@@ -72,19 +58,19 @@ export default function InboxScreen() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "confirmed":
-        return { color: BRAND.success, label: "Confirmed" };
-      case "in_progress":
-        return { color: BRAND.warning, label: "In Progress" };
-      case "completed":
-        return { color: BRAND.info, label: "Completed" };
-      case "closed":
-        return { color: BRAND.muted, label: "Closed" };
-      case "cancelled":
-        return { color: BRAND.danger, label: "Cancelled" };
-      case "pending":
+      case 'confirmed':
+        return { color: BRAND.success, label: 'Confirmed' };
+      case 'in_progress':
+        return { color: BRAND.warning, label: 'In Progress' };
+      case 'completed':
+        return { color: BRAND.info, label: 'Completed' };
+      case 'closed':
+        return { color: BRAND.muted, label: 'Closed' };
+      case 'cancelled':
+        return { color: BRAND.danger, label: 'Cancelled' };
+      case 'pending':
       default:
-        return { color: BRAND.caution, label: "Pending" };
+        return { color: BRAND.caution, label: 'Pending' };
     }
   };
 
@@ -96,14 +82,12 @@ export default function InboxScreen() {
           paddingTop: 20,
           paddingBottom: 120,
           flexGrow: 1,
-          justifyContent: "center",
-          alignItems: "center",
+          justifyContent: 'center',
+          alignItems: 'center',
         }}
       >
         <ActivityIndicator size="large" color={BRAND.primary} />
-        <Text className="mt-4 text-sm font-medium text-ink/50">
-          Loading your messages...
-        </Text>
+        <Text className="mt-4 text-sm font-medium text-ink/50">Loading your messages...</Text>
       </ScrollView>
     );
   }
@@ -114,17 +98,20 @@ export default function InboxScreen() {
       contentContainerStyle={{ paddingTop: 20, paddingBottom: 120 }}
       showsVerticalScrollIndicator={false}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={BRAND.primary} colors={[BRAND.primary]} />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={refresh}
+          tintColor={BRAND.primary}
+          colors={[BRAND.primary]}
+        />
       }
     >
       <View className="px-4">
-        <Text className="font-display text-2xl font-medium text-ink">
-          Messages
-        </Text>
+        <Text className="font-display text-2xl font-medium text-ink">Messages</Text>
         <Text className="mt-1 text-sm text-ink/60">
           {isWorker
-            ? "Chat with your customers about job details"
-            : "Chat with your service providers and coordinate visits"}
+            ? 'Chat with your customers about job details'
+            : 'Chat with your service providers and coordinate visits'}
         </Text>
 
         {conversations.length === 0 ? (
@@ -134,29 +121,27 @@ export default function InboxScreen() {
               title="No conversations yet"
               description={
                 isWorker
-                  ? "No customer has booked your services yet. Go online and wait for a match!"
-                  : "Book a home service to start chatting with a professional provider."
+                  ? 'No customer has booked your services yet. Go online and wait for a match!'
+                  : 'Book a home service to start chatting with a professional provider.'
               }
-              actionLabel={isWorker ? undefined : "Find a Provider"}
-              onAction={isWorker ? undefined : () => router.push("/")}
+              actionLabel={isWorker ? undefined : 'Find a Provider'}
+              onAction={isWorker ? undefined : () => router.push('/')}
             />
           </Card>
         ) : (
           <View className="mt-5 gap-3">
             {conversations.map((convo) => {
-              const chatPartnerName = isWorker
-                ? convo.customerName
-                : convo.providerName;
-              const roleSubtitle = isWorker ? "Client" : convo.providerCategory;
+              const chatPartnerName = isWorker ? convo.customerName : convo.providerName;
+              const roleSubtitle = isWorker ? 'Client' : convo.providerCategory;
               const badge = getStatusBadge(convo.status);
               const initials = chatPartnerName
                 ? chatPartnerName
-                    .split(" ")
+                    .split(' ')
                     .map((w) => w[0])
-                    .join("")
+                    .join('')
                     .toUpperCase()
                     .slice(0, 2)
-                : "?";
+                : '?';
 
               return (
                 <Pressable
@@ -166,9 +151,7 @@ export default function InboxScreen() {
                 >
                   <View className="flex-row items-center gap-3">
                     <View className="h-12 w-12 items-center justify-center rounded-2xl border border-primary/10 bg-primary/15">
-                      <Text className="text-sm font-bold text-primary">
-                        {initials}
-                      </Text>
+                      <Text className="text-sm font-bold text-primary">{initials}</Text>
                     </View>
                     <View className="min-w-0 flex-1">
                       <View className="flex-row flex-wrap items-center gap-2">
@@ -182,10 +165,7 @@ export default function InboxScreen() {
                             borderColor: `${badge.color}40`,
                           }}
                         >
-                          <Text
-                            className="text-[9px] font-bold"
-                            style={{ color: badge.color }}
-                          >
+                          <Text className="text-[9px] font-bold" style={{ color: badge.color }}>
                             {badge.label}
                           </Text>
                         </View>
@@ -197,9 +177,7 @@ export default function InboxScreen() {
                           color="rgba(20,35,28,0.4)"
                           size={12}
                         />
-                        <Text className="text-xs font-medium text-ink/50">
-                          {roleSubtitle}
-                        </Text>
+                        <Text className="text-xs font-medium text-ink/50">{roleSubtitle}</Text>
                       </View>
 
                       <View className="mt-1.5 flex-row flex-wrap items-center gap-x-3 gap-y-1">

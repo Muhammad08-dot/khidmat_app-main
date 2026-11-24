@@ -170,7 +170,8 @@ export async function writeDocument(collection: string, id: string, data: Doc): 
     if (isUuid(data.customerId)) row.customer_id = data.customerId;
     if (isUuid(data.providerId)) row.provider_id = data.providerId;
     row.category = data.providerCategory ?? data.category ?? 'General';
-    row.description = data.description ?? data.notes ?? `${data.providerCategory ?? 'Service'} request`;
+    row.description =
+      data.description ?? data.notes ?? `${data.providerCategory ?? 'Service'} request`;
     if (data.urgency) row.urgency = data.urgency;
     if (typeof data.totalPrice === 'number') row.estimated_price = Math.round(data.totalPrice);
     if (data.coordinates) {
@@ -203,7 +204,10 @@ export async function writeDocument(collection: string, id: string, data: Doc): 
     if (phone !== undefined) {
       const { error: contactErr } = await supabase
         .from('profile_contacts')
-        .upsert({ user_id: id, phone, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+        .upsert(
+          { user_id: id, phone, updated_at: new Date().toISOString() },
+          { onConflict: 'user_id' }
+        );
       if (contactErr) throw contactErr;
     }
     return id;
@@ -347,12 +351,10 @@ export async function uploadJobMedia(userId: string, localUri: string): Promise<
   const safeExt = ['png', 'jpg', 'jpeg', 'webp'].includes(ext ?? '') ? ext : 'jpg';
   const path = `${userId}/${Date.now()}.${safeExt}`;
 
-  const { error } = await supabase.storage
-    .from('job_media')
-    .upload(path, blob, {
-      contentType: `image/${safeExt === 'jpg' ? 'jpeg' : safeExt}`,
-      upsert: false,
-    });
+  const { error } = await supabase.storage.from('job_media').upload(path, blob, {
+    contentType: `image/${safeExt === 'jpg' ? 'jpeg' : safeExt}`,
+    upsert: false,
+  });
   if (error) throw error;
 
   return supabase.storage.from('job_media').getPublicUrl(path).data.publicUrl;
@@ -391,7 +393,10 @@ export async function recomputeProviderRating(providerId: string): Promise<void>
     .eq('provider_id', providerId)
     .neq('is_hidden', true);
   if (error || !data || data.length === 0) return;
-  await supabase.from('providers').update({ rating: averageRating(data.map((r) => r.rating)) }).eq('id', providerId);
+  await supabase
+    .from('providers')
+    .update({ rating: averageRating(data.map((r) => r.rating)) })
+    .eq('id', providerId);
 }
 
 export async function uploadProfilePhoto(userId: string, localUri: string): Promise<string> {
@@ -403,7 +408,10 @@ export async function uploadProfilePhoto(userId: string, localUri: string): Prom
 
   const { error } = await supabase.storage
     .from('avatars')
-    .upload(path, blob, { contentType: `image/${safeExt === 'jpg' ? 'jpeg' : safeExt}`, upsert: true });
+    .upload(path, blob, {
+      contentType: `image/${safeExt === 'jpg' ? 'jpeg' : safeExt}`,
+      upsert: true,
+    });
   if (error) throw error;
 
   return supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl;

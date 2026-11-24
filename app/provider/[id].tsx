@@ -1,14 +1,7 @@
-
-import React, { useEffect, useState } from "react";
-import { BRAND } from "@/src/theme/colors";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from 'react';
+import { BRAND } from '@/src/theme/colors';
+import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft,
   Briefcase,
@@ -22,19 +15,19 @@ import {
   Star,
   UserCheck,
   BadgeCheck,
-} from "lucide-react-native";
+} from 'lucide-react-native';
 import {
   getDocument,
   sendInvitationEmail,
   createInvitationNotification,
-} from "@/src/services/supabase/legacy";
+} from '@/src/services/supabase/legacy';
 
 import { useAuth } from '@/src/context/AuthContext';
-import { useProviderReviews } from "@/src/hooks/useSupabase";
-import { TierBadge } from "@/src/components/ui/TierBadge";
-import { Avatar } from "@/src/components/ui/Avatar";
-import { Card } from "@/src/components/ui/Card";
-import { Icon } from "@/src/components/ui/Icon";
+import { useProviderReviews } from '@/src/hooks/useSupabase';
+import { TierBadge } from '@/src/components/ui/TierBadge';
+import { Avatar } from '@/src/components/ui/Avatar';
+import { Card } from '@/src/components/ui/Card';
+import { Icon } from '@/src/components/ui/Icon';
 
 interface Provider {
   userId: string;
@@ -80,19 +73,19 @@ export default function ProviderProfileScreen() {
     setNotifying(true);
     try {
       await sendInvitationEmail(
-        provider.email || "worker@email.com",
+        provider.email || 'worker@email.com',
         provider.name,
         userProfile.name,
-        user?.id || "",
-        userProfile.email || "",
+        user?.id || '',
+        userProfile.email || '',
         provider.category,
         provider.city
       );
       await createInvitationNotification(
         provider.userId,
         userProfile.name,
-        user?.id || "",
-        userProfile.email || "",
+        user?.id || '',
+        userProfile.email || '',
         provider.category,
         provider.city
       );
@@ -100,7 +93,7 @@ export default function ProviderProfileScreen() {
       setShowSuccessToast(true);
       setTimeout(() => setShowSuccessToast(false), 4000);
     } catch (err) {
-      console.error("Failed to notify worker:", err);
+      console.error('Failed to notify worker:', err);
     } finally {
       setNotifying(false);
     }
@@ -109,22 +102,22 @@ export default function ProviderProfileScreen() {
   useEffect(() => {
     const fetchProviderDetail = async () => {
       if (!id) {
-        setError("Invalid profile link.");
+        setError('Invalid profile link.');
         setLoading(false);
         return;
       }
       try {
         setLoading(true);
         setError(null);
-        const data = await getDocument("providers", id);
+        const data = await getDocument('providers', id);
         if (data) {
           setProvider(data as Provider);
         } else {
-          setError("Provider profile could not be found in the database.");
+          setError('Provider profile could not be found in the database.');
         }
       } catch (err) {
         console.error(err);
-        setError("Failed to fetch provider detail.");
+        setError('Failed to fetch provider detail.');
       } finally {
         setLoading(false);
       }
@@ -145,7 +138,7 @@ export default function ProviderProfileScreen() {
     return (
       <View className="flex-1 items-center justify-center bg-surface px-6">
         <View className="mb-6 rounded-xl border border-red-200 bg-red-100 p-6 text-center">
-          <Text className="text-red-600">{error || "Profile not found."}</Text>
+          <Text className="text-red-600">{error || 'Profile not found.'}</Text>
         </View>
         <Pressable
           onPress={() => router.back()}
@@ -159,12 +152,12 @@ export default function ProviderProfileScreen() {
   }
 
   const verificationChecks = [
-    "Government CNIC Verified",
-    "Technical Background Verified",
-    "Practical skill assessment passed",
-    "Clean police background check",
-    "Standard toolkits compliance",
-    "Service quality contract signed",
+    'Government CNIC Verified',
+    'Technical Background Verified',
+    'Practical skill assessment passed',
+    'Clean police background check',
+    'Standard toolkits compliance',
+    'Service quality contract signed',
   ];
 
   return (
@@ -183,12 +176,8 @@ export default function ProviderProfileScreen() {
             <Icon icon={ArrowLeft} color={BRAND.ink} size={20} />
           </Pressable>
           <View className="flex-1">
-            <Text className="font-display text-lg font-medium text-ink">
-              Worker Profile
-            </Text>
-            <Text className="text-xs text-ink/60">
-              Professional credentials &amp; reviews
-            </Text>
+            <Text className="font-display text-lg font-medium text-ink">Worker Profile</Text>
+            <Text className="text-xs text-ink/60">Professional credentials &amp; reviews</Text>
           </View>
         </View>
 
@@ -208,9 +197,7 @@ export default function ProviderProfileScreen() {
             </View>
 
             <View className="flex-row items-center gap-2">
-              <Text className="text-xl font-extrabold text-ink">
-                {provider.name}
-              </Text>
+              <Text className="text-xl font-extrabold text-ink">{provider.name}</Text>
               {provider.verified && (
                 <View className="flex-row items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5">
                   <Icon icon={BadgeCheck} color={BRAND.success} size={13} />
@@ -220,9 +207,7 @@ export default function ProviderProfileScreen() {
             </View>
             <View className="mt-1 flex-row items-center gap-1.5">
               <Icon icon={Briefcase} color={BRAND.primary} size={16} />
-              <Text className="text-sm font-semibold text-primary">
-                {provider.category}
-              </Text>
+              <Text className="text-sm font-semibold text-primary">{provider.category}</Text>
             </View>
 
             <View className="mt-3">
@@ -235,27 +220,19 @@ export default function ProviderProfileScreen() {
                 <View className="flex-row items-center gap-1">
                   <Icon icon={Star} color={BRAND.gold} size={16} />
                   <Text className="text-base font-bold text-accent-gold">
-                    {provider.rating != null ? provider.rating.toFixed(1) : "New"}
+                    {provider.rating != null ? provider.rating.toFixed(1) : 'New'}
                   </Text>
                 </View>
-                <Text className="mt-0.5 text-[10px] text-ink/40">
-                  Overall Rating
-                </Text>
+                <Text className="mt-0.5 text-[10px] text-ink/40">Overall Rating</Text>
               </View>
               <View className="items-center">
-                <Text className="text-base font-bold text-ink">
-                  {provider.totalJobs}
-                </Text>
-                <Text className="mt-0.5 text-[10px] text-ink/40">
-                  Completed Jobs
-                </Text>
+                <Text className="text-base font-bold text-ink">{provider.totalJobs}</Text>
+                <Text className="mt-0.5 text-[10px] text-ink/40">Completed Jobs</Text>
               </View>
             </View>
 
             <Text className="text-sm text-ink/60">Base Hourly Rate</Text>
-            <Text className="text-base font-bold text-primary">
-              Rs. {provider.basePrice} / hr
-            </Text>
+            <Text className="text-base font-bold text-primary">Rs. {provider.basePrice} / hr</Text>
 
             {/* Action buttons */}
             <View className="mt-5 w-full gap-2.5">
@@ -265,17 +242,15 @@ export default function ProviderProfileScreen() {
                   className="flex-row items-center justify-center gap-2 rounded-xl bg-primary py-3.5"
                 >
                   <Icon icon={Calendar} color="#fff" size={20} />
-                  <Text className="text-base font-bold text-white">
-                    Book Service Now
-                  </Text>
+                  <Text className="text-base font-bold text-white">Book Service Now</Text>
                 </Pressable>
               ) : (
                 <>
                   <View className="flex-row gap-2 rounded-xl border border-slate-500/25 bg-slate-500/10 p-3">
                     <Icon icon={Info} color={BRAND.muted} size={16} />
                     <Text className="flex-1 text-xs leading-relaxed text-ink/75">
-                      This provider is currently offline. You can notify them to get
-                      online and accept your job match immediately!
+                      This provider is currently offline. You can notify them to get online and
+                      accept your job match immediately!
                     </Text>
                   </View>
                   <Pressable
@@ -283,25 +258,21 @@ export default function ProviderProfileScreen() {
                     disabled={notifying || notified}
                     className={`flex-row items-center justify-center gap-2 rounded-xl border py-3.5 ${
                       notified
-                        ? "border-emerald-500/20 bg-emerald-500/10"
-                        : "border-primary bg-primary"
+                        ? 'border-emerald-500/20 bg-emerald-500/10'
+                        : 'border-primary bg-primary'
                     }`}
                   >
                     {notifying ? (
                       <ActivityIndicator size="small" color="#fff" />
                     ) : (
-                      <Icon
-                        icon={Sparkles}
-                        color={notified ? BRAND.success : "#fff"}
-                        size={18}
-                      />
+                      <Icon icon={Sparkles} color={notified ? BRAND.success : '#fff'} size={18} />
                     )}
                     <Text
                       className={`text-base font-bold ${
-                        notified ? "text-emerald-600" : "text-white"
+                        notified ? 'text-emerald-600' : 'text-white'
                       }`}
                     >
-                      {notified ? "Worker Notified ✓" : "Notify to get Online"}
+                      {notified ? 'Worker Notified ✓' : 'Notify to get Online'}
                     </Text>
                   </Pressable>
                   <Pressable
@@ -309,9 +280,7 @@ export default function ProviderProfileScreen() {
                     className="flex-row items-center justify-center gap-2 rounded-xl border border-border bg-surface py-3"
                   >
                     <Icon icon={Calendar} color={BRAND.primary} size={16} />
-                    <Text className="text-sm font-bold text-ink">
-                      Schedule for Later
-                    </Text>
+                    <Text className="text-sm font-bold text-ink">Schedule for Later</Text>
                   </Pressable>
                 </>
               )}
@@ -336,11 +305,11 @@ export default function ProviderProfileScreen() {
           </Text>
           <View className="gap-2">
             <Text className="flex-row items-center gap-2 text-sm font-semibold text-ink">
-              <Icon icon={MapPin} color={BRAND.primary} size={16} /> Base City:{" "}
+              <Icon icon={MapPin} color={BRAND.primary} size={16} /> Base City:{' '}
               <Text className="text-primary">{provider.city}</Text>
             </Text>
             <Text className="flex-row items-center gap-2 text-sm text-ink/60">
-              <Icon icon={Compass} color={BRAND.primary} size={16} /> GPS Pin Drop:{" "}
+              <Icon icon={Compass} color={BRAND.primary} size={16} /> GPS Pin Drop:{' '}
               <Text className="font-mono text-xs">
                 {provider.location.lat.toFixed(5)}, {provider.location.lng.toFixed(5)}
               </Text>
@@ -360,12 +329,10 @@ export default function ProviderProfileScreen() {
             <View className="mb-2 h-10 w-10 items-center justify-center rounded-full bg-primary/10">
               <Icon icon={MapPin} color={BRAND.primary} size={20} />
             </View>
-            <Text className="text-xs font-bold text-ink">
-              Active Dispatch Area
-            </Text>
+            <Text className="text-xs font-bold text-ink">Active Dispatch Area</Text>
             <Text className="mt-0.5 text-center text-xs text-ink/50">
-              Worker is dispatched from coordinates in {provider.city} directly
-              to your pinned location.
+              Worker is dispatched from coordinates in {provider.city} directly to your pinned
+              location.
             </Text>
           </View>
         </Card>
@@ -373,8 +340,8 @@ export default function ProviderProfileScreen() {
         {/* Verification checks */}
         <Card className="p-4">
           <Text className="mb-3 flex-row items-center gap-1.5 border-b border-border pb-2 text-base font-bold text-ink">
-            <Icon icon={ShieldCheck} color={BRAND.primary} size={20} /> Khidmat
-            Security &amp; Safety Checks
+            <Icon icon={ShieldCheck} color={BRAND.primary} size={20} /> Khidmat Security &amp;
+            Safety Checks
           </Text>
           <View className="gap-3">
             {verificationChecks.map((item, index) => (
@@ -428,9 +395,7 @@ export default function ProviderProfileScreen() {
                       </View>
                     </View>
                     {!!r.comment && (
-                      <Text className="mt-1 text-xs leading-relaxed text-ink/70">
-                        {r.comment}
-                      </Text>
+                      <Text className="mt-1 text-xs leading-relaxed text-ink/70">{r.comment}</Text>
                     )}
                   </View>
                 </View>

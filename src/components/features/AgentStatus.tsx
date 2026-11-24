@@ -22,38 +22,51 @@ const DEFAULT_AGENTS: AgentInfo[] = [
 ];
 
 export function AgentStatus({ agents = DEFAULT_AGENTS, className = '' }: AgentStatusProps) {
-  const activeCount = agents.filter(a => a.status === 'active' || a.status === 'thinking').length;
+  const activeCount = agents.filter((a) => a.status === 'active' || a.status === 'thinking').length;
 
   const renderIcon = (iconName: string, color: string) => {
     switch (iconName) {
-      case 'brain': return <Brain size={20} color={color} />;
-      case 'code': return <Code size={20} color={color} />;
-      case 'sparkles': return <Sparkles size={20} color={color} />;
-      default: return <Brain size={20} color={color} />;
+      case 'brain':
+        return <Brain size={20} color={color} />;
+      case 'code':
+        return <Code size={20} color={color} />;
+      case 'sparkles':
+        return <Sparkles size={20} color={color} />;
+      default:
+        return <Brain size={20} color={color} />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return '#10b981'; // emerald-500
-      case 'idle': return '#94a3b8'; // slate-400
-      case 'error': return '#ef4444'; // red-500
-      case 'thinking': return '#f59e0b'; // amber-500
-      default: return '#94a3b8';
+      case 'active':
+        return '#10b981'; // emerald-500
+      case 'idle':
+        return '#94a3b8'; // slate-400
+      case 'error':
+        return '#ef4444'; // red-500
+      case 'thinking':
+        return '#f59e0b'; // amber-500
+      default:
+        return '#94a3b8';
     }
   };
 
   return (
-    <View className={`p-4 rounded-2xl border border-white/10 bg-black/40 overflow-hidden ${className}`}>
+    <View
+      className={`p-4 rounded-2xl border border-white/10 bg-black/40 overflow-hidden ${className}`}
+    >
       {/* Frosted Glass Background Overlay */}
       <View className="absolute inset-0 bg-white/5" />
-      
+
       {/* Header */}
       <View className="flex-row items-center justify-between mb-4 z-10">
         <Text className="text-white font-display text-lg font-bold">AI Agents</Text>
         <View className="flex-row items-center bg-white/10 px-3 py-1 rounded-full">
           <View className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />
-          <Text className="text-emerald-400 text-xs font-medium">{activeCount} / {agents.length} Online</Text>
+          <Text className="text-emerald-400 text-xs font-medium">
+            {activeCount} / {agents.length} Online
+          </Text>
         </View>
       </View>
 
@@ -78,7 +91,13 @@ export function AgentStatus({ agents = DEFAULT_AGENTS, className = '' }: AgentSt
                     from={{ scale: 1, opacity: 0.5 }}
                     animate={{ scale: 1.5, opacity: 0 }}
                     transition={{ type: 'timing', duration: 1500, loop: true }}
-                    style={{ position: 'absolute', width: 40, height: 40, borderRadius: 20, backgroundColor: color }}
+                    style={{
+                      position: 'absolute',
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: color,
+                    }}
                   />
                 )}
                 {renderIcon(agent.icon, color)}

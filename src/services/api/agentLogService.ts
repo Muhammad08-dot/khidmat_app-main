@@ -2,7 +2,7 @@ export class AgentLogService {
   private logs: string[] = [];
 
   constructor() {
-    this.addLog("AgentLogService initialized.");
+    this.addLog('AgentLogService initialized.');
   }
 
   public addLog(msg: string): void {

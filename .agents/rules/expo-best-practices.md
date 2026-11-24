@@ -7,7 +7,7 @@ description: Guidelines for building fast, robust, and native-feeling mobile app
 
 When working on this project, ALWAYS follow these guidelines:
 
-1. **Routing:** 
+1. **Routing:**
    - Exclusively use `expo-router` for navigation.
    - Do not use `react-navigation` directly.
    - Use absolute imports (`@/src/...`) instead of relative paths (`../../`).

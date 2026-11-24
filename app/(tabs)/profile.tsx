@@ -1,6 +1,5 @@
-
-import React, { useState } from "react";
-import { BRAND } from "@/src/theme/colors";
+import React, { useState } from 'react';
+import { BRAND } from '@/src/theme/colors';
 import {
   View,
   Text,
@@ -10,9 +9,9 @@ import {
   Alert,
   Modal,
   TextInput,
-} from "react-native";
-import { useRouter } from "expo-router";
-import * as ImagePicker from "expo-image-picker";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import {
   Camera,
   Briefcase,
@@ -39,22 +38,39 @@ import {
   Scale,
   ChevronRight,
   Lock,
-} from "lucide-react-native";
-import { useAuth } from "@/src/context/AuthContext";
-import { uploadProfilePhoto } from "@/src/services/supabase/legacy";
-import { deleteUserAccount } from "@/src/services/supabase/queries";
-import { getLang, setLang, type Lang, t } from "@/src/i18n";
+} from 'lucide-react-native';
+import { useAuth } from '@/src/context/AuthContext';
+import { uploadProfilePhoto } from '@/src/services/supabase/legacy';
+import { deleteUserAccount } from '@/src/services/supabase/queries';
+import { getLang, setLang, type Lang, t } from '@/src/i18n';
 
-import { Avatar } from "@/src/components/ui/Avatar";
-import { TierBadge } from "@/src/components/ui/TierBadge";
-import { Select } from "@/src/components/ui/Select";
-import { Icon } from "@/src/components/ui/Icon";
+import { Avatar } from '@/src/components/ui/Avatar';
+import { TierBadge } from '@/src/components/ui/TierBadge';
+import { Select } from '@/src/components/ui/Select';
+import { Icon } from '@/src/components/ui/Icon';
 
 const SPECIALTIES = [
-  "Electrician", "Plumber", "Carpenter", "Painter", "AC Technician",
-  "House Cleaner", "Appliance Repair", "Mechanic", "Gardener", "Movers & Packers",
-  "Pest Control", "CCTV Technician", "Welder", "Mason", "Handyman",
-  "Photographer", "Videographer", "Event Decorator", "DJ", "Caterer", "Waiter/Server",
+  'Electrician',
+  'Plumber',
+  'Carpenter',
+  'Painter',
+  'AC Technician',
+  'House Cleaner',
+  'Appliance Repair',
+  'Mechanic',
+  'Gardener',
+  'Movers & Packers',
+  'Pest Control',
+  'CCTV Technician',
+  'Welder',
+  'Mason',
+  'Handyman',
+  'Photographer',
+  'Videographer',
+  'Event Decorator',
+  'DJ',
+  'Caterer',
+  'Waiter/Server',
 ];
 
 /** A navigable row used by the Legal & Support and Admin cards. */
@@ -70,10 +86,7 @@ function LinkRow({
   accent?: string;
 }) {
   return (
-    <Pressable
-      onPress={onPress}
-      className="flex-row items-center justify-between py-3"
-    >
+    <Pressable onPress={onPress} className="flex-row items-center justify-between py-3">
       <View className="flex-row items-center gap-2.5">
         <Icon icon={icon} color={accent} size={16} />
         <Text className="text-sm font-semibold text-ink">{label}</Text>
@@ -97,24 +110,24 @@ export default function ProfileScreen() {
     setLangState(next);
   };
 
-  const [categoryInput, setCategoryInput] = useState("Electrician");
-  const [bioInput, setBioInput] = useState("");
-  const [basePriceInput, setBasePriceInput] = useState("1500");
+  const [categoryInput, setCategoryInput] = useState('Electrician');
+  const [bioInput, setBioInput] = useState('');
+  const [basePriceInput, setBasePriceInput] = useState('1500');
   const [registerError, setRegisterError] = useState<string | null>(null);
 
   // --- Saved addresses ------------------------------------------------
   const [addrModal, setAddrModal] = useState(false);
   const [addrEditingId, setAddrEditingId] = useState<string | null>(null);
-  const [addrLabel, setAddrLabel] = useState("Home");
-  const [addrLine, setAddrLine] = useState("");
+  const [addrLabel, setAddrLabel] = useState('Home');
+  const [addrLine, setAddrLine] = useState('');
   const [addrSaving, setAddrSaving] = useState(false);
 
   const handleLogout = async () => {
     try {
       await logout();
-      router.replace("/auth");
+      router.replace('/auth');
     } catch (err) {
-      console.error("Failed to log out:", err);
+      console.error('Failed to log out:', err);
     }
   };
 
@@ -122,14 +135,11 @@ export default function ProfileScreen() {
     if (!user) return;
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert(
-        "Permission required",
-        "Allow photo library access to upload a profile photo."
-      );
+      Alert.alert('Permission required', 'Allow photo library access to upload a profile photo.');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
@@ -141,8 +151,8 @@ export default function ProfileScreen() {
       const url = await uploadProfilePhoto(user.id, result.assets[0].uri);
       await updateProfile({ photoURL: url });
     } catch (err) {
-      console.error("Photo upload error:", err);
-      setPhotoError("Failed to upload profile photo. Please try again.");
+      console.error('Photo upload error:', err);
+      setPhotoError('Failed to upload profile photo. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -150,28 +160,28 @@ export default function ProfileScreen() {
 
   const handleRegisterWorker = async () => {
     if (!categoryInput) {
-      setRegisterError("Please select a service category.");
+      setRegisterError('Please select a service category.');
       return;
     }
     if (!bioInput.trim()) {
-      setRegisterError("Please write a brief bio about your skills.");
+      setRegisterError('Please write a brief bio about your skills.');
       return;
     }
     if (!basePriceInput || Number(basePriceInput) <= 0) {
-      setRegisterError("Please enter a valid hourly rate (PKR/hr).");
+      setRegisterError('Please enter a valid hourly rate (PKR/hr).');
       return;
     }
     try {
       setRegisterError(null);
       await updateProfile({
-        role: "provider",
-        current_mode: "worker",
+        role: 'provider',
+        current_mode: 'worker',
         category: categoryInput,
         bio: bioInput,
         basePrice: Number(basePriceInput),
         rating: null,
         totalJobs: 0,
-        tier: "Bronze",
+        tier: 'Bronze',
         available: true,
         totalEarnings: 0,
         jobsHistory: [],
@@ -179,14 +189,13 @@ export default function ProfileScreen() {
       setShowRegisterModal(false);
     } catch (err) {
       console.error(err);
-      setRegisterError("Failed to register worker profile. Please try again.");
+      setRegisterError('Failed to register worker profile. Please try again.');
     }
   };
 
   const handleModeSwitch = async () => {
-    if (userProfile?.role === "provider") {
-      const nextMode =
-        userProfile.current_mode === "worker" ? "client" : "worker";
+    if (userProfile?.role === 'provider') {
+      const nextMode = userProfile.current_mode === 'worker' ? 'client' : 'worker';
       await updateProfile({ current_mode: nextMode });
     } else {
       setShowRegisterModal(true);
@@ -197,14 +206,14 @@ export default function ProfileScreen() {
 
   const openAddAddr = () => {
     setAddrEditingId(null);
-    setAddrLabel("Home");
-    setAddrLine("");
+    setAddrLabel('Home');
+    setAddrLine('');
     setAddrModal(true);
   };
   const openEditAddr = (a: any) => {
     setAddrEditingId(a.id);
-    setAddrLabel(a.label ?? "Home");
-    setAddrLine(a.line ?? "");
+    setAddrLabel(a.label ?? 'Home');
+    setAddrLine(a.line ?? '');
     setAddrModal(true);
   };
   const saveAddr = async () => {
@@ -212,7 +221,7 @@ export default function ProfileScreen() {
     const base = [...addresses];
     const entry = {
       id: addrEditingId ?? `a_${Date.now()}`,
-      label: addrLabel.trim() || "Home",
+      label: addrLabel.trim() || 'Home',
       line: addrLine.trim(),
     };
     if (addrEditingId) {
@@ -227,17 +236,17 @@ export default function ProfileScreen() {
       await updateProfile({ addresses: base });
       setAddrModal(false);
     } catch {
-      Alert.alert("Could not save address", "Please try again.");
+      Alert.alert('Could not save address', 'Please try again.');
     } finally {
       setAddrSaving(false);
     }
   };
   const removeAddr = (id: string) => {
-    Alert.alert("Remove address?", "This saved address will be deleted.", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert('Remove address?', 'This saved address will be deleted.', [
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: "Remove",
-        style: "destructive",
+        text: 'Remove',
+        style: 'destructive',
         onPress: async () => {
           try {
             await updateProfile({ addresses: addresses.filter((a) => a.id !== id) });
@@ -252,29 +261,25 @@ export default function ProfileScreen() {
   const [deletingAccount, setDeletingAccount] = useState(false);
 
   const handleDeleteAccount = () => {
-    Alert.alert(
-      t("delete_account_title"),
-      t("delete_account_warning"),
-      [
-        { text: t("common_cancel"), style: "cancel" },
-        {
-          text: t("delete_account"),
-          style: "destructive",
-          onPress: async () => {
-            if (!user?.id) return;
-            try {
-              setDeletingAccount(true);
-              await deleteUserAccount(user.id);
-              router.replace("/(auth)/auth");
-            } catch (err: any) {
-              Alert.alert("Failed", err?.message || "Could not delete account. Please try again.");
-            } finally {
-              setDeletingAccount(false);
-            }
-          },
+    Alert.alert(t('delete_account_title'), t('delete_account_warning'), [
+      { text: t('common_cancel'), style: 'cancel' },
+      {
+        text: t('delete_account'),
+        style: 'destructive',
+        onPress: async () => {
+          if (!user?.id) return;
+          try {
+            setDeletingAccount(true);
+            await deleteUserAccount(user.id);
+            router.replace('/(auth)/auth');
+          } catch (err: any) {
+            Alert.alert('Failed', err?.message || 'Could not delete account. Please try again.');
+          } finally {
+            setDeletingAccount(false);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   if (!userProfile) {
@@ -286,8 +291,8 @@ export default function ProfileScreen() {
     );
   }
 
-  const isProvider = userProfile.role === "provider";
-  const isWorkerMode = userProfile.current_mode === "worker";
+  const isProvider = userProfile.role === 'provider';
+  const isWorkerMode = userProfile.current_mode === 'worker';
 
   return (
     <ScrollView
@@ -313,7 +318,7 @@ export default function ProfileScreen() {
               >
                 <Icon icon={Camera} color="#fff" size={20} />
                 <Text className="text-[10px] font-semibold text-white">
-                  {uploading ? "Uploading..." : "Edit"}
+                  {uploading ? 'Uploading...' : 'Edit'}
                 </Text>
               </Pressable>
             </View>
@@ -323,15 +328,13 @@ export default function ProfileScreen() {
                 <Text className="text-2xl font-semibold capitalize text-ink">
                   {userProfile.name}
                 </Text>
-                {isProvider && userProfile.tier && (
-                  <TierBadge tier={userProfile.tier} />
-                )}
+                {isProvider && userProfile.tier && <TierBadge tier={userProfile.tier} />}
               </View>
               <Text className="mt-1 flex-row items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-primary">
                 {isProvider ? (
                   <>
-                    <Icon icon={Briefcase} color={BRAND.primary} size={12} /> Service
-                    Provider — {userProfile.category}
+                    <Icon icon={Briefcase} color={BRAND.primary} size={12} /> Service Provider —{' '}
+                    {userProfile.category}
                   </>
                 ) : (
                   <>
@@ -347,25 +350,23 @@ export default function ProfileScreen() {
               )}
 
               {photoError && (
-                <Text className="mt-2 text-xs font-medium text-red-500">
-                  {photoError}
-                </Text>
+                <Text className="mt-2 text-xs font-medium text-red-500">{photoError}</Text>
               )}
 
               <View className="mt-4 items-center gap-3">
                 <View
                   className={`rounded-full border px-3 py-1.5 ${
                     isWorkerMode
-                      ? "border-primary/20 bg-primary/10"
-                      : "border-accent-gold/20 bg-accent-gold/10"
+                      ? 'border-primary/20 bg-primary/10'
+                      : 'border-accent-gold/20 bg-accent-gold/10'
                   }`}
                 >
                   <Text
                     className={`text-[10px] font-bold ${
-                      isWorkerMode ? "text-primary" : "text-accent-gold"
+                      isWorkerMode ? 'text-primary' : 'text-accent-gold'
                     }`}
                   >
-                    {isWorkerMode ? "🔧 Worker Mode" : "👤 Client Mode"}
+                    {isWorkerMode ? '🔧 Worker Mode' : '👤 Client Mode'}
                   </Text>
                 </View>
                 <Pressable
@@ -374,7 +375,7 @@ export default function ProfileScreen() {
                 >
                   <Icon icon={ArrowRightLeft} color="#fff" size={14} />
                   <Text className="text-xs font-bold text-white">
-                    Switch to {isWorkerMode ? "Client" : "Worker"} Mode
+                    Switch to {isWorkerMode ? 'Client' : 'Worker'} Mode
                   </Text>
                 </Pressable>
               </View>
@@ -393,20 +394,20 @@ export default function ProfileScreen() {
                 {
                   icon: Mail,
                   color: BRAND.primary,
-                  label: "Email",
+                  label: 'Email',
                   value: userProfile.email,
                 },
                 {
                   icon: Phone,
                   color: BRAND.success,
-                  label: "Phone",
-                  value: userProfile.phone || "Not set",
+                  label: 'Phone',
+                  value: userProfile.phone || 'Not set',
                 },
                 {
                   icon: MapPin,
                   color: BRAND.caution,
-                  label: "City / Region",
-                  value: userProfile.city || "Not set",
+                  label: 'City / Region',
+                  value: userProfile.city || 'Not set',
                 },
               ].map((row) => (
                 <View key={row.label} className="flex-row items-start gap-3">
@@ -420,9 +421,7 @@ export default function ProfileScreen() {
                     <Text className="font-mono text-[10px] font-semibold uppercase tracking-wider text-ink/40">
                       {row.label}
                     </Text>
-                    <Text className="text-sm font-semibold text-ink">
-                      {row.value}
-                    </Text>
+                    <Text className="text-sm font-semibold text-ink">{row.value}</Text>
                   </View>
                 </View>
               ))}
@@ -435,19 +434,27 @@ export default function ProfileScreen() {
               </View>
               <View className="flex-row gap-2">
                 <Pressable
-                  onPress={() => handleSwitchLang("en")}
-                  className={`flex-1 py-2 rounded-xl border items-center ${lang === "en" ? "bg-secondary border-secondary" : "border-outline-variant"}`}
+                  onPress={() => handleSwitchLang('en')}
+                  className={`flex-1 py-2 rounded-xl border items-center ${lang === 'en' ? 'bg-secondary border-secondary' : 'border-outline-variant'}`}
                 >
-                  <Text className={`text-xs font-bold ${lang === "en" ? "text-white" : "text-on-surface-variant"}`}>English</Text>
+                  <Text
+                    className={`text-xs font-bold ${lang === 'en' ? 'text-white' : 'text-on-surface-variant'}`}
+                  >
+                    English
+                  </Text>
                 </Pressable>
                 <Pressable
-                  onPress={() => handleSwitchLang("ur")}
-                  className={`flex-1 py-2 rounded-xl border items-center ${lang === "ur" ? "bg-secondary border-secondary" : "border-outline-variant"}`}
+                  onPress={() => handleSwitchLang('ur')}
+                  className={`flex-1 py-2 rounded-xl border items-center ${lang === 'ur' ? 'bg-secondary border-secondary' : 'border-outline-variant'}`}
                 >
-                  <Text className={`text-xs font-bold ${lang === "ur" ? "text-white" : "text-on-surface-variant"}`}>اردو</Text>
+                  <Text
+                    className={`text-xs font-bold ${lang === 'ur' ? 'text-white' : 'text-on-surface-variant'}`}
+                  >
+                    اردو
+                  </Text>
                 </Pressable>
               </View>
-              {lang === "ur" && (
+              {lang === 'ur' && (
                 <Text className="text-[10px] text-on-surface-variant mt-2">
                   Layout direction updates after restarting the app.
                 </Text>
@@ -468,21 +475,30 @@ export default function ProfileScreen() {
             <Text className="mb-1 flex-row items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-ink/40">
               <Icon icon={Shield} color={BRAND.muted} size={14} /> Legal &amp; Support
             </Text>
-            <LinkRow icon={Shield} label={t("nav_safety")} onPress={() => router.push("/safety")} />
+            <LinkRow icon={Shield} label={t('nav_safety')} onPress={() => router.push('/safety')} />
             <View className="h-px bg-border/60" />
-            <LinkRow icon={FileText} label={t("nav_privacy")} onPress={() => router.push("/privacy")} />
+            <LinkRow
+              icon={FileText}
+              label={t('nav_privacy')}
+              onPress={() => router.push('/privacy')}
+            />
             <View className="h-px bg-border/60" />
-            <LinkRow icon={Scale} label={t("nav_terms")} onPress={() => router.push("/terms")} />
-            {userProfile?.role === "admin" && (
+            <LinkRow icon={Scale} label={t('nav_terms')} onPress={() => router.push('/terms')} />
+            {userProfile?.role === 'admin' && (
               <>
                 <View className="h-px bg-border/60" />
-                <LinkRow icon={Lock} label={t("nav_admin")} onPress={() => router.push("/admin")} accent={BRAND.caution} />
+                <LinkRow
+                  icon={Lock}
+                  label={t('nav_admin')}
+                  onPress={() => router.push('/admin')}
+                  accent={BRAND.caution}
+                />
               </>
             )}
             <View className="h-px bg-border/60" />
             <LinkRow
               icon={Trash2}
-              label={deletingAccount ? t("common_loading") : t("delete_account")}
+              label={deletingAccount ? t('common_loading') : t('delete_account')}
               onPress={handleDeleteAccount}
               accent={BRAND.danger}
             />
@@ -557,13 +573,9 @@ export default function ProfileScreen() {
                   Rating
                 </Text>
                 <Text className="mt-1 font-display text-xl font-bold text-ink">
-                  {userProfile.rating != null
-                    ? userProfile.rating.toFixed(1)
-                    : "New"}
+                  {userProfile.rating != null ? userProfile.rating.toFixed(1) : 'New'}
                 </Text>
-                <Text className="text-[9px] font-medium text-ink/30">
-                  out of 5.0
-                </Text>
+                <Text className="text-[9px] font-medium text-ink/30">out of 5.0</Text>
               </View>
               <View className="min-w-[45%] flex-1 items-center justify-center rounded-2xl border border-border bg-surface-raised p-5">
                 <View className="mb-2 h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10">
@@ -575,9 +587,7 @@ export default function ProfileScreen() {
                 <Text className="mt-1 font-display text-xl font-bold text-ink">
                   {userProfile.totalJobs || 0}
                 </Text>
-                <Text className="text-[9px] font-medium text-ink/30">
-                  completed
-                </Text>
+                <Text className="text-[9px] font-medium text-ink/30">completed</Text>
               </View>
               <View className="min-w-[45%] flex-1 items-center justify-center rounded-2xl border border-border bg-surface-raised p-5">
                 <View className="mb-2 h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
@@ -601,9 +611,7 @@ export default function ProfileScreen() {
                 <Text className="mt-1 font-display text-xl font-bold text-ink">
                   Rs. {userProfile.totalEarnings || 0}
                 </Text>
-                <Text className="text-[9px] font-medium text-ink/30">
-                  total revenue
-                </Text>
+                <Text className="text-[9px] font-medium text-ink/30">total revenue</Text>
               </View>
               <View className="min-w-[45%] flex-1 items-center justify-center rounded-2xl border border-border bg-surface-raised p-5">
                 <View className="mb-2 h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10">
@@ -613,7 +621,7 @@ export default function ProfileScreen() {
                   Tier
                 </Text>
                 <View className="mt-1">
-                  <TierBadge tier={userProfile.tier || "Bronze"} />
+                  <TierBadge tier={userProfile.tier || 'Bronze'} />
                 </View>
               </View>
             </View>
@@ -627,24 +635,20 @@ export default function ProfileScreen() {
               </Text>
               <View className="gap-3">
                 <Pressable
-                  onPress={() => router.push("/")}
+                  onPress={() => router.push('/')}
                   className="flex-row items-center gap-3 rounded-xl border border-primary/10 bg-primary/5 p-3"
                 >
                   <View className="h-9 w-9 items-center justify-center rounded-xl bg-primary/15">
                     <Icon icon={Briefcase} color={BRAND.primary} size={16} />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-sm font-bold text-ink">
-                      Find a Service
-                    </Text>
-                    <Text className="text-[10px] text-ink/50">
-                      Search and book providers
-                    </Text>
+                    <Text className="text-sm font-bold text-ink">Find a Service</Text>
+                    <Text className="text-[10px] text-ink/50">Search and book providers</Text>
                   </View>
                 </Pressable>
 
                 <Pressable
-                  onPress={() => router.push("/bookings")}
+                  onPress={() => router.push('/bookings')}
                   className="flex-row items-center gap-3 rounded-xl border border-accent-gold/10 bg-accent-gold/5 p-3"
                 >
                   <View className="h-9 w-9 items-center justify-center rounded-xl bg-accent-gold/15">
@@ -652,9 +656,7 @@ export default function ProfileScreen() {
                   </View>
                   <View className="flex-1">
                     <Text className="text-sm font-bold text-ink">My Bookings</Text>
-                    <Text className="text-[10px] text-ink/50">
-                      Track your service requests
-                    </Text>
+                    <Text className="text-[10px] text-ink/50">Track your service requests</Text>
                   </View>
                 </Pressable>
 
@@ -666,12 +668,8 @@ export default function ProfileScreen() {
                     <Icon icon={Sparkles} color={BRAND.success} size={16} />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-sm font-bold text-ink">
-                      Become a Worker
-                    </Text>
-                    <Text className="text-[10px] text-ink/50">
-                      Start earning on Khidmat
-                    </Text>
+                    <Text className="text-sm font-bold text-ink">Become a Worker</Text>
+                    <Text className="text-[10px] text-ink/50">Start earning on Khidmat</Text>
                   </View>
                 </Pressable>
               </View>
@@ -691,8 +689,7 @@ export default function ProfileScreen() {
           <View className="w-full max-w-md rounded-2xl border border-border bg-surface-raised p-6">
             <View className="mb-5 flex-row items-center justify-between border-b border-gray-100 pb-3">
               <Text className="flex-row items-center gap-2 font-display text-lg font-medium text-ink">
-                <Icon icon={Sparkles} color={BRAND.gold} size={20} /> Become a
-                Service Worker
+                <Icon icon={Sparkles} color={BRAND.gold} size={20} /> Become a Service Worker
               </Text>
               <Pressable
                 onPress={() => setShowRegisterModal(false)}
@@ -704,20 +701,14 @@ export default function ProfileScreen() {
 
             {registerError && (
               <View className="mb-4 rounded-xl border border-red-200 bg-red-100 p-3">
-                <Text className="text-xs font-semibold text-red-700">
-                  {registerError}
-                </Text>
+                <Text className="text-xs font-semibold text-red-700">{registerError}</Text>
               </View>
             )}
 
             <Text className="mb-1.5 text-xs font-semibold text-ink/50">
               Select Specialty / Skill Category
             </Text>
-            <Select
-              options={SPECIALTIES}
-              value={categoryInput}
-              onChange={setCategoryInput}
-            />
+            <Select options={SPECIALTIES} value={categoryInput} onChange={setCategoryInput} />
 
             <Text className="mb-1.5 mt-4 text-xs font-semibold text-ink/50">
               Worker Biography / Skills Summary
@@ -771,20 +762,22 @@ export default function ProfileScreen() {
               onPress={(e) => e.stopPropagation()}
             >
               <Text className="text-lg font-bold text-ink">
-                {addrEditingId ? "Edit address" : "Add saved address"}
+                {addrEditingId ? 'Edit address' : 'Add saved address'}
               </Text>
 
               <Text className="mb-1.5 mt-4 text-xs font-semibold text-ink/50">Label</Text>
               <View className="flex-row gap-2">
-                {["Home", "Office", "Other"].map((l) => (
+                {['Home', 'Office', 'Other'].map((l) => (
                   <Pressable
                     key={l}
                     onPress={() => setAddrLabel(l)}
                     className={`flex-1 rounded-xl border py-2.5 items-center ${
-                      addrLabel === l ? "border-primary bg-primary/5" : "border-gray-200"
+                      addrLabel === l ? 'border-primary bg-primary/5' : 'border-gray-200'
                     }`}
                   >
-                    <Text className={`text-xs font-bold ${addrLabel === l ? "text-primary" : "text-ink/70"}`}>
+                    <Text
+                      className={`text-xs font-bold ${addrLabel === l ? 'text-primary' : 'text-ink/70'}`}
+                    >
                       {l}
                     </Text>
                   </Pressable>

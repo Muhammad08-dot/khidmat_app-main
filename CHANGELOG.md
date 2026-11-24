@@ -7,6 +7,7 @@ All notable changes made to stabilize, harden, test, and complete the Khidmat pl
 ## [1.1.0] — Stabilization, Security Hardening & Feature Completion
 
 ### 🚨 Critical Fixes
+
 - **Realtime GPS Tracking Overhaul (`app/(booking)/track/[id].tsx`):**
   - Migrated high-frequency location updates from continuous PostgreSQL database writes (which overloaded the database every 6 seconds) to ephemeral **Supabase Realtime Broadcast** WebSockets on channel `tracking:{bookingId}`.
   - Implemented channel cleanup on unmount and throttled periodic DB fallback write (maximum once per 60 seconds).
@@ -21,6 +22,7 @@ All notable changes made to stabilize, harden, test, and complete the Khidmat pl
   - Added cold-start notification handling via `Notifications.getLastNotificationResponseAsync()` and deep-linking in `app/_layout.tsx`.
 
 ### 🛡️ Security & Compliance
+
 - **PII Scrubbing (`src/services/api/errorReporter.ts` & `agent-server/src/index.ts`):**
   - Created `scrubPII` function to automatically strip Pakistani CNIC numbers, mobile phone numbers, JWT/Bearer authentication tokens, email addresses, and residential street addresses before crash reports are logged or sent to LLM endpoints.
 - **In-App Account Deletion (`0011_account_deletion.sql`):**
@@ -30,6 +32,7 @@ All notable changes made to stabilize, harden, test, and complete the Khidmat pl
   - Upgraded Google Gemini integration in `agent-server` to configurable environment variable `GEMINI_MODEL=gemini-2.5-flash` with fallback to `gemini-2.0-flash`.
 
 ### ✨ New Features & Enhancements
+
 - **User & Review Moderation System (`0012_user_reports.sql`):**
   - Added `user_reports` table and reporting flow in `app/chat.tsx` allowing customers and providers to report harassment, safety concerns, or fraud.
   - Added "Reports" moderation tab in `app/admin.tsx` console allowing operations admins to review, action, and dismiss user reports.
@@ -46,8 +49,8 @@ All notable changes made to stabilize, harden, test, and complete the Khidmat pl
   - Linked customer star rating submission to automatic settlement recording in `payments` ledger.
 
 ### 🧪 Tests & Quality Gates
+
 - **10 Test Suites / 38 Tests (100% Passing):**
   - Added unit and integration suites: `trackingBroadcast.test.ts`, `bookingStatusRace.test.ts`, `errorReporter.test.ts`, `phase3Features.test.ts`.
   - Maintained 100% key parity between English and Urdu (`en.json` & `ur.json`).
   - Strict TypeScript check (`tsc --noEmit`) and ESLint passing with zero errors.
-

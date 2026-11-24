@@ -1,68 +1,85 @@
-
-import React from "react";
-import { BRAND } from "@/src/theme/colors";
-import { View, Text, ScrollView, Pressable } from "react-native";
-import { useRouter } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import React from 'react';
+import { BRAND } from '@/src/theme/colors';
+import { View, Text, ScrollView, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
+import { ChevronLeft } from 'lucide-react-native';
 import {
-  Zap, Droplet, Hammer, Paintbrush, Snowflake, Sparkles, Settings, Car,
-  Sprout, Truck, Bug, Eye, Flame, Layers, Wrench, Camera, Video,
-  PartyPopper, Music, Utensils, UserCheck,
-} from "lucide-react-native";
-import { Icon } from "@/src/components/ui/Icon";
+  Zap,
+  Droplet,
+  Hammer,
+  Paintbrush,
+  Snowflake,
+  Sparkles,
+  Settings,
+  Car,
+  Sprout,
+  Truck,
+  Bug,
+  Eye,
+  Flame,
+  Layers,
+  Wrench,
+  Camera,
+  Video,
+  PartyPopper,
+  Music,
+  Utensils,
+  UserCheck,
+} from 'lucide-react-native';
+import { Icon } from '@/src/components/ui/Icon';
 
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ color?: string; size?: number }>> = {
   Electrician: Zap,
   Plumber: Droplet,
   Carpenter: Hammer,
   Painter: Paintbrush,
-  "AC Technician": Snowflake,
-  "House Cleaner": Sparkles,
-  "Appliance Repair": Settings,
+  'AC Technician': Snowflake,
+  'House Cleaner': Sparkles,
+  'Appliance Repair': Settings,
   Mechanic: Car,
   Gardener: Sprout,
-  "Movers & Packers": Truck,
-  "Pest Control": Bug,
-  "CCTV Technician": Eye,
+  'Movers & Packers': Truck,
+  'Pest Control': Bug,
+  'CCTV Technician': Eye,
   Welder: Flame,
   Mason: Layers,
   Handyman: Wrench,
   Photographer: Camera,
   Videographer: Video,
-  "Event Decorator": PartyPopper,
+  'Event Decorator': PartyPopper,
   DJ: Music,
   Caterer: Utensils,
-  "Waiter/Server": UserCheck,
+  'Waiter/Server': UserCheck,
 };
 
 const CATEGORY_COLORS: Record<string, { text: string; iconBg: string }> = {
-  gold: { text: BRAND.gold, iconBg: "bg-accent-gold/10" },
-  sky: { text: BRAND.info, iconBg: "bg-accent-sky/10" },
-  sage: { text: "#3D7A5F", iconBg: "bg-accent-sage/10" },
+  gold: { text: BRAND.gold, iconBg: 'bg-accent-gold/10' },
+  sky: { text: BRAND.info, iconBg: 'bg-accent-sky/10' },
+  sage: { text: '#3D7A5F', iconBg: 'bg-accent-sage/10' },
 };
 
 const CATEGORIES = [
-  { name: "Electrician", colorKey: "gold" },
-  { name: "Plumber", colorKey: "sky" },
-  { name: "Carpenter", colorKey: "sage" },
-  { name: "Painter", colorKey: "sage" },
-  { name: "AC Technician", colorKey: "sky" },
-  { name: "House Cleaner", colorKey: "sage" },
-  { name: "Appliance Repair", colorKey: "gold" },
-  { name: "Mechanic", colorKey: "sky" },
-  { name: "Gardener", colorKey: "sage" },
-  { name: "Movers & Packers", colorKey: "sky" },
-  { name: "Pest Control", colorKey: "sky" },
-  { name: "CCTV Technician", colorKey: "sky" },
-  { name: "Welder", colorKey: "gold" },
-  { name: "Mason", colorKey: "sage" },
-  { name: "Handyman", colorKey: "sage" },
-  { name: "Photographer", colorKey: "gold" },
-  { name: "Videographer", colorKey: "sky" },
-  { name: "Event Decorator", colorKey: "sage" },
-  { name: "DJ", colorKey: "gold" },
-  { name: "Caterer", colorKey: "sky" },
-  { name: "Waiter/Server", colorKey: "sage" },
+  { name: 'Electrician', colorKey: 'gold' },
+  { name: 'Plumber', colorKey: 'sky' },
+  { name: 'Carpenter', colorKey: 'sage' },
+  { name: 'Painter', colorKey: 'sage' },
+  { name: 'AC Technician', colorKey: 'sky' },
+  { name: 'House Cleaner', colorKey: 'sage' },
+  { name: 'Appliance Repair', colorKey: 'gold' },
+  { name: 'Mechanic', colorKey: 'sky' },
+  { name: 'Gardener', colorKey: 'sage' },
+  { name: 'Movers & Packers', colorKey: 'sky' },
+  { name: 'Pest Control', colorKey: 'sky' },
+  { name: 'CCTV Technician', colorKey: 'sky' },
+  { name: 'Welder', colorKey: 'gold' },
+  { name: 'Mason', colorKey: 'sage' },
+  { name: 'Handyman', colorKey: 'sage' },
+  { name: 'Photographer', colorKey: 'gold' },
+  { name: 'Videographer', colorKey: 'sky' },
+  { name: 'Event Decorator', colorKey: 'sage' },
+  { name: 'DJ', colorKey: 'gold' },
+  { name: 'Caterer', colorKey: 'sky' },
+  { name: 'Waiter/Server', colorKey: 'sage' },
 ];
 
 export default function CategoriesScreen() {
@@ -101,9 +118,7 @@ export default function CategoriesScreen() {
             return (
               <Pressable
                 key={cat.name}
-                onPress={() =>
-                  router.push(`/matching?category=${encodeURIComponent(cat.name)}`)
-                }
+                onPress={() => router.push(`/matching?category=${encodeURIComponent(cat.name)}`)}
                 className="w-[30%] min-w-[100px] items-center justify-center rounded-xl border border-border bg-surface-raised p-4"
               >
                 <View
@@ -111,9 +126,7 @@ export default function CategoriesScreen() {
                 >
                   <Icon icon={IconComp as any} color={colors.text} size={28} />
                 </View>
-                <Text className="text-center text-xs font-bold text-ink">
-                  {cat.name}
-                </Text>
+                <Text className="text-center text-xs font-bold text-ink">{cat.name}</Text>
               </Pressable>
             );
           })}

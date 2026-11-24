@@ -1,15 +1,7 @@
-import React, { useState } from "react";
-import { BRAND } from "@/src/theme/colors";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  ActivityIndicator,
-  Alert,
-  Modal,
-} from "react-native";
-import * as ImagePicker from "expo-image-picker";
+import React, { useState } from 'react';
+import { BRAND } from '@/src/theme/colors';
+import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert, Modal } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '@/src/context/AuthContext';
 import { useBookings, useUpdateBookingStatus, useSendMessage } from '@/src/hooks/useSupabase';
 import { uploadJobMedia, mergeBookingMeta } from '@/src/services/supabase/legacy';
@@ -25,13 +17,13 @@ import {
   MessageSquare,
   Camera,
   X,
-} from "lucide-react-native";
+} from 'lucide-react-native';
 
-import { getCurrentCoords } from "../../utils/geolocation";
-import { Avatar } from "../ui/Avatar";
-import { TierBadge } from "../ui/TierBadge";
-import { Card } from "../ui/Card";
-import { Icon } from "../ui/Icon";
+import { getCurrentCoords } from '../../utils/geolocation';
+import { Avatar } from '../ui/Avatar';
+import { TierBadge } from '../ui/TierBadge';
+import { Card } from '../ui/Card';
+import { Icon } from '../ui/Icon';
 
 export const ProviderHome: React.FC = () => {
   const router = useRouter();
@@ -60,7 +52,7 @@ export const ProviderHome: React.FC = () => {
       const coords = await getCurrentCoords();
       if (!coords) {
         setLocationError(
-          "Location access is required to go Online. Please enable location permissions."
+          'Location access is required to go Online. Please enable location permissions.'
         );
         setToggling(false);
         return;
@@ -68,16 +60,14 @@ export const ProviderHome: React.FC = () => {
       try {
         await updateProfile({ available: true, location: coords });
       } catch (err) {
-        console.error("Failed to update profile to online:", err);
-        setLocationError(
-          "Failed to update online status. Please check connection."
-        );
+        console.error('Failed to update profile to online:', err);
+        setLocationError('Failed to update online status. Please check connection.');
       }
     } else {
       try {
         await updateProfile({ available: false });
       } catch (err) {
-        console.error("Failed to update profile to offline:", err);
+        console.error('Failed to update profile to offline:', err);
       }
     }
     setToggling(false);
@@ -92,8 +82,8 @@ export const ProviderHome: React.FC = () => {
       });
       refetch();
     } catch (err: any) {
-      console.error("Error accepting booking:", err);
-      Alert.alert("Failed", err?.message || "Failed to accept the job. Please try again.");
+      console.error('Error accepting booking:', err);
+      Alert.alert('Failed', err?.message || 'Failed to accept the job. Please try again.');
     }
   };
 
@@ -102,22 +92,22 @@ export const ProviderHome: React.FC = () => {
       const bookingId = booking.bookingId || booking.id;
       await updateStatus({
         bookingId,
-        status: "completed",
-        expectedCurrentStatus: booking.status || "in_progress",
+        status: 'completed',
+        expectedCurrentStatus: booking.status || 'in_progress',
       });
       await sendSystemMessage({
         bookingId,
-        senderId: user?.id || "",
+        senderId: user?.id || '',
         content: JSON.stringify({
-          text: "The provider has marked the service as completed. Pending client confirmation/rating review.",
+          text: 'The provider has marked the service as completed. Pending client confirmation/rating review.',
           isSystemEvent: true,
-          eventStatus: "completed",
+          eventStatus: 'completed',
         }),
       });
       refetch();
     } catch (err) {
-      console.error("Error completing booking:", err);
-      Alert.alert("Failed", "Failed to update booking status. Please try again.");
+      console.error('Error completing booking:', err);
+      Alert.alert('Failed', 'Failed to update booking status. Please try again.');
     }
   };
 
@@ -130,7 +120,7 @@ export const ProviderHome: React.FC = () => {
   const pickCompletionPhoto = async () => {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert("Permission needed", "Camera access is required to take job photos.");
+      Alert.alert('Permission needed', 'Camera access is required to take job photos.');
       return;
     }
     const result = await ImagePicker.launchCameraAsync({ quality: 0.7 });
@@ -155,7 +145,7 @@ export const ProviderHome: React.FC = () => {
           try {
             urls.push(await uploadJobMedia(user!.id, uri));
           } catch (e) {
-            console.warn("Job photo upload failed (continuing):", e);
+            console.warn('Job photo upload failed (continuing):', e);
           }
         }
         if (urls.length > 0) {
@@ -170,14 +160,11 @@ export const ProviderHome: React.FC = () => {
     }
   };
 
-  const openChat = (bookingId: string) =>
-    router.push(`/chat?bookingId=${bookingId}`);
+  const openChat = (bookingId: string) => router.push(`/chat?bookingId=${bookingId}`);
 
-  const activeBookings = bookings.filter(
-    (b) => b.status === "pending" || b.status === "confirmed"
-  );
+  const activeBookings = bookings.filter((b) => b.status === 'pending' || b.status === 'confirmed');
   const recentHistory = bookings
-    .filter((b) => b.status === "completed" || b.status === "closed")
+    .filter((b) => b.status === 'completed' || b.status === 'closed')
     .sort(
       (a, b) =>
         new Date(b.updatedAt || b.createdAt).getTime() -
@@ -205,7 +192,7 @@ export const ProviderHome: React.FC = () => {
                   <Text className="font-display text-lg font-extrabold text-ink">
                     Welcome, {userProfile.name}!
                   </Text>
-                  <TierBadge tier={userProfile.tier || "Bronze"} />
+                  <TierBadge tier={userProfile.tier || 'Bronze'} />
                 </View>
                 <Text className="mt-0.5 text-xs text-ink/60">
                   Manage your services, track earnings, and respond to clients.
@@ -216,34 +203,31 @@ export const ProviderHome: React.FC = () => {
             <Pressable
               onPress={toggleOnline}
               disabled={toggling}
-              className={`mt-4 flex-row items-center justify-center gap-2 rounded-xl border px-6 py-3.5 ${isOnline
-                  ? "border-primary bg-primary"
-                  : "border-border bg-surface"
-                }`}
+              className={`mt-4 flex-row items-center justify-center gap-2 rounded-xl border px-6 py-3.5 ${
+                isOnline ? 'border-primary bg-primary' : 'border-border bg-surface'
+              }`}
             >
               {toggling ? (
-                <ActivityIndicator size="small" color={isOnline ? "#fff" : BRAND.primary} />
+                <ActivityIndicator size="small" color={isOnline ? '#fff' : BRAND.primary} />
               ) : (
                 <View
-                  className={`h-3.5 w-3.5 rounded-full border-2 border-white ${isOnline ? "bg-surface-raised" : "bg-ink/40"
-                    }`}
+                  className={`h-3.5 w-3.5 rounded-full border-2 border-white ${
+                    isOnline ? 'bg-surface-raised' : 'bg-ink/40'
+                  }`}
                 />
               )}
-              <Text
-                className={`text-sm font-bold ${isOnline ? "text-white" : "text-ink/50"
-                  }`}
-              >
+              <Text className={`text-sm font-bold ${isOnline ? 'text-white' : 'text-ink/50'}`}>
                 {toggling
-                  ? "Updating location..."
+                  ? 'Updating location...'
                   : isOnline
-                    ? "You are ONLINE"
-                    : "You are OFFLINE"}
+                    ? 'You are ONLINE'
+                    : 'You are OFFLINE'}
               </Text>
             </Pressable>
             <Text className="mt-2 text-center text-[10px] font-semibold uppercase tracking-wider text-ink/40">
               {isOnline
-                ? "Visible to customers searching for services"
-                : "Hidden from customer search results"}
+                ? 'Visible to customers searching for services'
+                : 'Hidden from customer search results'}
             </Text>
             {locationError && (
               <Text className="mt-2 rounded-xl border border-accent-terracotta/20 bg-accent-terracotta/10 p-3 text-xs text-accent-terracotta">
@@ -256,37 +240,34 @@ export const ProviderHome: React.FC = () => {
           <View className="mt-5 flex-row flex-wrap" style={{ gap: 10 }}>
             {[
               {
-                label: "Jobs Completed",
+                label: 'Jobs Completed',
                 icon: CheckCircle,
                 color: BRAND.primary as string,
                 value: String(userProfile.totalJobs || 0),
               },
               {
-                label: "Total Earnings",
+                label: 'Total Earnings',
                 icon: DollarSign,
                 color: BRAND.primary,
                 value: `Rs. ${userProfile.totalEarnings || 0}`,
               },
               {
-                label: "Overall Rating",
+                label: 'Overall Rating',
                 icon: Star,
                 color: BRAND.gold,
-                value:
-                  userProfile.rating != null
-                    ? userProfile.rating.toFixed(1)
-                    : "New",
+                value: userProfile.rating != null ? userProfile.rating.toFixed(1) : 'New',
               },
               {
-                label: "Specialty",
+                label: 'Specialty',
                 icon: Briefcase,
                 color: BRAND.primary,
-                value: userProfile.category || "Specialist",
+                value: userProfile.category || 'Specialist',
               },
             ].map((s) => (
               <View
                 key={s.label}
                 className="flex-1 rounded-xl border border-border bg-surface-raised p-4"
-                style={{ minWidth: "45%" }}
+                style={{ minWidth: '45%' }}
               >
                 <Text className="text-[10px] font-semibold uppercase tracking-wide text-ink/40">
                   {s.label}
@@ -302,8 +283,8 @@ export const ProviderHome: React.FC = () => {
           {/* Active requests */}
           <View className="mt-6">
             <Text className="flex-row items-center gap-2 text-base font-bold text-ink">
-              <Icon icon={Calendar} color={BRAND.primary} size={18} /> Active Service
-              Requests ({activeBookings.length})
+              <Icon icon={Calendar} color={BRAND.primary} size={18} /> Active Service Requests (
+              {activeBookings.length})
             </Text>
 
             {activeBookings.length === 0 ? (
@@ -314,7 +295,7 @@ export const ProviderHome: React.FC = () => {
                 <Text className="mt-1 text-center text-xs text-ink/60">
                   {isOnline
                     ? "You are online but haven't received any bookings yet. Service requests will appear here in real-time."
-                    : "Go ONLINE above to start receiving service requests from nearby customers."}
+                    : 'Go ONLINE above to start receiving service requests from nearby customers.'}
                 </Text>
               </Card>
             ) : (
@@ -322,31 +303,29 @@ export const ProviderHome: React.FC = () => {
                 <Card key={b.bookingId} className="mt-3 p-4">
                   <View className="flex-row items-center gap-2">
                     <Text
-                      className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${b.status === "pending"
-                          ? "bg-accent-terracotta/10 text-accent-terracotta"
-                          : "bg-primary/10 text-primary"
-                        }`}
+                      className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                        b.status === 'pending'
+                          ? 'bg-accent-terracotta/10 text-accent-terracotta'
+                          : 'bg-primary/10 text-primary'
+                      }`}
                     >
                       {b.status}
                     </Text>
                     <Text className="font-mono text-xs font-bold text-ink/40">
-                      #{String(b.bookingId || "").slice(0, 8) || "N/A"}
+                      #{String(b.bookingId || '').slice(0, 8) || 'N/A'}
                     </Text>
                   </View>
-                  <Text className="mt-2 text-base font-bold text-ink">
-                    {b.customerName}
-                  </Text>
+                  <Text className="mt-2 text-base font-bold text-ink">{b.customerName}</Text>
                   <View className="mt-1 flex-row flex-wrap gap-x-4 gap-y-1">
                     <Text className="flex-row items-center gap-1 text-xs font-medium text-ink/60">
                       <Icon icon={MapPin} color={BRAND.primary} size={13} /> {b.address}
                     </Text>
                     <Text className="flex-row items-center gap-1 text-xs font-medium text-ink/60">
-                      <Icon icon={Clock} color={BRAND.primary} size={13} /> {b.timeSlot}{" "}
-                      ({b.date})
+                      <Icon icon={Clock} color={BRAND.primary} size={13} /> {b.timeSlot} ({b.date})
                     </Text>
                   </View>
                   <Text className="mt-2 text-xs font-bold text-primary">
-                    PKR Invoice: Rs. {b.totalPrice}{" "}
+                    PKR Invoice: Rs. {b.totalPrice}{' '}
                     <Text className="text-[10px] font-normal text-ink/40">
                       (Rs. {b.basePrice} base + Rs. {b.travelFee} travel)
                     </Text>
@@ -357,30 +336,24 @@ export const ProviderHome: React.FC = () => {
                       className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-surface py-2.5"
                     >
                       <Icon icon={MessageSquare} color={BRAND.primary} size={15} />
-                      <Text className="text-xs font-semibold text-ink">
-                        Chat Client
-                      </Text>
+                      <Text className="text-xs font-semibold text-ink">Chat Client</Text>
                     </Pressable>
-                    {b.status === "pending" && (
+                    {b.status === 'pending' && (
                       <Pressable
                         onPress={() => acceptBooking(b)}
                         className="flex-[2] flex-row items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5"
                       >
                         <Icon icon={CheckCircle} color="#fff" size={15} />
-                        <Text className="text-xs font-semibold text-white">
-                          Accept Job
-                        </Text>
+                        <Text className="text-xs font-semibold text-white">Accept Job</Text>
                       </Pressable>
                     )}
-                    {b.status === "confirmed" && (
+                    {b.status === 'confirmed' && (
                       <Pressable
                         onPress={() => openCompleteModal(b)}
                         className="flex-[2] flex-row items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5"
                       >
                         <Icon icon={CheckCircle} color="#fff" size={15} />
-                        <Text className="text-xs font-semibold text-white">
-                          Complete Job
-                        </Text>
+                        <Text className="text-xs font-semibold text-white">Complete Job</Text>
                       </Pressable>
                     )}
                   </View>
@@ -392,14 +365,13 @@ export const ProviderHome: React.FC = () => {
           {/* Recent earnings */}
           <View className="mt-6">
             <Text className="flex-row items-center gap-2 text-base font-bold text-ink">
-              <Icon icon={DollarSign} color={BRAND.primary} size={18} /> Recent Earnings
-              ({recentHistory.length})
+              <Icon icon={DollarSign} color={BRAND.primary} size={18} /> Recent Earnings (
+              {recentHistory.length})
             </Text>
             <Card className="mt-3 p-4">
               {recentHistory.length === 0 ? (
                 <Text className="py-6 text-center text-xs text-ink/40">
-                  No completed jobs yet. Keep online and complete assignments to
-                  earn!
+                  No completed jobs yet. Keep online and complete assignments to earn!
                 </Text>
               ) : (
                 recentHistory.map((h) => (
@@ -408,12 +380,8 @@ export const ProviderHome: React.FC = () => {
                     className="flex-row items-center justify-between border-b border-border py-3 last:border-b-0"
                   >
                     <View>
-                      <Text className="text-xs font-bold text-ink">
-                        {h.customerName}
-                      </Text>
-                      <Text className="text-[10px] font-medium text-ink/40">
-                        {h.date}
-                      </Text>
+                      <Text className="text-xs font-bold text-ink">{h.customerName}</Text>
+                      <Text className="text-[10px] font-medium text-ink/40">{h.date}</Text>
                     </View>
                     <View className="items-end">
                       <Text className="text-xs font-extrabold text-primary">
@@ -438,7 +406,10 @@ export const ProviderHome: React.FC = () => {
       >
         <Pressable className="flex-1 bg-black/50" onPress={() => setCompletingBooking(null)}>
           <View className="flex-1 justify-end">
-            <Pressable className="bg-surface-raised rounded-t-3xl p-6" onPress={(e) => e.stopPropagation()}>
+            <Pressable
+              className="bg-surface-raised rounded-t-3xl p-6"
+              onPress={(e) => e.stopPropagation()}
+            >
               <View className="flex-row items-center justify-between">
                 <Text className="text-lg font-bold text-ink">Complete Job</Text>
                 <Pressable onPress={() => setCompletingBooking(null)} hitSlop={8}>
@@ -451,7 +422,10 @@ export const ProviderHome: React.FC = () => {
 
               <View className="flex-row gap-3 mt-5">
                 {completionPhotos.map((uri, i) => (
-                  <View key={i} className="h-20 w-20 rounded-xl bg-ink/10 items-center justify-center">
+                  <View
+                    key={i}
+                    className="h-20 w-20 rounded-xl bg-ink/10 items-center justify-center"
+                  >
                     <Icon icon={CheckCircle} color={BRAND.primary} size={24} />
                   </View>
                 ))}
@@ -476,14 +450,16 @@ export const ProviderHome: React.FC = () => {
                 className="mt-4 flex-row items-center gap-3 rounded-xl border border-border bg-surface p-3"
               >
                 <View
-                  className={`h-5 w-5 rounded-md border items-center justify-center ${codCashReceived ? "border-primary bg-primary" : "border-ink/30"
-                    }`}
+                  className={`h-5 w-5 rounded-md border items-center justify-center ${
+                    codCashReceived ? 'border-primary bg-primary' : 'border-ink/30'
+                  }`}
                 >
                   {codCashReceived && <Icon icon={CheckCircle} color="#fff" size={14} />}
                 </View>
                 <View className="flex-1">
                   <Text className="text-xs font-bold text-ink">
-                    Cash payment received (Rs. {completingBooking.totalPrice || completingBooking.estimated_price || 0})
+                    Cash payment received (Rs.{' '}
+                    {completingBooking.totalPrice || completingBooking.estimated_price || 0})
                   </Text>
                   <Text className="text-[10px] text-ink/50">
                     Check this if the client has handed over the cash.
@@ -502,7 +478,7 @@ export const ProviderHome: React.FC = () => {
                   <Icon icon={CheckCircle} color="#fff" size={18} />
                 )}
                 <Text className="text-sm font-bold text-white">
-                  {finishing ? "Uploading…" : "Mark as Completed"}
+                  {finishing ? 'Uploading…' : 'Mark as Completed'}
                 </Text>
               </Pressable>
             </Pressable>

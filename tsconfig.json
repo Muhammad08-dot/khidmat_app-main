@@ -3,26 +3,11 @@
   "compilerOptions": {
     "strict": true,
     "jsx": "react-native",
-    "types": [
-      "nativewind/types"
-    ],
+    "types": ["nativewind/types"],
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "nativewind-env.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "supabase/functions",
-    "agent-server",
-    "dist"
-  ]
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "nativewind-env.d.ts"],
+  "exclude": ["node_modules", "supabase/functions", "agent-server", "dist"]
 }

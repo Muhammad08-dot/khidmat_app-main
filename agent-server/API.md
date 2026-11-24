@@ -18,6 +18,7 @@ CORS is enabled for all origins. Body limit is 512 KB (`express.json({ limit: "5
 No request body.
 
 **Response** `200 OK`:
+
 ```json
 {
   "status": "ok",
@@ -26,15 +27,16 @@ No request body.
 }
 ```
 
-| Field | Type | Description |
-|---|---|---|
-| `status` | string | Always `"ok"` when the server is up |
-| `hasLLM` | boolean | `true` if `OPENAI_API_KEY` or `GEMINI_API_KEY` is set; `false` in stub mode |
-| `timestamp` | string (ISO-8601) | Server time of the response |
+| Field       | Type              | Description                                                                 |
+| ----------- | ----------------- | --------------------------------------------------------------------------- |
+| `status`    | string            | Always `"ok"` when the server is up                                         |
+| `hasLLM`    | boolean           | `true` if `OPENAI_API_KEY` or `GEMINI_API_KEY` is set; `false` in stub mode |
+| `timestamp` | string (ISO-8601) | Server time of the response                                                 |
 
 ### `POST /api/heal` — Submit a crash report, get a fix suggestion
 
 **Request body** (`application/json`):
+
 ```json
 {
   "message": "Cannot read property 'map' of undefined",
@@ -48,18 +50,19 @@ No request body.
 }
 ```
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `message` | string | **Yes** | The error message. Missing → `400` |
-| `stack` | string | No | JS stack trace |
-| `componentStack` | string | No | React component stack |
-| `file` | string | No | Source file the error originated in |
-| `codeSnippet` | string | No | Relevant code snippet |
-| `appContext` | string | No | High-level app state context |
-| `platform` | string | No | `"react-native"` (dynamically set by mobile client) |
-| `timestamp` | string (ISO-8601) | No | When the crash was captured |
+| Field            | Type              | Required | Description                                         |
+| ---------------- | ----------------- | -------- | --------------------------------------------------- |
+| `message`        | string            | **Yes**  | The error message. Missing → `400`                  |
+| `stack`          | string            | No       | JS stack trace                                      |
+| `componentStack` | string            | No       | React component stack                               |
+| `file`           | string            | No       | Source file the error originated in                 |
+| `codeSnippet`    | string            | No       | Relevant code snippet                               |
+| `appContext`     | string            | No       | High-level app state context                        |
+| `platform`       | string            | No       | `"react-native"` (dynamically set by mobile client) |
+| `timestamp`      | string (ISO-8601) | No       | When the crash was captured                         |
 
 **Success response** `200 OK`:
+
 ```json
 {
   "diagnosis": "A one-paragraph root-cause analysis.",
@@ -71,16 +74,17 @@ No request body.
 }
 ```
 
-| Field | Type | Description |
-|---|---|---|
-| `diagnosis` | string | Root-cause analysis from the LLM (or stub text if no key) |
-| `suggestion` | string | Short actionable fix |
-| `proposedPatch` | string \| null | Code patch snippet, or `null` |
-| `confidence` | number (0–1) | Model confidence; `0` in stub mode |
-| `model` | string | `"gpt-4o-mini"` (OpenAI), `"gemini-1.5-flash"` (Gemini), or `"stub"` |
-| `timestamp` | string (ISO-8601) | Server time of the response |
+| Field           | Type              | Description                                                          |
+| --------------- | ----------------- | -------------------------------------------------------------------- |
+| `diagnosis`     | string            | Root-cause analysis from the LLM (or stub text if no key)            |
+| `suggestion`    | string            | Short actionable fix                                                 |
+| `proposedPatch` | string \| null    | Code patch snippet, or `null`                                        |
+| `confidence`    | number (0–1)      | Model confidence; `0` in stub mode                                   |
+| `model`         | string            | `"gpt-4o-mini"` (OpenAI), `"gemini-1.5-flash"` (Gemini), or `"stub"` |
+| `timestamp`     | string (ISO-8601) | Server time of the response                                          |
 
 **Error responses**:
+
 - `400 Bad Request` — `{ "error": "Missing required field: message" }` if `message` is absent.
 - `500 Internal Server Error` — `{ "error": "LLM invocation failed", "detail": "<message>" }` if the LLM call throws.
 
@@ -105,11 +109,11 @@ Default endpoint value: `http://localhost:8787/api/heal` (set `EXPO_PUBLIC_AGENT
 
 ## Environment Variables (agent-server)
 
-| Variable | Purpose | Default |
-|---|---|---|
-| `PORT` | HTTP listen port | `8787` |
-| `OPENAI_API_KEY` | Enables OpenAI diagnosis (`gpt-4o-mini`) | *(empty)* |
-| `GEMINI_API_KEY` | Enables Gemini diagnosis (`gemini-1.5-flash`) | *(empty)* |
+| Variable         | Purpose                                       | Default   |
+| ---------------- | --------------------------------------------- | --------- |
+| `PORT`           | HTTP listen port                              | `8787`    |
+| `OPENAI_API_KEY` | Enables OpenAI diagnosis (`gpt-4o-mini`)      | _(empty)_ |
+| `GEMINI_API_KEY` | Enables Gemini diagnosis (`gemini-1.5-flash`) | _(empty)_ |
 
 If neither `OPENAI_API_KEY` nor `GEMINI_API_KEY` is set, the server responds in **stub mode** (`hasLLM: false`, `model: "stub"`, `confidence: 0`).
 

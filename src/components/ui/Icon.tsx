@@ -1,5 +1,5 @@
-import React from "react";
-import { LucideIcon } from "lucide-react-native";
+import React from 'react';
+import { LucideIcon } from 'lucide-react-native';
 
 /** Props a lucide icon accepts at runtime. Kept permissive to sidestep the
  *  strict SvgProps typing that trips on `color`/`size`. */

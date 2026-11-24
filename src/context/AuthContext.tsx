@@ -111,7 +111,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -159,9 +161,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           role,
           location_lat: location.lat,
           location_lng: location.lng,
-          ...(providerDetails || {})
-        }
-      }
+          ...(providerDetails || {}),
+        },
+      },
     });
     if (error) throw error;
     return data;
@@ -228,7 +230,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (resp.status === 400) {
           const body = await resp.text();
           if (body.includes('Unsupported provider') || body.includes('provider is not enabled')) {
-            throw new Error('Google Sign-In is not enabled in your Supabase dashboard yet. Please log in using Email & Password or use the 1-Tap Demo Login.');
+            throw new Error(
+              'Google Sign-In is not enabled in your Supabase dashboard yet. Please log in using Email & Password or use the 1-Tap Demo Login.'
+            );
           }
         }
       } catch (checkErr: any) {
@@ -273,7 +277,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (phone !== undefined) {
         const { error: contactErr } = await supabase
           .from('profile_contacts')
-          .upsert({ user_id: user.id, phone, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+          .upsert(
+            { user_id: user.id, phone, updated_at: new Date().toISOString() },
+            { onConflict: 'user_id' }
+          );
         if (contactErr) throw contactErr;
       }
     }
@@ -293,7 +300,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, userProfile, loading, signIn, signUp, logout, updateProfile, sendPasswordReset, updatePassword, sendPhoneOtp, verifyPhoneOtp, signInWithGoogle }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        user,
+        userProfile,
+        loading,
+        signIn,
+        signUp,
+        logout,
+        updateProfile,
+        sendPasswordReset,
+        updatePassword,
+        sendPhoneOtp,
+        verifyPhoneOtp,
+        signInWithGoogle,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

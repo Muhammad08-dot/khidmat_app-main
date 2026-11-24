@@ -5,6 +5,7 @@ This file tracks the formal execution and exit gate validation of each phase as 
 ---
 
 ### Phase 0 — Baseline & Safety Net — 2026-11-24
+
 - **Tasks completed:**
   - `P0-1`: Tagged current state `pre-prd-v2` and created branch `feat/prd-v2`.
   - `P0-2`: Executed `tsc`, `lint`, `jest --coverage`, and `expo-doctor`. Recorded exact metrics and output table in `docs/reports/BASELINE.md`.

@@ -25,14 +25,14 @@ async function testLaunch() {
 
   const page = await browser.newPage();
   await page.setViewport({ width: 390, height: 844 });
-  
+
   const consoleLogs = [];
-  page.on('console', msg => consoleLogs.push(`[${msg.type()}] ${msg.text()}`));
-  page.on('pageerror', err => consoleLogs.push(`[PAGE_ERROR] ${err.message}`));
+  page.on('console', (msg) => consoleLogs.push(`[${msg.type()}] ${msg.text()}`));
+  page.on('pageerror', (err) => consoleLogs.push(`[PAGE_ERROR] ${err.message}`));
 
   console.log('Navigating to http://localhost:8081 ...');
   await page.goto('http://localhost:8081', { waitUntil: 'networkidle0', timeout: 30000 });
-  
+
   const title = await page.title();
   console.log('Page title:', title);
 
@@ -40,12 +40,12 @@ async function testLaunch() {
   await page.screenshot({ path: screenshotPath });
   console.log('Screenshot saved to:', screenshotPath);
   console.log('Console logs captured:', consoleLogs.length);
-  consoleLogs.forEach(l => console.log('  LOG:', l));
+  consoleLogs.forEach((l) => console.log('  LOG:', l));
 
   await browser.close();
 }
 
-testLaunch().catch(err => {
+testLaunch().catch((err) => {
   console.error('Launch test failed:', err);
   process.exit(1);
 });
