@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { BRAND } from '@/src/theme/colors';
 import {
   View,
   Text,
-  TextInput,
   ScrollView,
   Pressable,
   KeyboardAvoidingView,
@@ -18,23 +16,24 @@ import {
   Clock,
   MapPin,
   FileText,
-  Truck,
   CheckCircle,
 } from 'lucide-react-native';
 import { useAuth } from '@/src/context/AuthContext';
 import { getDocument, writeDocument } from '@/src/services/supabase/legacy';
 import { track, AnalyticsEvents } from '@/src/services/analytics';
-
 import {
   getDistanceKm,
   calculateTravelFeePKR,
-  estimateTravelTimeMinutes,
   type LocationCoords,
 } from '@/src/utils/location';
-import { getCurrentCoords } from '@/src/utils/geolocation';
+import { Button } from '@/src/components/ui/Button';
+import { Input } from '@/src/components/ui/Input';
 import { Card } from '@/src/components/ui/Card';
 import { Avatar } from '@/src/components/ui/Avatar';
-import { Icon } from '@/src/components/ui/Icon';
+import { TierBadge } from '@/src/components/ui/TierBadge';
+import { StepIndicator } from '@/src/components/ui/StepIndicator';
+import { colors } from '@/src/theme/tokens';
+import { isRTL } from '@/src/i18n';
 
 interface ProviderData {
   userId: string;
@@ -48,21 +47,22 @@ interface ProviderData {
   photoURL?: string;
 }
 
-const TIME_SLOTS = ['Morning (9 AM - 12 PM)', 'Afternoon (12 PM - 4 PM)', 'Evening (4 PM - 8 PM)'];
+const TIME_SLOTS = [
+  'Morning (9 AM - 12 PM)',
+  'Afternoon (12 PM - 4 PM)',
+  'Evening (4 PM - 8 PM)',
+];
 
 function getDates() {
-  const dates: { value: string; label: string; isToday: boolean }[] = [];
+  const dates: { value: string; label: string; weekday: string; isToday: boolean }[] = [];
   const today = new Date();
   for (let i = 0; i < 7; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
     const value = d.toISOString().split('T')[0];
-    const label = d.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
-    dates.push({ value, label, isToday: i === 0 });
+    const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    dates.push({ value, label, weekday, isToday: i === 0 });
   }
   return dates;
 }
@@ -70,7 +70,8 @@ function getDates() {
 export default function ConfirmBookingScreen() {
   const router = useRouter();
   const { providerId } = useLocalSearchParams<{ providerId?: string }>();
-  const { user, userProfile, updateProfile } = useAuth();
+  const { userProfile } = useAuth();
+  const rtl = isRTL();
 
   const [provider, setProvider] = useState<ProviderData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,7 +83,6 @@ export default function ConfirmBookingScreen() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(TIME_SLOTS[0]);
   const [detailedAddress, setDetailedAddress] = useState('');
   const [notes, setNotes] = useState('');
-  const [locationError, setLocationError] = useState<string | null>(null);
 
   const [jobCoordinates, setJobCoordinates] = useState<LocationCoords>({
     lat: userProfile?.location?.lat || 31.5204,
@@ -99,104 +99,81 @@ export default function ConfirmBookingScreen() {
     if (dateOptions.length > 0 && !selectedDate) {
       setSelectedDate(dateOptions[0].value);
     }
-  }, []);
-
-  // Request location access on mount (replaces navigator.geolocation)
-  useEffect(() => {
-    (async () => {
-      const coords = await getCurrentCoords();
-      if (coords) {
-        setJobCoordinates(coords);
-        setLocationError(null);
-        try {
-          await updateProfile({ location: coords });
-        } catch {}
-      } else {
-        // Live fix unavailable — fall back to the profile's last known location
-        // (seeded in jobCoordinates) instead of dead-ending the booking flow.
-        const hasSavedLocation = Boolean(userProfile?.location);
-        if (!hasSavedLocation) {
-          setLocationError(
-            "Couldn't detect your current location. Please pin or type your area — the default city location will be used."
-          );
-        }
-      }
-    })();
-  }, []);
+  }, [dateOptions, selectedDate]);
 
   useEffect(() => {
-    const fetchProvider = async () => {
+    async function fetchProvider() {
       if (!providerId) {
-        setError('No provider selected for booking.');
+        setError('No provider selected. Please select a provider first.');
         setLoading(false);
         return;
       }
       try {
-        setLoading(true);
-        setError(null);
-        const data = await getDocument('providers', providerId);
-        if (data) {
-          setProvider(data as ProviderData);
+        const doc = await getDocument('providers', providerId);
+        if (doc) {
+          setProvider({
+            userId: doc.id || providerId,
+            name: doc.name || 'Verified Provider',
+            category: doc.category || 'General Services',
+            city: doc.city || 'Lahore',
+            location: doc.location || { lat: 31.5204, lng: 74.3587 },
+            basePrice: doc.basePrice || 500,
+            rating: doc.rating || 5.0,
+            tier: doc.tier || 'Bronze',
+            photoURL: doc.photoURL,
+          });
         } else {
-          setError('Selected provider profile could not be found.');
+          setError('Provider not found.');
         }
       } catch (err) {
         console.error(err);
-        setError('Failed to fetch provider details.');
+        setError('Could not load provider profile.');
       } finally {
         setLoading(false);
       }
-    };
+    }
     fetchProvider();
   }, [providerId]);
 
+  // Recalculate distance and price
   useEffect(() => {
-    if (!provider || !jobCoordinates) return;
-    const dist = getDistanceKm(
-      provider.location.lat,
-      provider.location.lng,
-      jobCoordinates.lat,
-      jobCoordinates.lng
-    );
-    const fee = calculateTravelFeePKR(dist);
-    setDistance(dist);
-    setTravelFee(fee);
-    setTotalPrice(provider.basePrice + fee);
+    if (provider?.location && jobCoordinates) {
+      const d = getDistanceKm(
+        jobCoordinates.lat,
+        jobCoordinates.lng,
+        provider.location.lat,
+        provider.location.lng
+      );
+      setDistance(d);
+      const fee = calculateTravelFeePKR(d);
+      setTravelFee(fee);
+      const total = (provider.basePrice || 0) + fee;
+      setTotalPrice(total);
+    }
   }, [provider, jobCoordinates]);
 
-  const handleConfirm = async () => {
-    // locationError is a soft notice now — only block when there's no usable
-    // coordinate at all (no live fix AND no saved profile location).
-    if (locationError && !jobCoordinates) {
-      setError(locationError);
-      return;
-    }
-    if (!selectedDate) {
-      setError('Please select a booking date.');
-      return;
-    }
-    if (!detailedAddress.trim()) {
-      setError('Please enter a detailed street address so the worker can find you.');
-      return;
-    }
-    setBookingInProgress(true);
+  const handleBookingConfirm = async () => {
     setError(null);
+    if (!detailedAddress.trim()) {
+      setError('Please provide your complete street address.');
+      return;
+    }
 
+    setBookingInProgress(true);
     try {
-      const bookingId = `booking_${Math.random().toString(36).substring(2, 11)}`;
+      const bookingId = `book_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       const payload = {
         bookingId,
-        customerId: user?.id || '',
-        customerName: userProfile?.name || 'Customer',
-        customerPhone: userProfile?.phone || '',
         providerId: provider?.userId,
         providerName: provider?.name,
         providerCategory: provider?.category,
+        customerName: userProfile?.name || 'Customer',
+        customerPhone: userProfile?.phone || '',
         date: selectedDate,
         timeSlot: selectedTimeSlot,
         address: detailedAddress,
-        coordinates: jobCoordinates,
         notes,
+        coordinates: jobCoordinates,
         status: 'pending',
         distanceKm: distance,
         basePrice: provider?.basePrice || 0,
@@ -210,8 +187,8 @@ export default function ConfirmBookingScreen() {
       setTimeout(() => {
         setShowSuccessModal(false);
         router.replace(`/chat?bookingId=${createdId}`);
-      }, 2600);
-    } catch (err) {
+      }, 2400);
+    } catch (err: any) {
       console.error(err);
       setError('Failed to book service. Please check your network and try again.');
     } finally {
@@ -221,291 +198,227 @@ export default function ConfirmBookingScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-surface">
-        <ActivityIndicator size="large" color={BRAND.primary} />
-        <Text className="mt-3 text-sm text-ink/60">Loading booking details...</Text>
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text className="mt-3 text-xs font-semibold text-gray-500">
+          Loading booking details...
+        </Text>
       </View>
     );
   }
 
   if (error && !provider) {
     return (
-      <View className="flex-1 items-center justify-center bg-surface px-6">
-        <View className="mb-6 rounded-xl border border-accent-terracotta/20 bg-accent-terracotta/10 p-6 text-center">
-          <Text className="text-accent-terracotta">{error}</Text>
+      <View className="flex-1 items-center justify-center bg-background px-6">
+        <View className="mb-6 rounded-2xl bg-red-50 border border-red-200 p-5">
+          <Text className="text-xs font-semibold text-red-700 text-center">{error}</Text>
         </View>
-        <Pressable
+        <Button
+          title="Back to Providers"
+          variant="outline"
           onPress={() => router.back()}
-          className="flex-row items-center gap-2 rounded-xl bg-primary px-6 py-3"
-        >
-          <Icon icon={ArrowLeft} color="#fff" size={18} />
-          <Text className="font-semibold text-white">Back to Providers</Text>
-        </Pressable>
+        />
       </View>
     );
   }
 
+  const bookingSteps = [
+    { title: 'Schedule' },
+    { title: 'Address' },
+    { title: 'Confirm' },
+  ];
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      className="flex-1"
+      className="flex-1 bg-background"
     >
       <ScrollView
-        className="flex-1 bg-surface"
-        contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
+        className="flex-1"
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 50 }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View className="px-4">
-          {/* Header */}
-          <View className="mb-4 flex-row items-center gap-3">
-            <Pressable
-              onPress={() => router.back()}
-              className="h-10 w-10 items-center justify-center rounded-full border border-border"
-            >
-              <Icon icon={ArrowLeft} color={BRAND.ink} size={20} />
-            </Pressable>
-            <View className="flex-1">
-              <Text className="font-display text-lg font-medium text-ink">Confirm Booking</Text>
-              <Text className="text-xs text-ink/60">Schedule &amp; pin your job location</Text>
-            </View>
-          </View>
-
-          {/* Error banner */}
-          {error && provider && (
-            <View className="mb-4 rounded-xl border border-accent-terracotta/20 bg-accent-terracotta/10 p-4">
-              <Text className="text-sm text-accent-terracotta">{error}</Text>
-            </View>
-          )}
-
-          <View className="gap-4">
-            {/* Date selection */}
-            <Card className="p-4">
-              <Text className="mb-3 flex-row items-center gap-1.5 text-sm font-bold text-ink/65">
-                <Icon icon={Calendar} color={BRAND.primary} size={20} /> Select Date
-              </Text>
-              <View className="flex-row flex-wrap gap-2">
-                {dateOptions.map((date) => (
-                  <Pressable
-                    key={date.value}
-                    onPress={() => setSelectedDate(date.value)}
-                    className={`items-center rounded-lg border px-3 py-2 ${
-                      selectedDate === date.value ? 'border-primary bg-primary/5' : 'border-border'
-                    }`}
-                  >
-                    <Text
-                      className={`font-mono text-[10px] uppercase tracking-wider ${
-                        selectedDate === date.value ? 'text-primary' : 'text-ink/40'
-                      }`}
-                    >
-                      {date.isToday ? 'Today' : date.label.split(' ')[0]}
-                    </Text>
-                    <Text
-                      className={`mt-0.5 text-lg font-bold ${
-                        selectedDate === date.value ? 'text-primary' : 'text-ink'
-                      }`}
-                    >
-                      {date.label.split(' ')[1]?.replace(',', '')}
-                    </Text>
-                    <Text className="text-[10px] text-ink/40">{date.label.split(' ')[0]}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </Card>
-
-            {/* Time slot */}
-            <Card className="p-4">
-              <Text className="mb-3 flex-row items-center gap-1.5 text-sm font-bold text-ink/65">
-                <Icon icon={Clock} color={BRAND.primary} size={20} /> Preferred Time Slot
-              </Text>
-              <View className="gap-2">
-                {TIME_SLOTS.map((slot) => (
-                  <Pressable
-                    key={slot}
-                    onPress={() => setSelectedTimeSlot(slot)}
-                    className={`rounded-lg border p-3 ${
-                      selectedTimeSlot === slot ? 'border-primary bg-primary/5' : 'border-border'
-                    }`}
-                  >
-                    <Text
-                      className={`text-center text-sm font-semibold ${
-                        selectedTimeSlot === slot ? 'text-primary' : 'text-ink'
-                      }`}
-                    >
-                      {slot}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </Card>
-
-            {/* Address */}
-            <Card className="p-4">
-              <Text className="mb-2 flex-row items-center gap-1.5 text-sm font-bold text-ink/65">
-                <Icon icon={MapPin} color={BRAND.primary} size={16} /> Detailed Street Address
-              </Text>
-              {((userProfile?.addresses as any[]) ?? []).length > 0 && (
-                <View className="mb-2 flex-row flex-wrap gap-2">
-                  {((userProfile?.addresses as any[]) ?? []).map((a) => (
-                    <Pressable
-                      key={a.id}
-                      onPress={() => setDetailedAddress(a.line)}
-                      className="flex-row items-center gap-1 rounded-full border border-primary/25 bg-primary/5 px-3 py-1.5"
-                    >
-                      <Icon icon={MapPin} color={BRAND.primary} size={12} />
-                      <Text className="text-[11px] font-bold text-primary">{a.label}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-              <TextInput
-                value={detailedAddress}
-                onChangeText={setDetailedAddress}
-                placeholder="House No, Street Address, Neighborhood Name..."
-                placeholderTextColor="rgba(20,35,28,0.3)"
-                className="rounded-lg border border-border bg-surface px-4 py-3 text-sm text-ink"
-              />
-            </Card>
-
-            {/* Notes */}
-            <Card className="p-4">
-              <Text className="mb-2 flex-row items-center gap-1.5 text-sm font-bold text-ink/65">
-                <Icon icon={FileText} color={BRAND.primary} size={16} /> Special Instructions
-                (Optional)
-              </Text>
-              <TextInput
-                value={notes}
-                onChangeText={setNotes}
-                placeholder="Detail what needs to be done, specific problems, tools needed..."
-                placeholderTextColor="rgba(20,35,28,0.3)"
-                multiline
-                style={{ minHeight: 80 }}
-                className="rounded-lg border border-border bg-surface px-4 py-3 text-sm text-ink"
-              />
-            </Card>
-
-            {/* Price summary card */}
-            <Card className="p-4">
-              <Text className="mb-3 border-b border-border pb-2 text-lg font-medium text-ink">
-                Booking Summary
-              </Text>
-
-              {provider && (
-                <View className="mb-4 flex-row items-center gap-3 rounded-xl border border-border bg-surface p-3">
-                  <Avatar
-                    src={provider.photoURL}
-                    name={provider.name}
-                    className="h-12 w-12 border-2 border-surface"
-                  />
-                  <View className="flex-1">
-                    <Text className="font-bold text-ink">{provider.name}</Text>
-                    <Text className="text-xs text-ink/70">
-                      {provider.category} • {provider.city}
-                    </Text>
-                    <Text className="text-[10px] font-bold text-accent-gold">
-                      ★ {provider.rating != null ? provider.rating.toFixed(1) : 'New'} (
-                      {provider.tier})
-                    </Text>
-                  </View>
-                </View>
-              )}
-
-              <View className="gap-2 text-sm">
-                <View className="flex-row justify-between">
-                  <Text className="text-ink/75">Base Service Rate</Text>
-                  <Text className="font-semibold text-ink">Rs. {provider?.basePrice} / hr</Text>
-                </View>
-                <View className="flex-row justify-between">
-                  <Text className="text-ink/75">Travel Fee ({distance.toFixed(1)} km)</Text>
-                  <Text className="font-semibold text-ink">Rs. {travelFee}</Text>
-                </View>
-
-                <View className="flex-row items-center gap-2 rounded bg-accent-sky/10 p-2">
-                  <Icon icon={Truck} color={BRAND.info} size={16} />
-                  <Text className="text-[11px] font-medium text-accent-sky">
-                    Travel time estimate: ~{estimateTravelTimeMinutes(distance)} mins away
-                  </Text>
-                </View>
-
-                <View className="mt-1 border-t border-dashed border-border pt-2">
-                  <View className="flex-row justify-between text-base font-bold text-ink">
-                    <Text>Estimated Total</Text>
-                    <Text className="text-primary">Rs. {totalPrice}</Text>
-                  </View>
-                </View>
-              </View>
-
-              <View className="mt-3 items-center rounded-xl bg-primary/5 p-3">
-                <Text className="text-xs font-bold uppercase tracking-wider text-primary">
-                  Cash on Delivery
-                </Text>
-                <Text className="mt-1 text-center text-[11px] text-ink/75">
-                  No advanced payments required. Pay the worker in cash once the service is
-                  successfully completed.
-                </Text>
-              </View>
-            </Card>
-
-            {/* Confirm button */}
-            <Pressable
-              onPress={handleConfirm}
-              disabled={bookingInProgress}
-              className="mb-6 flex-row items-center justify-center gap-2 rounded-xl bg-primary py-4 disabled:opacity-75"
-            >
-              {bookingInProgress ? (
-                <>
-                  <ActivityIndicator size="small" color="#fff" />
-                  <Text className="text-base font-bold text-white">Booking Worker...</Text>
-                </>
-              ) : (
-                <>
-                  <Icon icon={CheckCircle} color="#fff" size={20} />
-                  <Text className="text-base font-bold text-white">
-                    Confirm Booking &amp; Message Worker
-                  </Text>
-                </>
-              )}
-            </Pressable>
+        {/* Top Header */}
+        <View className={`flex-row items-center gap-3 mb-4 ${rtl ? 'flex-row-reverse' : ''}`}>
+          <Pressable
+            onPress={() => router.back()}
+            className="w-10 h-10 rounded-full bg-white border border-gray-200 items-center justify-center shadow-xs"
+          >
+            <ArrowLeft size={18} color="#1F2937" />
+          </Pressable>
+          <View className="flex-1">
+            <Text className="text-lg font-bold text-gray-900">Confirm Booking</Text>
+            <Text className="text-xs text-gray-500">Lock your date, time and job location</Text>
           </View>
         </View>
+
+        <StepIndicator steps={bookingSteps} currentStep={2} className="mb-4" />
+
+        {error && (
+          <View className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3">
+            <Text className="text-xs font-semibold text-red-600">{error}</Text>
+          </View>
+        )}
+
+        {/* Provider Profile Summary */}
+        {provider && (
+          <Card className="mb-4 p-4">
+            <View className="flex-row items-center gap-3">
+              <Avatar
+                src={provider.photoURL}
+                name={provider.name}
+                className="w-12 h-12 rounded-full border border-gray-200"
+              />
+              <View className="flex-1">
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-sm font-bold text-gray-900">{provider.name}</Text>
+                  <TierBadge tier={provider.tier as any} />
+                </View>
+                <Text className="text-xs text-gray-500">{provider.category}</Text>
+                <View className="flex-row items-center gap-2 mt-1">
+                  <Text className="text-xs text-amber-500 font-bold">★ {provider.rating}</Text>
+                  <Text className="text-xs text-gray-400">•</Text>
+                  <Text className="text-xs font-semibold text-primary">PKR {provider.basePrice}/hr</Text>
+                </View>
+              </View>
+            </View>
+          </Card>
+        )}
+
+        {/* Date Selection */}
+        <Card className="mb-4 p-4">
+          <View className="flex-row items-center gap-2 mb-3">
+            <Calendar size={16} color={colors.primary} />
+            <Text className="text-xs font-bold text-gray-800">Select Date</Text>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
+            {dateOptions.map((date) => {
+              const isSelected = selectedDate === date.value;
+              return (
+                <Pressable
+                  key={date.value}
+                  onPress={() => setSelectedDate(date.value)}
+                  className={`px-3 py-2.5 rounded-xl border items-center min-w-[70px] ${
+                    isSelected
+                      ? 'bg-emerald-50 border-primary'
+                      : 'bg-white border-gray-200 active:bg-gray-50'
+                  }`}
+                >
+                  <Text className={`text-[10px] font-bold ${isSelected ? 'text-primary' : 'text-gray-400'}`}>
+                    {date.isToday ? 'Today' : date.weekday}
+                  </Text>
+                  <Text className={`text-xs font-bold mt-0.5 ${isSelected ? 'text-primary' : 'text-gray-800'}`}>
+                    {date.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </Card>
+
+        {/* Time Slot Selection */}
+        <Card className="mb-4 p-4">
+          <View className="flex-row items-center gap-2 mb-3">
+            <Clock size={16} color={colors.primary} />
+            <Text className="text-xs font-bold text-gray-800">Preferred Time Slot</Text>
+          </View>
+          <View className="gap-2">
+            {TIME_SLOTS.map((slot) => {
+              const isSelected = selectedTimeSlot === slot;
+              return (
+                <Pressable
+                  key={slot}
+                  onPress={() => setSelectedTimeSlot(slot)}
+                  className={`p-3 rounded-xl border flex-row items-center justify-between ${
+                    isSelected
+                      ? 'bg-emerald-50 border-primary'
+                      : 'bg-white border-gray-200 active:bg-gray-50'
+                  }`}
+                >
+                  <Text className={`text-xs font-semibold ${isSelected ? 'text-primary' : 'text-gray-800'}`}>
+                    {slot}
+                  </Text>
+                  <View
+                    className={`w-4 h-4 rounded-full border items-center justify-center ${
+                      isSelected ? 'border-primary bg-primary' : 'border-gray-300'
+                    }`}
+                  >
+                    {isSelected && <View className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        </Card>
+
+        {/* Address Input */}
+        <Card className="mb-4 p-4">
+          <View className="flex-row items-center gap-2 mb-2">
+            <MapPin size={16} color={colors.primary} />
+            <Text className="text-xs font-bold text-gray-800">Job Address</Text>
+          </View>
+          <Input
+            placeholder="House #, Street, Block, Area..."
+            value={detailedAddress}
+            onChangeText={setDetailedAddress}
+            containerClassName="mb-3"
+          />
+          <Input
+            placeholder="Special instructions or landmark (optional)..."
+            value={notes}
+            onChangeText={setNotes}
+            multiline
+            numberOfLines={2}
+          />
+        </Card>
+
+        {/* Price Breakdown */}
+        <Card className="mb-6 p-4">
+          <Text className="text-xs font-bold text-gray-800 mb-3">Price Breakdown</Text>
+          <View className="gap-2">
+            <View className="flex-row justify-between">
+              <Text className="text-xs text-gray-500">Service Base Rate</Text>
+              <Text className="text-xs font-semibold text-gray-800">PKR {provider?.basePrice || 0}</Text>
+            </View>
+            <View className="flex-row justify-between">
+              <Text className="text-xs text-gray-500">Travel Distance ({distance.toFixed(1)} km)</Text>
+              <Text className="text-xs font-semibold text-gray-800">PKR {travelFee}</Text>
+            </View>
+            <View className="h-px bg-gray-100 my-1" />
+            <View className="flex-row justify-between items-center">
+              <View>
+                <Text className="text-sm font-bold text-gray-900">Total Amount</Text>
+                <Text className="text-[10px] text-gray-400">Cash on completion</Text>
+              </View>
+              <Text className="text-base font-bold text-primary">PKR {totalPrice}</Text>
+            </View>
+          </View>
+        </Card>
+
+        <Button
+          title="Confirm & Book Service"
+          onPress={handleBookingConfirm}
+          loading={bookingInProgress}
+          fullWidth
+          className="mb-6"
+        />
+
+        {/* Success Modal */}
+        <Modal transparent visible={showSuccessModal} animationType="fade">
+          <View className="flex-1 items-center justify-center bg-black/50 p-4">
+            <View className="w-full max-w-sm rounded-2xl bg-white p-6 items-center shadow-xl">
+              <View className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 items-center justify-center mb-3">
+                <CheckCircle size={32} color="#059669" />
+              </View>
+              <Text className="text-lg font-bold text-gray-900">Booking Confirmed!</Text>
+              <Text className="text-xs text-gray-500 text-center mt-1">
+                Your request has been sent to {provider?.name}. Opening chat...
+              </Text>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
-
-      {/* Success overlay modal */}
-      <Modal
-        transparent
-        visible={showSuccessModal}
-        animationType="fade"
-        onRequestClose={() => setShowSuccessModal(false)}
-      >
-        <View className="flex-1 items-center justify-center bg-surface/90 p-6">
-          {/* Gold flash */}
-          <View className="absolute h-64 w-64 rounded-full bg-accent-gold opacity-20" />
-
-          <View className="items-center">
-            {/* Verified stamp */}
-            <View className="mb-6 h-40 w-40 items-center justify-center rounded-full border-4 border-dashed border-accent-gold bg-surface-raised shadow-soft">
-              <View className="h-32 w-32 items-center justify-center rounded-full border-2 border-accent-gold">
-                <Text className="font-display text-[9px] uppercase tracking-widest text-accent-gold">
-                  Verified
-                </Text>
-                <View className="my-1 h-px w-16 bg-accent-gold" />
-                <Text className="font-display text-xl font-black tracking-tight text-accent-gold">
-                  KHIDMAT
-                </Text>
-                <View className="my-1 h-px w-16 bg-accent-gold" />
-                <Text className="font-sans text-[8px] font-bold tracking-wider text-accent-gold">
-                  APPROVED
-                </Text>
-              </View>
-            </View>
-
-            <Text className="text-2xl font-semibold text-ink">Booking Confirmed!</Text>
-            <Text className="mt-2 text-center text-sm text-ink/75">
-              Redirecting you to chat with {provider?.name}...
-            </Text>
-          </View>
-        </View>
-      </Modal>
     </KeyboardAvoidingView>
   );
 }
