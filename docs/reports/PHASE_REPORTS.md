@@ -41,3 +41,53 @@ This file tracks the formal execution and exit gate validation of each phase as 
 - **Action 2 (OAuth Redirects for Phase 1):** In production Supabase dashboard (`Authentication -> URL Configuration`), ensure Redirect URLs allow `khidmat://**` and `khidmat://auth/callback`.
 
 **Exit gate status:** **PARTIAL** (P0-1, P0-2, P0-4 and style formatting verified; P0-3 blocked due to missing Docker environment on host).
+
+---
+
+### Phase 1 — Auth Fixes & Layout Direction — 2026-11-24
+
+**Tasks completed:**
+- `P1-1`: Implemented deep link OAuth redirect flow. Added `expo-web-browser` and `expo-auth-session`, created URL parser `src/utils/authUrlParser.ts` (handling PKCE `?code=`, fragment tokens, and error payloads), added deep-link landing callback route `app/auth/callback.tsx` with session timeout and role routing, created `app/auth/complete-profile.tsx` for new OAuth users missing role/city, and documented Supabase URL configuration in `docs/SETUP.md`.
+- `P1-2`: Enforced layout direction consistency across auth screens. Created `src/i18n/direction.ts` as the single source of truth for RTL (`isRTL`, `syncDirection`, `getLogicalTextAlign`, `PHONE_CONTAINER_STYLE`, `PHONE_TEXT_STYLE`). Replaced hardcoded `text-left` and physical styles with logical alignments (`text-start`, dynamic `textAlign`). Isolated phone inputs in strict LTR so `+92` never flips to `92+`. Added unit tests in `src/i18n/__tests__/direction.test.ts` and `src/i18n/__tests__/authDirection.test.ts`.
+- `P1-3`: Fixed status bar contrast and sanitized Android autofill. Set `<StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />` with cream background `#FBFAF6` in `app/_layout.tsx`. Configured `autoComplete`, `textContentType`, `importantForAutofill="no"`, and `underlineColorAndroid="transparent"` across inputs in `app/(auth)/auth.tsx` to prevent clashing yellow autofill highlights.
+- `P1-4`: Gated 1-Tap Quick Demo Login to dev/test environments. Created `src/utils/demoAuth.ts` and wrapped demo login buttons so they strictly do not render in production unless `EXPO_PUBLIC_ENABLE_DEMO === 'true'`. Added unit tests in `src/utils/__tests__/demoAuth.test.ts`.
+
+**Tasks skipped/blocked:**
+- None. All Phase 1 tasks (P1-1 through P1-4) completed and verified.
+
+**Commands run + results:**
+- `npx tsc --noEmit` $\rightarrow$ **PASS** (Exit code 0, 0 compiler errors)
+- `npm run lint` $\rightarrow$ **PASS** (Exit code 0, 0 errors)
+- `npx jest --coverage` $\rightarrow$ **PASS** (15 test suites passed, 61 tests passed, 0 failures, 52.18% statements / 56.16% lines overall)
+- `npx expo-doctor` $\rightarrow$ **PASS** (21/21 checks passed, 0 issues detected)
+- `git ls-files | findstr /i "apk jks keystore"` $\rightarrow$ **PASS** (0 binary files tracked)
+- `git grep -n "service_role"` $\rightarrow$ **PASS** (0 hardcoded service_role keys found)
+
+**New/changed tests:**
+- `src/utils/__tests__/authUrlParser.test.ts` (6 tests: PKCE code, fragment tokens, OAuth errors, null/empty inputs)
+- `src/utils/__tests__/authRedirect.test.ts` (3 tests: deep link handling & parameter extraction)
+- `src/i18n/__tests__/direction.test.ts` (6 tests: language detection, alignment, LTR isolation, I18nManager sync)
+- `src/i18n/__tests__/authDirection.test.ts` (4 tests: English LTR & Urdu RTL rendering with phone LTR isolation)
+- `src/utils/__tests__/demoAuth.test.ts` (4 tests: dev, test flag, and production gating)
+
+**Screenshots/evidence:**
+- Commit log on `feat/prd-v2`:
+  - `1dbdbd4`: `feat(auth): P1-1 implement deep-link OAuth redirect flow and callback handler`
+  - `2631147`: `fix(i18n): P1-2 enforce logical layout direction and LTR isolation for phone numbers`
+  - `95c079a`: `fix(ui): P1-3 set dark status bar for light theme and sanitize android autofill`
+  - `b6a4086`: `feat(auth): P1-4 gate 1-tap demo login to dev and test environments`
+  - `880e592`: `style: format phase 1 test and i18n files`
+
+**Decisions made / deviations from PRD:**
+- Removed hardcoded `I18nManager.forceRTL(false)` outside React component lifecycle in `app/_layout.tsx`, delegating layout direction directly to `initI18n()` and `syncDirection()`.
+- Added `app/auth/complete-profile.tsx` to handle OAuth edge case where a new user signs in with Google without pre-existing phone, role, or city.
+
+**Open questions (also in docs/OPEN_QUESTIONS.md):**
+- `Q-01`: Docker unavailable on host machine (relevant for Phase 3/5 integration tests against real Postgres).
+- `Q-02`: Google OAuth Provider in Supabase Dashboard: Owner must enable Google Provider under Authentication -> Providers and add redirect URL `khidmat://auth/callback` in Supabase URL Configuration.
+
+**Owner-only actions needed (dashboard, keys, devices):**
+- In Supabase Dashboard -> Authentication -> URL Configuration: Add `khidmat://*` and `khidmat://auth/callback` to Redirect URLs.
+- In Supabase Dashboard -> Authentication -> Providers -> Google: Enable Google provider with OAuth client ID & secret.
+
+**Exit gate status:** **PASS** (All 4 verification checks green, 61/61 tests passing, 0 type errors, 0 lint errors, clean commits).
