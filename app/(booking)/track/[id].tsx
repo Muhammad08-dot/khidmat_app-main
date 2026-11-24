@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, ScrollView, Pressable, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, ScrollView, Pressable, ActivityIndicator, Linking, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft,
@@ -125,6 +125,28 @@ export default function LiveTrackingScreen() {
     }
   };
 
+  const handleEmergencySOS = async () => {
+    const url = 'tel:15';
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert(
+          rtl ? 'ہنگامی پولیس رابطہ' : 'Emergency Assistance',
+          rtl
+            ? 'براہ کرم فوری مدد کے لیے اپنے فون سے 15 ڈائل کریں۔'
+            : 'Please dial 15 directly on your phone keypad for Police Emergency Assistance.'
+        );
+      }
+    } catch {
+      Alert.alert(
+        'Emergency Assistance',
+        'Please dial 15 directly on your phone keypad for Police Emergency Assistance.'
+      );
+    }
+  };
+
   const handleChat = () => {
     if (id) {
       router.push(`/chat?bookingId=${id}`);
@@ -233,12 +255,13 @@ export default function LiveTrackingScreen() {
 
         {/* Emergency SOS */}
         <Pressable
-          onPress={() => Linking.openURL('tel:15')}
+          testID="tracking-sos-button"
+          onPress={handleEmergencySOS}
           className="flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl bg-red-50 border border-red-200"
         >
           <ShieldAlert size={14} color="#DC2626" />
           <Text className="text-xs font-bold text-red-700">
-            Khidmat Safety Shield (Emergency 15)
+            {rtl ? 'خدمت ایمرجنسی شیلڈ (پولیس 15)' : 'Khidmat Safety Shield (Emergency 15)'}
           </Text>
         </Pressable>
       </View>

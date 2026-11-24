@@ -402,7 +402,7 @@ export default function ProfileScreen() {
                   icon: Phone,
                   color: BRAND.success,
                   label: 'Phone',
-                  value: userProfile.phone ? maskPhoneNumber(userProfile.phone) : 'Not set',
+                  value: userProfile.phone || 'Not set',
                 },
                 {
                   icon: MapPin,

@@ -5,13 +5,9 @@ import {
   TextInput,
   Pressable,
   ScrollView,
-  Modal,
   useWindowDimensions,
-  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MotiView } from 'moti';
-import * as Speech from 'expo-speech';
 import {
   Zap,
   Droplet,
@@ -21,17 +17,11 @@ import {
   Sparkles,
   Settings,
   Car,
-  Sprout,
-  Truck,
-  Bug,
-  Eye,
   Search,
-  Mic,
   MapPin,
   Bell,
   ShieldCheck,
   ChevronRight,
-  AlertCircle,
   Clock,
 } from 'lucide-react-native';
 import { useAuth } from '@/src/context/AuthContext';
@@ -89,12 +79,6 @@ const TOP_RATED_PROVIDERS = [
   },
 ];
 
-const DEMO_COMMANDS = [
-  'I need an electrician for a short circuit',
-  'My kitchen pipe is leaking',
-  'Need painter for house renovation',
-];
-
 export const CustomerHome: React.FC = () => {
   const router = useRouter();
   const { userProfile, updateProfile } = useAuth();
@@ -103,8 +87,6 @@ export const CustomerHome: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [focused, setFocused] = useState(false);
-  const [voiceModal, setVoiceModal] = useState(false);
-  const [voiceError, setVoiceError] = useState<string | null>(null);
 
   const city = userProfile?.city || 'Lahore';
   const userName = userProfile?.name?.split(' ')[0] || 'Guest';
@@ -128,21 +110,6 @@ export const CustomerHome: React.FC = () => {
 
   const openCategory = (name: string) =>
     router.push(`/matching?category=${encodeURIComponent(name)}`);
-
-  const startVoice = () => {
-    setVoiceError(
-      "Microphone speech recognition isn't available on device yet — try a demo command instead."
-    );
-    setVoiceModal(true);
-    void Speech.speak('Please describe what job or worker you are searching for.', {
-      language: 'en-US',
-    });
-  };
-
-  const runCommand = (phrase: string) => {
-    setVoiceModal(false);
-    submitSearch(phrase);
-  };
 
   return (
     <ScrollView
@@ -169,6 +136,7 @@ export const CustomerHome: React.FC = () => {
           <View className="flex-row items-center gap-2">
             {/* Location Pill */}
             <Pressable
+              testID="home-location-pill"
               onPress={() => router.push('/profile')}
               className="flex-row items-center gap-1 px-3 py-1.5 rounded-full bg-white border border-gray-200 shadow-xs"
             >
@@ -180,6 +148,7 @@ export const CustomerHome: React.FC = () => {
 
             {/* Notification Bell */}
             <Pressable
+              testID="home-notifications-button"
               onPress={() => router.push('/notifications')}
               className="w-9 h-9 rounded-full bg-white border border-gray-200 items-center justify-center shadow-xs"
             >
@@ -196,6 +165,7 @@ export const CustomerHome: React.FC = () => {
         >
           <Search size={18} color={colors.primary} />
           <TextInput
+            testID="home-search-input"
             value={searchQuery}
             onChangeText={setSearchQuery}
             onFocus={() => setFocused(true)}
@@ -206,13 +176,13 @@ export const CustomerHome: React.FC = () => {
             className="ml-2.5 flex-1 py-3 text-sm text-gray-900"
             returnKeyType="search"
           />
-          <Pressable onPress={startVoice} className="p-1.5 rounded-full bg-gray-50">
-            <Mic size={16} color={colors.primary} />
-          </Pressable>
         </View>
 
         {/* ================= RECENT BOOKING STRIP (S-4) ================= */}
-        <View className="mb-6 rounded-2xl bg-white border border-border p-4 shadow-xs">
+        <View
+          testID="home-recent-activity"
+          className="mb-6 rounded-2xl bg-white border border-border p-4 shadow-xs"
+        >
           <View className="flex-row items-center justify-between mb-2">
             <View className="flex-row items-center gap-2">
               <Clock size={15} color={colors.primary} />
@@ -325,53 +295,6 @@ export const CustomerHome: React.FC = () => {
           </Pressable>
         </View>
       </View>
-
-      {/* ================= VOICE COMMAND MODAL ================= */}
-      <Modal
-        transparent
-        visible={voiceModal}
-        animationType="fade"
-        onRequestClose={() => setVoiceModal(false)}
-      >
-        <View className="flex-1 items-center justify-center bg-black/50 p-4">
-          <View className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
-            <View className="items-center">
-              <View className="h-14 w-14 items-center justify-center rounded-full bg-amber-50 border border-amber-200 mb-3">
-                <AlertCircle size={24} color="#D97706" />
-              </View>
-              <Text className="text-base font-bold text-gray-900">
-                Voice Search
-              </Text>
-              <Text className="mt-1 text-center text-xs text-gray-500">
-                {voiceError || 'Select a demo query to try instant search:'}
-              </Text>
-
-              <View className="mt-4 w-full gap-2">
-                {DEMO_COMMANDS.map((phrase) => (
-                  <Pressable
-                    key={phrase}
-                    onPress={() => runCommand(phrase)}
-                    className="p-3 rounded-xl bg-gray-50 border border-gray-200 active:bg-gray-100"
-                  >
-                    <Text className="text-xs font-semibold text-gray-800">
-                      "{phrase}"
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-
-            <Pressable
-              onPress={() => setVoiceModal(false)}
-              className="mt-5 w-full rounded-xl bg-gray-100 py-3"
-            >
-              <Text className="text-center text-xs font-bold text-gray-700">
-                Close
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
     </ScrollView>
   );
 };
