@@ -4,6 +4,8 @@
  * credentials held server-side (agent-server), never in the mobile bundle.
  */
 import { supabase } from './supabase/client';
+import { ServiceError, NetworkError } from './errors';
+import { captureError } from './api/errorReporter';
 
 export type PaymentMethod = 'cod' | 'jazzcash' | 'easypaisa';
 
@@ -18,14 +20,23 @@ export async function recordCodSettlement(
   payerId: string,
   amount: number
 ): Promise<void> {
-  const { error } = await supabase.from('payments').insert({
-    booking_id: bookingId,
-    payer_id: payerId,
-    method: 'cod',
-    amount: Math.round(amount),
-    status: 'completed',
-  });
-  if (error) throw error;
+  try {
+    const { error } = await supabase.from('payments').insert({
+      booking_id: bookingId,
+      payer_id: payerId,
+      method: 'cod',
+      amount: Math.round(amount),
+      status: 'completed',
+    });
+    if (error) throw error;
+  } catch (err: any) {
+    void captureError(err instanceof Error ? err : new Error(String(err)));
+    throw new ServiceError(
+      err?.message || 'Failed to record cash settlement.',
+      'PAYMENT_FAILED',
+      err
+    );
+  }
 }
 
 export interface WalletInitResult {
@@ -83,7 +94,8 @@ export async function initiateWalletPayment(
       };
     }
     return { ok: false, reason: 'Payments server returned no order payload.' };
-  } catch (err) {
-    return { ok: false, reason: 'Could not reach the payments server.' };
+  } catch (err: any) {
+    void captureError(err instanceof Error ? err : new Error(String(err)));
+    return { ok: false, reason: 'Could not reach the payments server. Please check your internet connection.' };
   }
 }
