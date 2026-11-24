@@ -24,6 +24,7 @@ Historical and active phase verification reports are centralized in `docs/report
 
 | Report | Description |
 | :--- | :--- |
+| **[MASTER_PROJECT_STATUS_REPORT.md](file:///D:/dev-stuff/khidmat-hardening/docs/reports/MASTER_PROJECT_STATUS_REPORT.md)** | **Master Joint Status Report** on behalf of Agent 1 & Agent 2: Phase progress, quality gates, and launch audit. |
 | **[PHASE_REPORTS_HARDENING.md](file:///D:/dev-stuff/khidmat-hardening/docs/reports/PHASE_REPORTS_HARDENING.md)** | Agent 2 execution report for Phase 3 (Hardening), Part B (Integration), and Phase 4a (Cleanup). |
 | **[PHASE_REPORTS.md](file:///D:/dev-stuff/khidmat-hardening/docs/reports/PHASE_REPORTS.md)** | Phase 0 Baseline and Phase 1-2 UI Modernization execution logs. |
 | **[BASELINE.md](file:///D:/dev-stuff/khidmat-hardening/docs/reports/BASELINE.md)** | Baseline unit test coverage and static analysis report before Phase 1. |

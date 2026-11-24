@@ -11,15 +11,18 @@ What must happen before a **public** release. Items marked ✅ are done in code;
 
 - [ ] ⚙️ **App Icon & Splash Screen:** Generate/setup high-quality assets in `app.json` for professional store presence.
 - [ ] ⚙️ **Push Notifications:** Setup Expo Push Tokens and Supabase triggers (`supabase/functions/push-dispatcher`) to alert users on chat messages, KYC, and booking updates.
-- [ ] ⚙️ **Live Backend Migration:** Apply migrations `0001 → 0012` to production Supabase project (`EXPO_PUBLIC_DEMO_MODE=false`).
+- [ ] ⚙️ **Live Backend Migration:** Apply migrations `0001 → 0014` to production Supabase project (`EXPO_PUBLIC_USE_MOCK=false`).
 - [ ] ⚙️ **Legal & Privacy Submission:** Submit public Privacy Policy URL and Data Safety form in Play Console.
 
 ### P1: Production Readiness (High Priority)
 
-- [x] ✅ **In-App Account Deletion:** Google Play compliant self-serve account deletion & data anonymization in Profile (`0011_account_deletion.sql`).
+- [x] ✅ **In-App Account Deletion:** Google Play compliant self-serve account deletion & data anonymization in Profile (`0011_account_deletion.sql`, cascading KYC cleanup in `0013_kyc_and_security_hardening.sql`).
 - [x] ✅ **User Reporting & Moderation:** Reporting flow for inappropriate content and provider harassment with admin console moderation (`0012_user_reports.sql`).
 - [x] ✅ **Realtime Low-Overhead Tracking:** Live GPS tracking migrated to Supabase Realtime Broadcast channels (`tracking:{bookingId}`).
-- [x] ✅ **Atomic Status Transitions:** Race-condition-free booking state machine with server guards (`0009_booking_state_machine.sql`).
+- [x] ✅ **Atomic Status Transitions & Price Lock:** Race-condition-free booking state machine (`0009_booking_state_machine.sql`) and immutable accepted prices (`0014_rls_hardening.sql`).
+- [x] ✅ **KYC Document Isolation:** Private bucket, signed URLs, owner-only uploads, and audited admin reads (`0013_kyc_and_security_hardening.sql`).
+- [x] ✅ **Mock Fallback Removal:** Silent mock client removed; production config error proxy safely handles missing backend URL without silently faking data.
+- [x] ✅ **Automated CI Secret Scanning:** Git commit and PR scans actively detect private keys and non-anon JWTs.
 - [ ] ⚙️ **Crash Reporting (Sentry):** Integrate `@sentry/react-native` to catch and monitor production crashes in real-time (PII scrubbers already built).
 - [ ] ⚙️ **EAS OTA Updates:** Configure `expo-updates` so we can push instant bug fixes to users without waiting for Play Store reviews.
 - [ ] ⚙️ **First Admin Bootstrap:** Promote ops email to `role = 'admin'` in Supabase SQL editor.
@@ -38,15 +41,15 @@ What must happen before a **public** release. Items marked ✅ are done in code;
 The app currently runs on in-memory mock data (`EXPO_PUBLIC_DEMO_MODE=true` in `.env`).
 
 ```bash
-# 1. Apply every migration to the real Supabase project (0001 … 0012).
+# 1. Apply every migration to the real Supabase project (0001 … 0014).
 npx supabase link --project-ref <your-project-ref>
 npx supabase db push
 
 # 2. Turn demo mode OFF for a production build.
-#    .env / EAS env:  EXPO_PUBLIC_DEMO_MODE=false
+#    .env / EAS env:  EXPO_PUBLIC_USE_MOCK=false
 ```
 
-- ✅ Migrations `0001_init` … `0012_user_reports` exist and are tested.
+- ✅ Migrations `0001_init` … `0014_rls_hardening` exist and are tested.
 - ⚙️ Verify against the live DB: sign up → browse providers → book → chat →
   complete → review → reschedule → cancel → notifications.
 - 💡 `EXPO_PUBLIC_SUPABASE_URL` / `..._ANON_KEY` are safe to ship (anon key is
