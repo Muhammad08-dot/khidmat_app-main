@@ -189,7 +189,11 @@ export default function AuthScreen() {
     setNotice(null);
     setLoading(true);
     try {
-      await signInWithGoogle();
+      const res = await signInWithGoogle();
+      if (!res) {
+        // User cancelled or dismissed browser window
+        return;
+      }
       if (Platform.OS === 'web') {
         router.replace('/');
       }
@@ -203,7 +207,7 @@ export default function AuthScreen() {
         'Google Sign-In',
         msg.includes('Google Sign-In is not enabled')
           ? msg
-          : 'Google login requires enabling the Google Provider with OAuth credentials in your Supabase dashboard.\n\nTip: You can use Email/Password or the 1-Tap Quick Demo Login to test the app.'
+          : 'Google login requires enabling the Google Provider with OAuth credentials in your Supabase dashboard.\n\nTip: You can use Email/Password to sign in or create an account.'
       );
     } finally {
       setLoading(false);

@@ -74,7 +74,27 @@ Runs on `http://localhost:8787`.
 
 ---
 
-## 4. Running the Mobile App
+## 4. Google OAuth & Deep Link Configuration (PRD v2 / P1-1)
+
+To allow "Continue with Google" to redirect directly back into the Android / iOS app:
+
+1. **Supabase Dashboard Configuration**:
+   - Go to: **Authentication -> URL Configuration**.
+   - Set **Site URL** to: `https://sodxwchaqpqnwvnrnsaj.supabase.co` (or your production web domain).
+   - Under **Redirect URLs**, add:
+     - `khidmat://*`
+     - `khidmat://auth/callback`
+     - `exp://**` (for local Expo Go development if applicable)
+2. **Google Cloud Console Configuration**:
+   - Authorized redirect URI for Supabase:
+     `https://<project-ref>.supabase.co/auth/v1/callback`
+3. **App Scheme**:
+   - The scheme `khidmat` is registered in `app.json`.
+   - On Android and iOS, deep links such as `khidmat://auth/callback?code=...` are routed by Expo Router directly to `app/auth/callback.tsx`.
+
+---
+
+## 5. Running the Mobile App
 
 ```bash
 # Install dependencies
