@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase, DEMO_MODE } from '../services/supabase/client';
+import { supabase, DEMO_MODE, isConfigured, USE_MOCK, ConfigError } from '../services/supabase/client';
 import { profileColumnsFromCamel } from '../services/supabase/legacy';
 import { registerPushToken } from '../services/push';
 import { parseAuthRedirectUrl } from '../utils/authUrlParser';
@@ -43,6 +43,11 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  if (!isConfigured && !USE_MOCK) {
+    throw new ConfigError(
+      'Configuration error: Missing Supabase URL or Anon Key. Please check your environment variables.'
+    );
+  }
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<any | null>(null);

@@ -10,7 +10,7 @@ import {
   sendMessage,
   clearAntiSpam,
 } from '../queries';
-import { createMockSupabase } from '../mockClient';
+import { createMockSupabase } from '@/src/test-utils/mockClient';
 
 describe('Phase 3 Feature Suite: Account Deletion, Reporting, & Anti-Spam', () => {
   beforeEach(() => {

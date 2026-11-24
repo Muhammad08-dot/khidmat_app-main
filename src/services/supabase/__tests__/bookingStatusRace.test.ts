@@ -6,7 +6,7 @@ import {
   transitionBookingStatus,
   ALLOWED_STATUS_TRANSITIONS,
 } from '../queries';
-import { createMockSupabase } from '../mockClient';
+import { createMockSupabase } from '@/src/test-utils/mockClient';
 
 describe('Booking Status State Machine & Race Condition Handling', () => {
   it('correctly defines allowed transitions according to the lifecycle PRD', () => {
