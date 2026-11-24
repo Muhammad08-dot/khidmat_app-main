@@ -4,7 +4,7 @@
  * credentials held server-side (agent-server), never in the mobile bundle.
  */
 import { supabase } from './supabase/client';
-import { ServiceError, NetworkError } from './errors';
+import { ServiceError } from './errors';
 import { captureError } from './api/errorReporter';
 
 export type PaymentMethod = 'cod' | 'jazzcash' | 'easypaisa';

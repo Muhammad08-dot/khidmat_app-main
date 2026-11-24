@@ -1,42 +1,76 @@
-# Khidmat Agent Server — API Contract
+# Khidmat Agent Server — API Contract & Environment Specification
 
-> **Default port:** `8787` (configurable via `PORT` env var in `mobile/agent-server/.env`)
+> **Default port:** `8787` (configurable via `PORT` env var in `agent-server/.env`)  
 > **Base URL (local):** `http://localhost:8787`
 
-This document is the authoritative contract for the Khidmat self-healing agent server. It is consumed by Agent 1 (web), Agent 2 (mobile), and Agent 3 (QA). Any client that calls these endpoints must conform to the shapes below.
+This document is the authoritative contract for the Khidmat self-healing agent server. It is consumed by Agent 1 (UI), Agent 2 (Hardening), and project developers. Any client calling these endpoints must conform to the shapes below.
 
-## Overview
+---
 
-The agent server (`mobile/agent-server/`) is an Express microservice that receives client crash reports from the Khidmat mobile app and returns an AI-generated diagnosis, suggested fix, and optional code patch. It uses LangChain with either OpenAI or Google Gemini (dynamic imports) when an API key is configured. Without keys it returns a deterministic stub response (so the server always boots and always responds).
+## 1. Environment Variables Specification
 
-CORS is enabled for all origins. Body limit is 512 KB (`express.json({ limit: "512kb" })`).
+The agent server is configured via environment variables. In local development, create `agent-server/.env` based on `.env.example`.
 
-## Endpoints
+| Variable | Required | Default | Description |
+| :--- | :---: | :---: | :--- |
+| `PORT` | No | `8787` | Port the Express server listens on. |
+| `ALLOWED_ORIGINS` | No | `http://localhost:8081,exp://localhost:8081` | Comma-separated list of allowed CORS origins. |
+| `SUPABASE_JWT_SECRET` | **Yes** | — | Supabase JWT signing secret. Used to verify bearer tokens on protected endpoints. |
+| `SUPABASE_JWT_AUDIENCE` | No | `authenticated` | Expected audience (`aud`) claim in incoming user JWTs. |
+| `RATE_LIMIT_WINDOW_MS` | No | `60000` | Rate limiting sliding window duration in milliseconds (1 minute). |
+| `RATE_LIMIT_MAX_REQUESTS` | No | `60` | Maximum requests allowed per IP address within the sliding window. |
+| `GEMINI_API_KEY` | No | — | Google Gemini API key for intent parsing and LLM diagnostics. |
+| `GEMINI_MODEL` | No | `gemini-2.5-flash` | Gemini model identifier used for content generation. |
+| `OPENAI_API_KEY` | No | — | OpenAI API key fallback for LLM operations. |
+| `OPENAI_MODEL` | No | `gpt-4o-mini` | OpenAI model identifier. |
+| `PAYMENTS_ENABLED` | No | `false` | Feature toggle for mobile wallet transaction initiation. |
+| `GW_MOBILE_ACCOUNT` | When payments enabled | — | Merchant mobile account identifier for JazzCash/EasyPaisa. |
+| `GW_MERCHANT_KEY` | When payments enabled | — | Merchant secret key used to compute HMAC SHA-512 order signatures. |
+| `GW_MERCHANT_ID` | When payments enabled | — | Merchant ID issued by payment gateway. |
+| `GW_PASSWORD_SALT` | When payments enabled | — | Merchant transaction password salt. |
+| `GW_RETURN_URL` | No | `khidmat://payments/callback` | Deep-link callback URL after payment gateway completion. |
 
-### `GET /api/health` — Liveness probe
+---
 
-No request body.
+## 2. Authentication & Security Middleware
 
-**Response** `200 OK`:
+All endpoints under `/api/*` (except health and payments config) require a valid Supabase JWT Bearer token:
+```http
+Authorization: Bearer <SUPABASE_JWT>
+```
+The token is verified using `jsonwebtoken` against `SUPABASE_JWT_SECRET` and strictly enforces:
+- Expiration: Expired tokens reject with `401 Token expired`.
+- Audience: Audience claim must match `SUPABASE_JWT_AUDIENCE` (`authenticated`). Wrong audience rejects with `401 Invalid token`.
+- Signature: Unsigned or tampered tokens reject with `401 Invalid token`.
 
+### CORS Protection
+Cross-Origin Resource Sharing is strictly constrained to `ALLOWED_ORIGINS`. Preflight and request headers from unauthorized origins are rejected.
+
+### Rate Limiting
+Global sliding-window rate limiting throttles abusive traffic. Requests exceeding `RATE_LIMIT_MAX_REQUESTS` receive HTTP `429 Too Many Requests`.
+
+---
+
+## 3. Endpoints
+
+### `GET /health` & `GET /api/health` — Liveness & Readiness Probes
+No request body or authentication required.
+
+**Response `200 OK`**:
 ```json
 {
   "status": "ok",
   "hasLLM": true,
-  "timestamp": "2026-09-02T12:00:00.000Z"
+  "timestamp": "2026-11-24T12:00:00.000Z"
 }
 ```
 
-| Field       | Type              | Description                                                                 |
-| ----------- | ----------------- | --------------------------------------------------------------------------- |
-| `status`    | string            | Always `"ok"` when the server is up                                         |
-| `hasLLM`    | boolean           | `true` if `OPENAI_API_KEY` or `GEMINI_API_KEY` is set; `false` in stub mode |
-| `timestamp` | string (ISO-8601) | Server time of the response                                                 |
+---
 
-### `POST /api/heal` — Submit a crash report, get a fix suggestion
+### `POST /api/heal` — Self-Healing Diagnostic
+Requires JWT Authentication (`Bearer`).
 
-**Request body** (`application/json`):
-
+**Request body (`application/json`)**:
 ```json
 {
   "message": "Cannot read property 'map' of undefined",
@@ -46,83 +80,52 @@ No request body.
   "codeSnippet": "providers.map(p => ...)",
   "appContext": "customer home screen, after booking",
   "platform": "react-native",
-  "timestamp": "2026-09-02T12:00:00.000Z"
+  "timestamp": "2026-11-24T12:00:00.000Z"
 }
 ```
 
-| Field            | Type              | Required | Description                                         |
-| ---------------- | ----------------- | -------- | --------------------------------------------------- |
-| `message`        | string            | **Yes**  | The error message. Missing → `400`                  |
-| `stack`          | string            | No       | JS stack trace                                      |
-| `componentStack` | string            | No       | React component stack                               |
-| `file`           | string            | No       | Source file the error originated in                 |
-| `codeSnippet`    | string            | No       | Relevant code snippet                               |
-| `appContext`     | string            | No       | High-level app state context                        |
-| `platform`       | string            | No       | `"react-native"` (dynamically set by mobile client) |
-| `timestamp`      | string (ISO-8601) | No       | When the crash was captured                         |
-
-**Success response** `200 OK`:
-
+**Success response `200 OK`**:
 ```json
 {
-  "diagnosis": "A one-paragraph root-cause analysis.",
-  "suggestion": "A short actionable fix description.",
-  "proposedPatch": "TypeScript/JSX code patch, or null if unclear.",
-  "confidence": 0.85,
-  "model": "gpt-4o-mini",
-  "timestamp": "2026-09-02T12:00:00.000Z"
+  "diagnosis": "Root cause analysis from AI or diagnostics engine.",
+  "suggestion": "Actionable code modification recommendation.",
+  "proposedPatch": "TypeScript/JSX patch snippet, or null.",
+  "confidence": 0.9,
+  "model": "gemini-2.5-flash",
+  "timestamp": "2026-11-24T12:00:00.000Z"
 }
 ```
 
-| Field           | Type              | Description                                                          |
-| --------------- | ----------------- | -------------------------------------------------------------------- |
-| `diagnosis`     | string            | Root-cause analysis from the LLM (or stub text if no key)            |
-| `suggestion`    | string            | Short actionable fix                                                 |
-| `proposedPatch` | string \| null    | Code patch snippet, or `null`                                        |
-| `confidence`    | number (0–1)      | Model confidence; `0` in stub mode                                   |
-| `model`         | string            | `"gpt-4o-mini"` (OpenAI), `"gemini-1.5-flash"` (Gemini), or `"stub"` |
-| `timestamp`     | string (ISO-8601) | Server time of the response                                          |
+---
 
-**Error responses**:
+### `POST /api/gemini/generateContent` — Secure Gemini Proxy
+Requires JWT Authentication (`Bearer`). Used for intent parsing and specialized provider matching.
 
-- `400 Bad Request` — `{ "error": "Missing required field: message" }` if `message` is absent.
-- `500 Internal Server Error` — `{ "error": "LLM invocation failed", "detail": "<message>" }` if the LLM call throws.
-
-## Client Integration
-
-The mobile client posts crash reports in `mobile/src/agent/errorReporter.ts` via:
-
-```
-POST {EXPO_PUBLIC_AGENT_ENDPOINT}
-Content-Type: application/json
+**Request body (`application/json`)**:
+```json
 {
-  "message": string,
-  "stack"?: string,
-  "componentStack"?: string,
-  "platform": "react-native",
-  "timestamp": ISO-string,
-  "appVersion": string   // from EXPO_PUBLIC_APP_VERSION
+  "model": "gemini-2.5-flash",
+  "contents": [
+    {
+      "parts": [{ "text": "Analyze service category" }]
+    }
+  ],
+  "generationConfig": {
+    "responseMimeType": "application/json"
+  }
 }
 ```
 
-Default endpoint value: `http://localhost:8787/api/heal` (set `EXPO_PUBLIC_AGENT_ENDPOINT` in `mobile/.env`).
+---
 
-## Environment Variables (agent-server)
+### `POST /api/payments/initiate` — Mobile Wallet Transaction Initiation
+Requires JWT Authentication (`Bearer`). Protected by server-side HMAC SHA-512 signing.
 
-| Variable         | Purpose                                       | Default   |
-| ---------------- | --------------------------------------------- | --------- |
-| `PORT`           | HTTP listen port                              | `8787`    |
-| `OPENAI_API_KEY` | Enables OpenAI diagnosis (`gpt-4o-mini`)      | _(empty)_ |
-| `GEMINI_API_KEY` | Enables Gemini diagnosis (`gemini-1.5-flash`) | _(empty)_ |
-
-If neither `OPENAI_API_KEY` nor `GEMINI_API_KEY` is set, the server responds in **stub mode** (`hasLLM: false`, `model: "stub"`, `confidence: 0`).
-
-## Run
-
-```bash
-cd mobile/agent-server
-npm install
-cp .env.example .env   # set PORT / keys as needed
-npm start              # tsx src/index.ts → http://localhost:8787
-npm run dev            # tsx watch (auto-reload)
+**Request body (`application/json`)**:
+```json
+{
+  "bookingId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "amount": 2500,
+  "method": "jazzcash"
+}
 ```
