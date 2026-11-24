@@ -91,3 +91,56 @@ This file tracks the formal execution and exit gate validation of each phase as 
 - In Supabase Dashboard -> Authentication -> Providers -> Google: Enable Google provider with OAuth client ID & secret.
 
 **Exit gate status:** **PASS** (All 4 verification checks green, 61/61 tests passing, 0 type errors, 0 lint errors, clean commits).
+
+---
+
+### Phase 2 — Design System & UI Modernization — 2026-11-24
+
+**Tasks completed:**
+- `P2-1`: Added design tokens and typography system in `src/theme/tokens.ts` (colors with AA contrast, typography scale, Urdu Nastaliq line-height multiplier $\ge 1.8\times$, 4-pt grid spacing, radii, elevations, motion transitions). Added 5 unit tests in `src/theme/__tests__/tokens.test.ts`.
+- `P2-2`: Created core modern UI primitives in `src/components/ui/` (`Button` with $\ge 48$ dp min height, `Input` with 52 dp height and show/hide password, `SegmentedControl`, `GoogleButton` with official multi-color Google branding, `StepIndicator`, `Chip`, `Badge`, `Toast`, `ProviderCard`). Added 8 component unit tests in `src/components/ui/__tests__/primitives.test.tsx`.
+- `P2-3`: Redesigned Auth screens in `app/(auth)/auth.tsx` (S-1 Login without double card, full-width primary button, show/hide password, official GoogleButton; S-2 Multi-step Signup with 3-step indicator: Account Type & Credentials, Location & Service Details, Photo & Review).
+- `P2-4`: Redesigned Customer Home in `src/components/features/CustomerHome.tsx` (S-4 Greeting + location pill, 52 dp search bar with voice command shortcut, recent bookings strip, popular categories grid, top-rated provider cards, verified pros trust banner).
+- `P2-5`: Redesigned Booking flow in `app/(booking)/booking.tsx` and Live Tracking in `app/(booking)/track/[id].tsx` (S-6 Step progress indicator, provider profile card, date chips, time slots, address input, price breakdown with base and travel fee, live map tracking with ETA, and quick call/chat actions).
+- `P2-6`: Redesigned Provider Home in `src/components/features/ProviderHome.tsx` (S-8 Prominent availability toggle with online/offline state, KYC verification status banner, earnings and completed jobs summary cards, incoming booking requests with accept/decline actions, and job completion modal).
+- `P2-7`: Redesigned Profile in `app/(tabs)/profile.tsx` with CNIC and phone privacy masking (`maskPhoneNumber` from `src/utils/privacy.ts`), and implemented `ErrorBoundary.tsx` Configuration Error display with Retry button per PRD D-04 and P3-1 handoff. Added unit tests in `src/components/layout/__tests__/ErrorBoundary.test.tsx`. Added `npm run test:integration` script to `package.json`.
+- `P2-8`: Executed full quality gates (tsc, lint, jest, expo-doctor, secret-scan).
+
+**Tasks skipped/blocked:**
+- None. All Phase 2 design system and screen modernization tasks (P2-1 through P2-8) completed and verified.
+
+**Commands run + results:**
+- `node scripts/secret-scan.js` $\rightarrow$ **PASS** (187 tracked files scanned, 0 secrets found)
+- `npx tsc --noEmit` $\rightarrow$ **PASS** (Exit code 0, 0 compiler errors)
+- `npm run lint` $\rightarrow$ **PASS** (Exit code 0, 0 errors, all files validated)
+- `npx jest --coverage` $\rightarrow$ **PASS** (21 test suites passed, 95 tests passed, 0 failures, 60.38% statements / 64.95% lines overall)
+- `npx expo-doctor` $\rightarrow$ **PASS** (21/21 checks passed)
+
+**New/changed tests:**
+- `src/theme/__tests__/tokens.test.ts` (5 tests: contrast, radii, Nastaliq line-height, 4-pt grid, shadows)
+- `src/components/ui/__tests__/primitives.test.tsx` (8 tests: Button, Input, SegmentedControl, GoogleButton, StepIndicator, Chip, Badge/Toast, ProviderCard)
+- `src/components/layout/__tests__/ErrorBoundary.test.tsx` (2 tests: healthy render & configuration error display)
+
+**Screenshots/evidence:**
+- Commits landed on `feat/prd-v2`:
+  - `f24216a`: `feat(theme): P2-1 add design tokens, typography scale, and 4pt spacing system`
+  - `4f4308b`: `feat(ui): P2-2 create modern UI primitives conforming to design tokens`
+  - `61bad70`: `feat(auth): P2-3 redesign auth screens with modern tokens, show-hide password, GoogleButton, and multi-step signup`
+  - `c7fb0fe`: `feat(home): P2-4 redesign customer home with greeting, location pill, provider cards, and recent bookings`
+  - `336f042`: `feat(booking): P2-5 redesign booking confirmation and live tracking screens with step indicator, provider summary, and modern map tracking`
+  - `e144940`: `feat(provider): P2-6 redesign provider home with availability toggle, incoming request cards, earnings summary, and kyc banner`
+  - `5244756`: `feat(profile): P2-7 redesign profile with privacy masking and implement ErrorBoundary configuration error UI`
+  - `cd4de67`: `fix(layout): ensure isConfigError in ErrorBoundary is strictly typed boolean`
+
+**Decisions made / deviations from PRD:**
+- Maintained backward compatibility with existing `BRAND` color tokens while binding them to the new semantic tokens in `src/theme/tokens.ts`.
+- Integrated `maskPhoneNumber` directly into profile contact display so raw phone numbers are protected from shoulder-surfing.
+- Integrated P3-1 handoff directly into `ErrorBoundary.tsx` to display dedicated Configuration Error headline and Retry action.
+
+**Open questions (also in docs/OPEN_QUESTIONS.md):**
+- None for Phase 2.
+
+**Owner-only actions needed (dashboard, keys, devices):**
+- **Google OAuth Provider:** Enable Google Sign-In in Supabase dashboard and insert OAuth Client ID and Secret to allow physical device testing of the newly branded Google button.
+
+**Exit gate status:** **PASS** (All UI acceptance criteria met, 21/21 test suites green, 95/95 unit tests passing, 0 type errors, 0 lint errors, clean commits).

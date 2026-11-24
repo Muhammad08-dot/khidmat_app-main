@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { BRAND } from '@/src/theme/colors';
 import {
   View,
   Text,
-  Image,
   TextInput,
   Pressable,
   ScrollView,
   Modal,
   useWindowDimensions,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
@@ -26,45 +25,68 @@ import {
   Truck,
   Bug,
   Eye,
-  Flame,
-  Layers,
-  Wrench,
-  Camera,
-  Video,
-  PartyPopper,
-  Music,
-  Utensils,
-  UserCheck,
   Search,
   Mic,
+  MapPin,
+  Bell,
   ShieldCheck,
+  ChevronRight,
   AlertCircle,
-  Heart,
-  Users,
+  Clock,
 } from 'lucide-react-native';
 import { useAuth } from '@/src/context/AuthContext';
-import { getCurrentCoords } from '../../utils/geolocation';
-import { Icon, type IconProps } from '../ui/Icon';
+import { getCurrentCoords } from '@/src/utils/geolocation';
+import { ProviderCard } from '@/src/components/ui/ProviderCard';
+import { Badge } from '@/src/components/ui/Badge';
+import { colors } from '@/src/theme/tokens';
+import { isRTL } from '@/src/i18n';
 
 interface Category {
   name: string;
   icon: typeof Zap;
   color: string;
+  bgColor: string;
 }
 
 export const CATEGORIES: Category[] = [
-  { name: 'Electrician', icon: Zap, color: 'text-accent-gold' },
-  { name: 'Plumber', icon: Droplet, color: 'text-accent-sky' },
-  { name: 'Carpenter', icon: Hammer, color: 'text-accent-sage' },
-  { name: 'Painter', icon: Paintbrush, color: 'text-accent-gold' },
-  { name: 'AC Technician', icon: Snowflake, color: 'text-accent-sky' },
-  { name: 'House Cleaner', icon: Sparkles, color: 'text-accent-sage' },
-  { name: 'Appliance Repair', icon: Settings, color: 'text-accent-gold' },
-  { name: 'Mechanic', icon: Car, color: 'text-accent-sky' },
-  { name: 'Gardener', icon: Sprout, color: 'text-accent-sage' },
-  { name: 'Movers & Packers', icon: Truck, color: 'text-accent-gold' },
-  { name: 'Pest Control', icon: Bug, color: 'text-accent-sky' },
-  { name: 'CCTV Technician', icon: Eye, color: 'text-accent-sage' },
+  { name: 'Electrician', icon: Zap, color: '#D97706', bgColor: '#FEF3C7' },
+  { name: 'Plumber', icon: Droplet, color: '#2563EB', bgColor: '#DBEAFE' },
+  { name: 'Carpenter', icon: Hammer, color: '#7C3AED', bgColor: '#EDE9FE' },
+  { name: 'Painter', icon: Paintbrush, color: '#DC2626', bgColor: '#FEE2E2' },
+  { name: 'AC Technician', icon: Snowflake, color: '#0284C7', bgColor: '#E0F2FE' },
+  { name: 'House Cleaner', icon: Sparkles, color: '#059669', bgColor: '#D1FAE5' },
+  { name: 'Appliance Repair', icon: Settings, color: '#4B5563', bgColor: '#F3F4F6' },
+  { name: 'Mechanic', icon: Car, color: '#EA580C', bgColor: '#FFEDD5' },
+];
+
+const TOP_RATED_PROVIDERS = [
+  {
+    id: 'prov-1',
+    name: 'Muhammad Tariq',
+    category: 'Master Electrician',
+    rating: 4.9,
+    totalJobs: 142,
+    basePrice: 800,
+    tier: 'Platinum' as const,
+  },
+  {
+    id: 'prov-2',
+    name: 'Kamran Ashraf',
+    category: 'Expert Plumber',
+    rating: 4.8,
+    totalJobs: 98,
+    basePrice: 700,
+    tier: 'Gold' as const,
+  },
+  {
+    id: 'prov-3',
+    name: 'Nasir Iqbal',
+    category: 'AC & Cooling Specialist',
+    rating: 4.9,
+    totalJobs: 116,
+    basePrice: 1200,
+    tier: 'Platinum' as const,
+  },
 ];
 
 const DEMO_COMMANDS = [
@@ -75,18 +97,19 @@ const DEMO_COMMANDS = [
 
 export const CustomerHome: React.FC = () => {
   const router = useRouter();
-  const { updateProfile } = useAuth();
+  const { userProfile, updateProfile } = useAuth();
   const { width } = useWindowDimensions();
+  const rtl = isRTL();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [focused, setFocused] = useState(false);
   const [voiceModal, setVoiceModal] = useState(false);
-  const [isListening, setIsListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
 
-  const gridCols = width >= 480 ? 3 : 2;
-  const tileWidth = (width - 32 - (gridCols - 1) * 12 - 8) / gridCols;
+  const city = userProfile?.city || 'Lahore';
+  const userName = userProfile?.name?.split(' ')[0] || 'Guest';
 
-  // Sync customer location once on mount (fire-and-forget, like web).
+  // Sync customer location once on mount
   useEffect(() => {
     (async () => {
       try {
@@ -107,11 +130,9 @@ export const CustomerHome: React.FC = () => {
     router.push(`/matching?category=${encodeURIComponent(name)}`);
 
   const startVoice = () => {
-    // No web SpeechRecognition in RN — demo command shortcuts + TTS feedback.
     setVoiceError(
       "Microphone speech recognition isn't available on device yet — try a demo command instead."
     );
-    setIsListening(false);
     setVoiceModal(true);
     void Speech.speak('Please describe what job or worker you are searching for.', {
       language: 'en-US',
@@ -125,269 +146,228 @@ export const CustomerHome: React.FC = () => {
 
   return (
     <ScrollView
-      className="flex-1 bg-surface"
-      contentContainerStyle={{ paddingTop: 20, paddingBottom: 120 }}
+      className="flex-1 bg-background"
+      contentContainerStyle={{ paddingTop: 16, paddingBottom: 110 }}
       showsVerticalScrollIndicator={false}
     >
       <View className="px-4">
-        {/* HERO */}
-        <View className="relative overflow-hidden rounded-2xl border border-border bg-primary/5 px-5 py-8">
-          <View className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-accent-gold/10" />
-          <View className="absolute -bottom-14 -left-8 h-44 w-44 rounded-full bg-accent-sage/10" />
-          <MotiView
-            from={{ opacity: 0, translateY: 12 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: 'timing', duration: 500 }}
-          >
-            <View className="flex-row items-center gap-2.5 mb-3.5">
-              <Image
-                source={require('@/assets/logo.jpeg')}
-                style={{ width: 36, height: 36, borderRadius: 10 }}
-                resizeMode="cover"
-              />
-              <View className="flex-row items-center">
-                <Text className="font-display text-lg font-bold text-primary">Khidmat</Text>
-                <Text className="ml-1 text-xs font-semibold text-accent-gold">خدمت</Text>
-              </View>
-            </View>
-            <Text className="font-display text-3xl font-semibold leading-tight text-primary">
-              Professional Help,{'\n'}Right at Your Doorstep
+        {/* ================= TOP BAR: GREETING + LOCATION PILL (S-4) ================= */}
+        <View
+          className={`flex-row items-center justify-between mb-4 ${
+            rtl ? 'flex-row-reverse' : ''
+          }`}
+        >
+          <View>
+            <Text className="text-xs text-gray-500 font-medium">
+              Assalamu Alaikum
             </Text>
-            <Text className="mt-3 max-w-md font-sans text-sm text-ink/80">
-              Trusted local experts for every home need. From fixing a leak to planning your next
-              big event.
+            <Text className="text-xl font-bold text-gray-900">
+              {userName} 👋
             </Text>
-          </MotiView>
+          </View>
 
-          {/* Search */}
-          <View
-            className={`mt-6 flex-row items-center rounded-xl border bg-surface-raised px-3 ${
-              focused ? 'border-accent-gold' : 'border-border'
-            }`}
-          >
-            <Icon icon={Search} color={BRAND.primary} size={18} />
-            <TextInput
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
-              onSubmitEditing={() => submitSearch()}
-              placeholder="Describe what service you need... (e.g. kitchen pipe leak)"
-              placeholderTextColor={BRAND.primary + '66'}
-              className="ml-2 flex-1 py-3.5 text-sm font-medium text-ink"
-              returnKeyType="search"
-            />
-            <Pressable onPress={startVoice} className="rounded-full p-2">
-              <Icon icon={Mic} color={BRAND.primary} size={18} />
+          <View className="flex-row items-center gap-2">
+            {/* Location Pill */}
+            <Pressable
+              onPress={() => router.push('/profile')}
+              className="flex-row items-center gap-1 px-3 py-1.5 rounded-full bg-white border border-gray-200 shadow-xs"
+            >
+              <MapPin size={13} color={colors.primary} />
+              <Text className="text-xs font-semibold text-gray-800">
+                {city}
+              </Text>
+            </Pressable>
+
+            {/* Notification Bell */}
+            <Pressable
+              onPress={() => router.push('/notifications')}
+              className="w-9 h-9 rounded-full bg-white border border-gray-200 items-center justify-center shadow-xs"
+            >
+              <Bell size={16} color="#4B5563" />
             </Pressable>
           </View>
         </View>
 
-        {/* CATEGORY GRID */}
-        <View className="mt-8">
-          <Text className="font-display text-xl font-medium text-ink">Explore Categories</Text>
-          <Text className="mt-1 text-xs text-ink/60">
-            Verified professionals across 21 specialties
-          </Text>
+        {/* ================= SEARCH BAR (S-4) ================= */}
+        <View
+          className={`flex-row items-center rounded-xl bg-white px-3.5 border transition-all shadow-xs mb-6 ${
+            focused ? 'border-primary ring-2 ring-primary/20' : 'border-border'
+          }`}
+        >
+          <Search size={18} color={colors.primary} />
+          <TextInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            onSubmitEditing={() => submitSearch()}
+            placeholder="Search electrician, plumber, AC repair..."
+            placeholderTextColor="#9CA3AF"
+            className="ml-2.5 flex-1 py-3 text-sm text-gray-900"
+            returnKeyType="search"
+          />
+          <Pressable onPress={startVoice} className="p-1.5 rounded-full bg-gray-50">
+            <Mic size={16} color={colors.primary} />
+          </Pressable>
+        </View>
 
-          <View className="mt-4 flex-row flex-wrap" style={{ gap: 12, columnGap: 12 }}>
-            {CATEGORIES.map((cat, index) => {
-              const IconCmp = cat.icon as React.ComponentType<IconProps>;
+        {/* ================= RECENT BOOKING STRIP (S-4) ================= */}
+        <View className="mb-6 rounded-2xl bg-white border border-border p-4 shadow-xs">
+          <View className="flex-row items-center justify-between mb-2">
+            <View className="flex-row items-center gap-2">
+              <Clock size={15} color={colors.primary} />
+              <Text className="text-xs font-bold text-gray-900">Recent Activity</Text>
+            </View>
+            <Badge label="In Progress" variant="warning" />
+          </View>
+          <Text className="text-sm font-semibold text-gray-800">
+            Electrical Wiring & Switchboard Repair
+          </Text>
+          <Text className="text-xs text-gray-500 mt-0.5">
+            Provider on the way • ETA 18 mins
+          </Text>
+          <Pressable
+            onPress={() => router.push('/bookings')}
+            className="mt-3 pt-2.5 border-t border-gray-100 flex-row items-center justify-between"
+          >
+            <Text className="text-xs font-semibold text-primary">Track Live Status</Text>
+            <ChevronRight size={14} color={colors.primary} />
+          </Pressable>
+        </View>
+
+        {/* ================= CATEGORIES (S-4) ================= */}
+        <View className="mb-6">
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-base font-bold text-gray-900">
+              Popular Services
+            </Text>
+            <Pressable onPress={() => router.push('/categories')}>
+              <Text className="text-xs font-semibold text-primary">See All</Text>
+            </Pressable>
+          </View>
+
+          <View className="flex-row flex-wrap gap-2.5">
+            {CATEGORIES.map((cat) => {
+              const IconCmp = cat.icon;
               return (
-                <MotiView
+                <Pressable
                   key={cat.name}
-                  from={{ opacity: 0, translateY: 10 }}
-                  animate={{ opacity: 1, translateY: 0 }}
-                  transition={{ delay: index * 40, type: 'timing', duration: 220 }}
-                  style={{ width: tileWidth }}
+                  onPress={() => openCategory(cat.name)}
+                  style={{ width: (width - 32 - 10) / 2 }}
+                  className="p-3.5 rounded-2xl bg-white border border-border flex-row items-center gap-3 shadow-xs active:bg-gray-50 active:scale-[0.99]"
                 >
-                  <Pressable
-                    onPress={() => openCategory(cat.name)}
-                    className="items-center rounded-xl border border-border bg-surface-raised px-2 py-4"
+                  <View
+                    style={{ backgroundColor: cat.bgColor }}
+                    className="w-10 h-10 rounded-xl items-center justify-center"
                   >
-                    <View className="mb-2 h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
-                      <IconCmp
-                        color={
-                          cat.color === 'text-accent-gold'
-                            ? BRAND.gold
-                            : cat.color === 'text-accent-sky'
-                              ? BRAND.info
-                              : '#6B8F71'
-                        }
-                        size={22}
-                      />
-                    </View>
-                    <Text className="text-center text-xs font-medium text-ink">{cat.name}</Text>
-                  </Pressable>
-                </MotiView>
+                    <IconCmp size={20} color={cat.color} />
+                  </View>
+                  <Text numberOfLines={1} className="text-xs font-bold text-gray-900 flex-1">
+                    {cat.name}
+                  </Text>
+                </Pressable>
               );
             })}
           </View>
-
-          <Pressable
-            onPress={() => router.push('/categories')}
-            className="mt-6 self-center rounded-xl border border-primary px-8 py-3"
-          >
-            <Text className="text-sm font-bold text-primary">View More Categories</Text>
-          </Pressable>
         </View>
 
-        {/* VERIFICATION PITCH */}
-        <View className="mt-8 rounded-xl border border-primary/20 bg-primary/5 p-5">
-          <View className="mb-3 flex-row items-center gap-3">
-            <View className="h-12 w-12 items-center justify-center rounded-full bg-primary">
-              <Icon icon={ShieldCheck} color="#fff" size={22} />
+        {/* ================= TOP RATED NEAR YOU (S-4) ================= */}
+        <View className="mb-6">
+          <View className="flex-row items-center justify-between mb-3">
+            <View>
+              <Text className="text-base font-bold text-gray-900">
+                Top Rated Near You
+              </Text>
+              <Text className="text-xs text-gray-500">
+                Verified pros available in {city}
+              </Text>
             </View>
-            <Text className="flex-1 font-display text-lg font-semibold text-primary">
-              Verified Khidmat PROs
+            <Pressable onPress={() => router.push('/providers')}>
+              <Text className="text-xs font-semibold text-primary">Explore</Text>
+            </Pressable>
+          </View>
+
+          {TOP_RATED_PROVIDERS.map((prov) => (
+            <ProviderCard
+              key={prov.id}
+              id={prov.id}
+              name={prov.name}
+              category={prov.category}
+              rating={prov.rating}
+              totalJobs={prov.totalJobs}
+              basePrice={prov.basePrice}
+              tier={prov.tier}
+              onPress={() => router.push(`/provider/${prov.id}`)}
+            />
+          ))}
+        </View>
+
+        {/* ================= SAFETY & TRUST BANNER ================= */}
+        <View className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 mb-6">
+          <View className="flex-row items-center gap-2.5 mb-1.5">
+            <View className="w-8 h-8 rounded-full bg-emerald-600 items-center justify-center">
+              <ShieldCheck size={18} color="#FFFFFF" />
+            </View>
+            <Text className="text-sm font-bold text-emerald-900">
+              100% Verified Professionals
             </Text>
           </View>
-          <Text className="text-sm leading-relaxed text-ink/70">
-            Every professional undergoes a 5-step background check and skill verification process to
-            ensure your safety and satisfaction.
+          <Text className="text-xs leading-relaxed text-emerald-800">
+            Every Khidmat pro undergoes national CNIC background checks, technical skill audits, and fixed-rate verification.
           </Text>
           <Pressable
             onPress={() => router.push('/safety')}
-            className="mt-4 self-start rounded-xl bg-primary px-6 py-3"
+            className="mt-3 self-start"
           >
-            <Text className="text-sm font-bold text-white">Learn about Safety</Text>
+            <Text className="text-xs font-bold text-emerald-800 underline">
+              Learn how we protect you →
+            </Text>
           </Pressable>
-        </View>
-
-        {/* WHY KHIDMAT */}
-        <View className="mt-8">
-          <View className="flex-row items-center gap-2">
-            <Icon icon={Heart} color={BRAND.danger} size={14} />
-            <Text className="text-[10px] font-bold uppercase tracking-wider text-primary">
-              Created with a Purpose
-            </Text>
-          </View>
-          <Text className="mt-2 font-display text-xl font-semibold leading-tight text-ink">
-            Why We Created Khidmat
-          </Text>
-          <Text className="mt-3 text-sm leading-relaxed text-ink/80">
-            Khidmat was created for the DYLP Hackathon with a simple but powerful mission: to bridge
-            the gap between skilled blue-collar service professionals and Pakistani households.
-          </Text>
-          <Text className="mt-3 text-sm leading-relaxed text-ink/80">
-            We realized that finding trustworthy, verified help for home maintenance shouldn't
-            require complex phone directories or unsafe third-party suggestions. By digitizing
-            safety rules, identity validation, and fair-pricing estimations, Khidmat protects
-            customers from arbitrary rate hikes while guaranteeing micro-task earners a reliable
-            pipeline of local jobs.
-          </Text>
-        </View>
-
-        {/* SAFETY */}
-        <View className="mt-8">
-          <View className="flex-row items-center gap-2">
-            <Icon icon={Users} color={BRAND.primary} size={14} />
-            <Text className="text-[10px] font-bold uppercase tracking-wider text-primary">
-              A Safer Community
-            </Text>
-          </View>
-          <Text className="mt-2 font-display text-xl font-semibold leading-tight text-ink">
-            A Direct, Safe, &amp; Smart Marketplace
-          </Text>
-          <View className="mt-4 gap-4">
-            {[
-              {
-                n: '1',
-                t: 'Government CNIC Verification',
-                d: 'Every provider is identity-mapped with validated CNIC databases for total security.',
-              },
-              {
-                n: '2',
-                t: 'AI-Powered Worker Matching',
-                d: 'Our custom ranking system matches you with the closest, highest-rated specialists in your city.',
-              },
-              {
-                n: '3',
-                t: 'Fair Invoice Rate Protection',
-                d: 'Automated pricing limits prevent overcharging by capping travel fees based on real-time distance calculations.',
-              },
-            ].map((item) => (
-              <View key={item.n} className="flex-row gap-3">
-                <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                  <Text className="font-mono text-xs font-bold text-primary">{item.n}</Text>
-                </View>
-                <View className="flex-1">
-                  <Text className="text-sm font-bold text-ink">{item.t}</Text>
-                  <Text className="mt-0.5 text-xs text-ink/70">{item.d}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
         </View>
       </View>
 
-      {/* VOICE MODAL */}
+      {/* ================= VOICE COMMAND MODAL ================= */}
       <Modal
         transparent
         visible={voiceModal}
         animationType="fade"
         onRequestClose={() => setVoiceModal(false)}
       >
-        <View className="flex-1 items-center justify-center bg-ink/50 p-4">
-          <View className="w-full max-w-sm rounded-2xl border border-border bg-surface-raised p-5">
-            {isListening ? (
-              <View className="items-center py-4">
-                <View className="h-20 w-20 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10">
-                  <View className="absolute inset-0 rounded-full bg-red-500/20" />
-                  <Icon icon={Mic} color={BRAND.danger} size={32} />
-                </View>
-                <Text className="mt-4 font-display text-lg font-semibold text-ink">
-                  Listening...
-                </Text>
-                <Text className="mt-1 text-xs text-ink/60">
-                  Please describe what job or worker you are searching for.
-                </Text>
-                <View className="mt-6 h-12 flex-row items-end justify-center gap-1.5">
-                  {[20, 48, 28, 40, 16, 32].map((h, i) => (
-                    <View
-                      key={i}
-                      className="w-1.5 rounded-full bg-primary"
-                      style={{ height: h, opacity: 0.8 }}
-                    />
-                  ))}
-                </View>
+        <View className="flex-1 items-center justify-center bg-black/50 p-4">
+          <View className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
+            <View className="items-center">
+              <View className="h-14 w-14 items-center justify-center rounded-full bg-amber-50 border border-amber-200 mb-3">
+                <AlertCircle size={24} color="#D97706" />
               </View>
-            ) : (
-              <View className="items-center">
-                <View className="h-16 w-16 items-center justify-center rounded-full border border-amber-500/20 bg-amber-500/10">
-                  <Icon icon={AlertCircle} color={BRAND.warning} size={26} />
-                </View>
-                <Text className="mt-3 font-display text-lg font-semibold text-ink">
-                  Voice Search Status
-                </Text>
-                <Text className="mt-1 px-2 text-center text-xs leading-relaxed text-ink/60">
-                  {voiceError || 'Speech window closed. No audio was detected.'}
-                </Text>
+              <Text className="text-base font-bold text-gray-900">
+                Voice Search
+              </Text>
+              <Text className="mt-1 text-center text-xs text-gray-500">
+                {voiceError || 'Select a demo query to try instant search:'}
+              </Text>
 
-                <View className="mt-4 w-full rounded-xl border border-border bg-surface p-3">
-                  <Text className="mb-2 font-mono text-[10px] font-bold uppercase tracking-widest text-ink/40">
-                    Demo Command Shortcut
-                  </Text>
-                  <View className="gap-1.5">
-                    {DEMO_COMMANDS.map((phrase) => (
-                      <Pressable
-                        key={phrase}
-                        onPress={() => runCommand(phrase)}
-                        className="rounded-lg border border-border bg-surface-raised p-2.5"
-                      >
-                        <Text className="text-xs font-semibold text-ink">"{phrase}"</Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                </View>
+              <View className="mt-4 w-full gap-2">
+                {DEMO_COMMANDS.map((phrase) => (
+                  <Pressable
+                    key={phrase}
+                    onPress={() => runCommand(phrase)}
+                    className="p-3 rounded-xl bg-gray-50 border border-gray-200 active:bg-gray-100"
+                  >
+                    <Text className="text-xs font-semibold text-gray-800">
+                      "{phrase}"
+                    </Text>
+                  </Pressable>
+                ))}
               </View>
-            )}
+            </View>
 
             <Pressable
               onPress={() => setVoiceModal(false)}
-              className="mt-4 w-full rounded-xl border border-border bg-surface py-3.5"
+              className="mt-5 w-full rounded-xl bg-gray-100 py-3"
             >
-              <Text className="text-center text-sm font-bold text-ink">Close Voice Dialog</Text>
+              <Text className="text-center text-xs font-bold text-gray-700">
+                Close
+              </Text>
             </Pressable>
           </View>
         </View>
