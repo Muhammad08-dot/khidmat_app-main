@@ -32,6 +32,7 @@ import { MapSelector } from '@/src/components/features/MapSelector';
 import { Select } from '@/src/components/ui/Select';
 import { Icon } from '@/src/components/ui/Icon';
 import { PAKISTAN_CITIES, type LocationCoords } from '@/src/utils/location';
+import { isDemoLoginEnabled } from '@/src/utils/demoAuth';
 import { Avatar } from '@/src/components/ui/Avatar';
 import {
   isRTL,
@@ -77,6 +78,7 @@ export default function AuthScreen() {
 
   const rtl = isRTL(getLang());
   const textAlign = getLogicalTextAlign(rtl);
+  const showDemoLogin = isDemoLoginEnabled();
 
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -411,37 +413,39 @@ export default function AuthScreen() {
                 <Text className="text-sm font-semibold text-ink">Continue with Google</Text>
               </Pressable>
 
-              <Pressable
-                onPress={async () => {
-                  setError(null);
-                  setLoading(true);
-                  try {
+              {showDemoLogin && (
+                <Pressable
+                  onPress={async () => {
+                    setError(null);
+                    setLoading(true);
                     try {
-                      await signIn('testuser@khidmat.app', 'Test123456!');
-                    } catch {
-                      await signUp(
-                        'testuser@khidmat.app',
-                        'Test123456!',
-                        'Test User',
-                        '+923001234567',
-                        'Lahore',
-                        'customer',
-                        { lat: 31.5204, lng: 74.3587 }
-                      );
+                      try {
+                        await signIn('testuser@khidmat.app', 'Test123456!');
+                      } catch {
+                        await signUp(
+                          'testuser@khidmat.app',
+                          'Test123456!',
+                          'Test User',
+                          '+923001234567',
+                          'Lahore',
+                          'customer',
+                          { lat: 31.5204, lng: 74.3587 }
+                        );
+                      }
+                    } catch (e: any) {
+                      setError(e.message || 'Could not log in with test account.');
+                    } finally {
+                      setLoading(false);
                     }
-                  } catch (e: any) {
-                    setError(e.message || 'Could not log in with test account.');
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                disabled={loading}
-                className="mt-2.5 flex-row items-center justify-center gap-2 rounded-xl border border-emerald-600/30 bg-emerald-50/60 py-2.5 active:bg-emerald-100"
-              >
-                <Text className="text-xs font-semibold text-emerald-800">
-                  ⚡ Quick Test Login (1-Tap Demo)
-                </Text>
-              </Pressable>
+                  }}
+                  disabled={loading}
+                  className="mt-2.5 flex-row items-center justify-center gap-2 rounded-xl border border-emerald-600/30 bg-emerald-50/60 py-2.5 active:bg-emerald-100"
+                >
+                  <Text className="text-xs font-semibold text-emerald-800">
+                    ⚡ Quick Test Login (1-Tap Demo)
+                  </Text>
+                </Pressable>
+              )}
 
               {phoneAuthEnabled && (
                 <View className="mt-6 border-t border-border pt-4">
@@ -723,37 +727,39 @@ export default function AuthScreen() {
                   <Text className="text-sm font-semibold text-ink">Sign up with Google</Text>
                 </Pressable>
 
-                <Pressable
-                  onPress={async () => {
-                    setError(null);
-                    setLoading(true);
-                    try {
+                {showDemoLogin && (
+                  <Pressable
+                    onPress={async () => {
+                      setError(null);
+                      setLoading(true);
                       try {
-                        await signIn('testuser@khidmat.app', 'Test123456!');
-                      } catch {
-                        await signUp(
-                          'testuser@khidmat.app',
-                          'Test123456!',
-                          'Test User',
-                          '+923001234567',
-                          'Lahore',
-                          'customer',
-                          { lat: 31.5204, lng: 74.3587 }
-                        );
+                        try {
+                          await signIn('testuser@khidmat.app', 'Test123456!');
+                        } catch {
+                          await signUp(
+                            'testuser@khidmat.app',
+                            'Test123456!',
+                            'Test User',
+                            '+923001234567',
+                            'Lahore',
+                            'customer',
+                            { lat: 31.5204, lng: 74.3587 }
+                          );
+                        }
+                      } catch (e: any) {
+                        setError(e.message || 'Could not log in with test account.');
+                      } finally {
+                        setLoading(false);
                       }
-                    } catch (e: any) {
-                      setError(e.message || 'Could not log in with test account.');
-                    } finally {
-                      setLoading(false);
-                    }
-                  }}
-                  disabled={loading}
-                  className="w-full max-w-[320px] flex-row items-center justify-center gap-2 rounded-xl border border-emerald-600/30 bg-emerald-50/60 py-2.5 active:bg-emerald-100"
-                >
-                  <Text className="text-xs font-semibold text-emerald-800">
-                    ⚡ Quick Test Login (1-Tap Demo)
-                  </Text>
-                </Pressable>
+                    }}
+                    disabled={loading}
+                    className="w-full max-w-[320px] flex-row items-center justify-center gap-2 rounded-xl border border-emerald-600/30 bg-emerald-50/60 py-2.5 active:bg-emerald-100"
+                  >
+                    <Text className="text-xs font-semibold text-emerald-800">
+                      ⚡ Quick Test Login (1-Tap Demo)
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             </View>
           )}
