@@ -94,7 +94,7 @@ function RootNavigator() {
   }, [router]);
 
   return (
-    <View style={{ flex: 1 }} className={colorScheme === 'dark' ? 'dark' : ''}>
+    <View style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#121212' : '#FBFAF6' }} className={colorScheme === 'dark' ? 'dark' : ''}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <RouteGuard>
         <Stack screenOptions={{ headerShown: false }}>
@@ -116,9 +116,6 @@ function RootNavigator() {
   );
 }
 
-// Force LTR layout so English text, inputs, and icons align cleanly to the left
-I18nManager.allowRTL(false);
-I18nManager.forceRTL(false);
 
 export default function RootLayout() {
   const [fontsLoaded] = useAppFonts();

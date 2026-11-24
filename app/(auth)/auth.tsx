@@ -343,6 +343,10 @@ export default function AuthScreen() {
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   autoCapitalize="none"
                   keyboardType="email-address"
+                  autoComplete="email"
+                  textContentType="emailAddress"
+                  importantForAutofill="no"
+                  underlineColorAndroid="transparent"
                   style={{ textAlign }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
@@ -357,6 +361,10 @@ export default function AuthScreen() {
                   placeholder="••••••••"
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   secureTextEntry
+                  autoComplete="password"
+                  textContentType="password"
+                  importantForAutofill="no"
+                  underlineColorAndroid="transparent"
                   style={{ textAlign }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
@@ -542,6 +550,10 @@ export default function AuthScreen() {
                   onChangeText={setName}
                   placeholder="e.g. Muhammad Bilal"
                   placeholderTextColor="rgba(20,35,28,0.3)"
+                  autoComplete="name"
+                  textContentType="name"
+                  importantForAutofill="no"
+                  underlineColorAndroid="transparent"
                   style={{ textAlign }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
@@ -566,6 +578,10 @@ export default function AuthScreen() {
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   keyboardType="phone-pad"
                   maxLength={10}
+                  autoComplete="tel"
+                  textContentType="telephoneNumber"
+                  importantForAutofill="no"
+                  underlineColorAndroid="transparent"
                   style={PHONE_TEXT_STYLE}
                   className="ml-2 flex-1 py-3 text-sm text-ink"
                 />
@@ -581,6 +597,10 @@ export default function AuthScreen() {
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   autoCapitalize="none"
                   keyboardType="email-address"
+                  autoComplete="email"
+                  textContentType="emailAddress"
+                  importantForAutofill="no"
+                  underlineColorAndroid="transparent"
                   style={{ textAlign }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
@@ -595,6 +615,10 @@ export default function AuthScreen() {
                   placeholder="••••••••"
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   secureTextEntry
+                  autoComplete="password"
+                  textContentType="password"
+                  importantForAutofill="no"
+                  underlineColorAndroid="transparent"
                   style={{ textAlign }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
@@ -636,6 +660,7 @@ export default function AuthScreen() {
                       placeholder="e.g. 800"
                       placeholderTextColor="rgba(20,35,28,0.3)"
                       keyboardType="numeric"
+                      underlineColorAndroid="transparent"
                       style={{ textAlign }}
                       className="ml-2 flex-1 py-3 text-sm text-ink"
                     />
@@ -650,6 +675,7 @@ export default function AuthScreen() {
                       placeholder="Describe your skills, experience, and certifications..."
                       placeholderTextColor="rgba(20,35,28,0.3)"
                       multiline
+                      underlineColorAndroid="transparent"
                       style={{ minHeight: 80, textAlign }}
                       className="ml-3 flex-1 py-3 text-sm text-ink"
                     />
