@@ -33,6 +33,13 @@ import { Select } from '@/src/components/ui/Select';
 import { Icon } from '@/src/components/ui/Icon';
 import { PAKISTAN_CITIES, type LocationCoords } from '@/src/utils/location';
 import { Avatar } from '@/src/components/ui/Avatar';
+import {
+  isRTL,
+  getLogicalTextAlign,
+  PHONE_CONTAINER_STYLE,
+  PHONE_TEXT_STYLE,
+} from '@/src/i18n/direction';
+import { getLang } from '@/src/i18n';
 
 const SPECIALTIES = [
   'Electrician',
@@ -59,14 +66,17 @@ const SPECIALTIES = [
 ];
 
 const inputClass =
-  'rounded-xl border border-border bg-surface px-4 py-3 text-sm text-ink text-left';
+  'rounded-xl border border-border bg-surface px-4 py-3 text-sm text-ink text-start';
 const labelClass =
-  'mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink/50 text-left';
+  'mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink/50 text-start';
 
 export default function AuthScreen() {
   const router = useRouter();
   const { signIn, signUp, sendPasswordReset, sendPhoneOtp, verifyPhoneOtp, signInWithGoogle } =
     useAuth();
+
+  const rtl = isRTL(getLang());
+  const textAlign = getLogicalTextAlign(rtl);
 
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -318,8 +328,8 @@ export default function AuthScreen() {
           {isLogin ? (
             /* LOGIN */
             <View>
-              <Text className="mb-1 text-xl font-bold text-ink text-left">Welcome Back</Text>
-              <Text className="mb-5 text-xs leading-relaxed text-ink/50 text-left">
+              <Text className="mb-1 text-xl font-bold text-ink text-start">Welcome Back</Text>
+              <Text className="mb-5 text-xs leading-relaxed text-ink/50 text-start">
                 Login with your credentials to search and book services.
               </Text>
 
@@ -333,7 +343,7 @@ export default function AuthScreen() {
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   autoCapitalize="none"
                   keyboardType="email-address"
-                  style={{ textAlign: 'left' }}
+                  style={{ textAlign }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
               </View>
@@ -347,7 +357,7 @@ export default function AuthScreen() {
                   placeholder="••••••••"
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   secureTextEntry
-                  style={{ textAlign: 'left' }}
+                  style={{ textAlign }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
               </View>
@@ -472,8 +482,8 @@ export default function AuthScreen() {
           ) : (
             /* SIGNUP */
             <View>
-              <Text className="mb-1 text-xl font-bold text-ink text-left">Create Account</Text>
-              <Text className="mb-5 text-xs leading-relaxed text-ink/50 text-left">
+              <Text className="mb-1 text-xl font-bold text-ink text-start">Create Account</Text>
+              <Text className="mb-5 text-xs leading-relaxed text-ink/50 text-start">
                 Sign up to register as a client or provide home services across Pakistan.
               </Text>
 
@@ -493,7 +503,7 @@ export default function AuthScreen() {
                   )}
                 </Pressable>
                 <Pressable onPress={pickPhoto} className="flex-1">
-                  <Text className="text-[11px] font-semibold text-primary text-left">
+                  <Text className="text-[11px] font-semibold text-primary text-start">
                     {photoUri ? 'Change Profile Photo' : 'Upload Profile Photo (Optional)'}
                   </Text>
                 </Pressable>
@@ -520,7 +530,7 @@ export default function AuthScreen() {
                 ))}
               </View>
 
-              <Text className="mb-1.5 text-xs font-bold uppercase tracking-wide text-primary text-left">
+              <Text className="mb-1.5 text-xs font-bold uppercase tracking-wide text-primary text-start">
                 1. Personal Information
               </Text>
 
@@ -532,15 +542,21 @@ export default function AuthScreen() {
                   onChangeText={setName}
                   placeholder="e.g. Muhammad Bilal"
                   placeholderTextColor="rgba(20,35,28,0.3)"
-                  style={{ textAlign: 'left' }}
+                  style={{ textAlign }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
               </View>
 
               <Text className={labelClass}>Phone Number</Text>
-              <View className="mb-4 flex-row items-center rounded-xl border border-border bg-surface px-4">
+              <View
+                style={PHONE_CONTAINER_STYLE}
+                className="mb-4 items-center rounded-xl border border-border bg-surface px-4"
+              >
                 <Icon icon={Phone} color={BRAND.muted} size={16} />
-                <Text className="ml-3 border-r border-border pr-2 text-xs font-semibold text-ink/70">
+                <Text
+                  style={PHONE_TEXT_STYLE}
+                  className="ml-3 border-r border-border pr-2 text-xs font-semibold text-ink/70"
+                >
                   +92
                 </Text>
                 <TextInput
@@ -550,7 +566,7 @@ export default function AuthScreen() {
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   keyboardType="phone-pad"
                   maxLength={10}
-                  style={{ textAlign: 'left' }}
+                  style={PHONE_TEXT_STYLE}
                   className="ml-2 flex-1 py-3 text-sm text-ink"
                 />
               </View>
@@ -565,7 +581,7 @@ export default function AuthScreen() {
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   autoCapitalize="none"
                   keyboardType="email-address"
-                  style={{ textAlign: 'left' }}
+                  style={{ textAlign }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
               </View>
@@ -579,12 +595,12 @@ export default function AuthScreen() {
                   placeholder="••••••••"
                   placeholderTextColor="rgba(20,35,28,0.3)"
                   secureTextEntry
-                  style={{ textAlign: 'left' }}
+                  style={{ textAlign }}
                   className="ml-3 flex-1 py-3 text-sm text-ink"
                 />
               </View>
 
-              <Text className="mb-1.5 mt-2 text-xs font-bold uppercase tracking-wide text-primary text-left">
+              <Text className="mb-1.5 mt-2 text-xs font-bold uppercase tracking-wide text-primary text-start">
                 2. Service &amp; Location Details
               </Text>
 
@@ -603,7 +619,7 @@ export default function AuthScreen() {
 
               {role === 'provider' && (
                 <View className="mt-2 flex-col gap-4 border-t border-border pt-4">
-                  <Text className="flex-row items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary text-left">
+                  <Text className="flex-row items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary text-start">
                     <Icon icon={Briefcase} color={BRAND.primary} size={14} /> Provider Specialty
                     info
                   </Text>
@@ -620,7 +636,7 @@ export default function AuthScreen() {
                       placeholder="e.g. 800"
                       placeholderTextColor="rgba(20,35,28,0.3)"
                       keyboardType="numeric"
-                      style={{ textAlign: 'left' }}
+                      style={{ textAlign }}
                       className="ml-2 flex-1 py-3 text-sm text-ink"
                     />
                   </View>
@@ -634,7 +650,7 @@ export default function AuthScreen() {
                       placeholder="Describe your skills, experience, and certifications..."
                       placeholderTextColor="rgba(20,35,28,0.3)"
                       multiline
-                      style={{ minHeight: 80, textAlign: 'left' }}
+                      style={{ minHeight: 80, textAlign }}
                       className="ml-3 flex-1 py-3 text-sm text-ink"
                     />
                   </View>
