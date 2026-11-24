@@ -94,13 +94,13 @@ const MockMap: React.FC<{ progress: number; isCompleted: boolean }> = ({
         <Path d="M 120,400 L 400,120" stroke="#ffffff" strokeWidth={5} />
         {/* Landmark labels */}
         <SvgText x={20} y={30} fill="#0f172a33" fontSize={8} fontWeight="700" letterSpacing={1}>
-          {'DUBAI HILLS MALL'}
+          {'GULBERG MAIN BLVD'}
         </SvgText>
         <SvgText x={240} y={300} fill="#0f172a33" fontSize={8} fontWeight="700" letterSpacing={1}>
-          {'AL BARSHA SOUTH'}
+          {'DHA PHASE 5'}
         </SvgText>
         <SvgText x={310} y={220} fill="#0f172a33" fontSize={8} fontWeight="700" letterSpacing={1}>
-          {'VILLA 533'}
+          {'MALL ROAD'}
         </SvgText>
         {/* Route path */}
         <Path

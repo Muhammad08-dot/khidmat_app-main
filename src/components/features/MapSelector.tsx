@@ -52,13 +52,6 @@ export const MapSelector: React.FC<MapSelectorProps> = ({
 
   return (
     <View className={`flex-col ${className}`}>
-      <View className="mb-2 flex-row items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2">
-        <Icon icon={ShieldAlert} color="#B45309" size={14} />
-        <Text className="flex-1 text-xs font-medium text-amber-600">
-          Map API offline. Interactive local locator active.
-        </Text>
-      </View>
-
       <View
         className="relative overflow-hidden rounded-xl border border-slate-300 bg-gradient-to-br from-slate-100 to-slate-200"
         style={{ height: 240 }}
@@ -114,21 +107,21 @@ export const MapSelector: React.FC<MapSelectorProps> = ({
           <Icon icon={MapPin} color={BRAND.primary} size={32} />
         </View>
 
-        <View className="absolute left-3 top-3 flex-row items-center gap-1.5 rounded-lg border border-slate-200 bg-white/80 px-3 py-1.5">
+        <View className="absolute left-3 top-3 flex-row items-center gap-1.5 rounded-lg border border-slate-200 bg-white/90 px-3 py-1.5 shadow-sm">
           <Icon icon={Sparkles} color={BRAND.primary} size={13} />
-          <Text className="text-[11px] font-medium text-slate-600">Tap to place pin</Text>
+          <Text className="text-[11px] font-medium text-slate-700">Tap to place pin</Text>
         </View>
 
-        <View className="absolute bottom-3 left-3 flex-row items-center gap-1 rounded border border-slate-200 bg-white/90 px-2 py-1">
+        <View className="absolute bottom-3 left-3 flex-row items-center gap-1 rounded border border-slate-200 bg-white/95 px-2 py-1 shadow-sm">
           <Icon icon={Navigation} color={BRAND.primary} size={13} />
-          <Text className="font-mono text-[10px] text-slate-500">
-            Pin: {value.lat.toFixed(5)}, {value.lng.toFixed(5)}
+          <Text className="font-mono text-[10px] text-slate-600">
+            {value.lat.toFixed(5)}, {value.lng.toFixed(5)}
           </Text>
         </View>
       </View>
       <Pressable
         onPress={() => onChange(baseCityCoords)}
-        className="mt-2 self-start rounded-lg bg-surface-raised px-3 py-1.5"
+        className="mt-2 self-start rounded-lg bg-surface-raised px-3 py-1.5 border border-border"
       >
         <Text className="text-[11px] font-semibold text-primary">Reset to {city} center</Text>
       </Pressable>
