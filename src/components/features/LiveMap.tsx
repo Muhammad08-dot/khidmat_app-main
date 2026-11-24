@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { BRAND } from "@/src/theme/colors";
-import { View, Text } from "react-native";
-import Svg, { Path, Circle, G, Text as SvgText } from "react-native-svg";
-import { Navigation } from "lucide-react-native";
-import { type LocationCoords } from "../../utils/location";
-import { Icon } from "../ui/Icon";
+import React, { useEffect, useState } from 'react';
+import { BRAND } from '@/src/theme/colors';
+import { View, Text } from 'react-native';
+import Svg, { Path, Circle, G, Text as SvgText } from 'react-native-svg';
+import { Navigation } from 'lucide-react-native';
+import { type LocationCoords } from '../../utils/location';
+import { Icon } from '../ui/Icon';
 
-const getEnv = (key: string): string => (process.env as any)[key] || "";
+const getEnv = (key: string): string => (process.env as any)[key] || '';
 
 interface LiveMapProps {
   workerCoords: (LocationCoords & { heading?: number }) | null;
@@ -17,8 +17,8 @@ interface LiveMapProps {
 
 /** Whether a real Google Maps API key is configured. */
 const hasRealMapKey = (): boolean => {
-  const key = getEnv("EXPO_PUBLIC_GOOGLE_MAPS_API_KEY");
-  return !!key && key !== "your_google_maps_key_here";
+  const key = getEnv('EXPO_PUBLIC_GOOGLE_MAPS_API_KEY');
+  return !!key && key !== 'your_google_maps_key_here';
 };
 
 // Lazy-load real maps only when a key is configured (keeps Expo Go happy).
@@ -27,7 +27,7 @@ let Marker: any = null;
 let Polyline: any = null;
 (function tryLoadRealMap() {
   try {
-    const maps = require("react-native-maps");
+    const maps = require('react-native-maps');
     MapView = maps.default ?? maps;
     Marker = maps.Marker;
     Polyline = maps.Polyline;
@@ -74,34 +74,56 @@ const MockMap: React.FC<{ progress: number; isCompleted: boolean }> = ({
 }) => {
   const current = posOnPath(progress);
   const dest = MOCK_ROUTE_POINTS[MOCK_ROUTE_POINTS.length - 1];
-  const routeD = `M ${MOCK_ROUTE_POINTS.map((p) => `${p.x},${p.y}`).join(" L ")}`;
+  const routeD = `M ${MOCK_ROUTE_POINTS.map((p) => `${p.x},${p.y}`).join(' L ')}`;
 
   return (
     <View className="relative overflow-hidden rounded-2xl border border-border bg-[#EAEBE6]">
       <Svg viewBox="0 0 400 400" width="100%" height={300}>
         {/* Roads */}
-        <Path d="M 0,50 L 400,50 M 0,150 L 400,150 M 0,250 L 400,250 M 0,350 L 400,350" stroke="#ffffff" strokeWidth={6} />
-        <Path d="M 50,0 L 50,400 M 150,0 L 150,400 M 250,0 L 250,400 M 350,0 L 350,400" stroke="#ffffff" strokeWidth={6} />
+        <Path
+          d="M 0,50 L 400,50 M 0,150 L 400,150 M 0,250 L 400,250 M 0,350 L 400,350"
+          stroke="#ffffff"
+          strokeWidth={6}
+        />
+        <Path
+          d="M 50,0 L 50,400 M 150,0 L 150,400 M 250,0 L 250,400 M 350,0 L 350,400"
+          stroke="#ffffff"
+          strokeWidth={6}
+        />
         <Path d="M 0,350 L 350,0" stroke="#ffffff" strokeWidth={8} />
         <Path d="M 120,400 L 400,120" stroke="#ffffff" strokeWidth={5} />
         {/* Landmark labels */}
         <SvgText x={20} y={30} fill="#0f172a33" fontSize={8} fontWeight="700" letterSpacing={1}>
-          {"DUBAI HILLS MALL"}
+          {'DUBAI HILLS MALL'}
         </SvgText>
         <SvgText x={240} y={300} fill="#0f172a33" fontSize={8} fontWeight="700" letterSpacing={1}>
-          {"AL BARSHA SOUTH"}
+          {'AL BARSHA SOUTH'}
         </SvgText>
         <SvgText x={310} y={220} fill="#0f172a33" fontSize={8} fontWeight="700" letterSpacing={1}>
-          {"VILLA 533"}
+          {'VILLA 533'}
         </SvgText>
         {/* Route path */}
-        <Path d={routeD} fill="none" stroke={BRAND.success} strokeWidth={5} strokeLinecap="round" strokeDasharray="8,4" />
+        <Path
+          d={routeD}
+          fill="none"
+          stroke={BRAND.success}
+          strokeWidth={5}
+          strokeLinecap="round"
+          strokeDasharray="8,4"
+        />
         {/* Destination pin */}
         <G translateX={dest.x} translateY={dest.y - 10}>
           <Path d="M-6,-6 L6,-6 L0,10 Z" fill={BRAND.caution} />
           <Circle cx={0} cy={-6} r={3} fill="#ffffff" />
         </G>
-        <Circle cx={dest.x} cy={dest.y} r={14} fill="none" stroke={BRAND.danger} strokeWidth={1.5} />
+        <Circle
+          cx={dest.x}
+          cy={dest.y}
+          r={14}
+          fill="none"
+          stroke={BRAND.danger}
+          strokeWidth={1.5}
+        />
         {/* Worker marker */}
         <G translateX={current.x} translateY={current.y}>
           <Circle cx={0} cy={0} r={16} fill="rgba(16,185,129,0.2)" />
@@ -125,7 +147,7 @@ const MockMap: React.FC<{ progress: number; isCompleted: boolean }> = ({
 export const LiveMap: React.FC<LiveMapProps> = ({
   workerCoords,
   clientCoords,
-  className = "",
+  className = '',
   isCompleted = false,
 }) => {
   const realMap = realMapAvailable();
@@ -148,7 +170,10 @@ export const LiveMap: React.FC<LiveMapProps> = ({
   if (realMap && MapView) {
     const center = clientCoords || workerCoords || { lat: 31.52, lng: 74.35 };
     return (
-      <View className={`overflow-hidden rounded-2xl border border-border ${className}`} style={{ height: 300 }}>
+      <View
+        className={`overflow-hidden rounded-2xl border border-border ${className}`}
+        style={{ height: 300 }}
+      >
         <MapView
           style={{ flex: 1 }}
           initialRegion={{
@@ -159,13 +184,16 @@ export const LiveMap: React.FC<LiveMapProps> = ({
           }}
         >
           {clientCoords && (
-            <Marker coordinate={{ latitude: clientCoords.lat, longitude: clientCoords.lng }} pinColor="#B91C1C" />
+            <Marker
+              coordinate={{ latitude: clientCoords.lat, longitude: clientCoords.lng }}
+              pinColor="#B91C1C"
+            />
           )}
           {workerCoords && (
             <Marker
               coordinate={{ latitude: workerCoords.lat, longitude: workerCoords.lng }}
               pinColor="#006E2F"
-              title={isCompleted ? "Arrived" : "Provider"}
+              title={isCompleted ? 'Arrived' : 'Provider'}
             />
           )}
           {clientCoords && workerCoords && (

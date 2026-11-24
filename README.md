@@ -49,26 +49,29 @@
 ## 📱 Features by Role
 
 ### 👤 Customer Experience
-* **AI-Powered Intent Discovery:** Natural search in Roman Urdu and English (e.g., *"kitchen pipe leaking"*) powered by Google Gemini 2.5 Flash with zero-latency local fallback.
-* **Hyperlocal Provider Ranking:** Workers sorted dynamically by Haversine GPS distance, star ratings, and tier badges.
-* **Transparent Pricing:** Base rates + distance-based travel fees displayed in PKR prior to confirmation.
-* **Realtime Ephemeral Tracking:** Live worker GPS broadcast over WebSockets during active jobs.
-* **In-App Messaging:** Realtime chat with quick-reply chips and read receipts.
-* **Google Play Compliance:** In-app self-service account deletion and content/user abuse reporting.
+
+- **AI-Powered Intent Discovery:** Natural search in Roman Urdu and English (e.g., _"kitchen pipe leaking"_) powered by Google Gemini 2.5 Flash with zero-latency local fallback.
+- **Hyperlocal Provider Ranking:** Workers sorted dynamically by Haversine GPS distance, star ratings, and tier badges.
+- **Transparent Pricing:** Base rates + distance-based travel fees displayed in PKR prior to confirmation.
+- **Realtime Ephemeral Tracking:** Live worker GPS broadcast over WebSockets during active jobs.
+- **In-App Messaging:** Realtime chat with quick-reply chips and read receipts.
+- **Google Play Compliance:** In-app self-service account deletion and content/user abuse reporting.
 
 ### 🛠️ Provider (Worker) Hub
-* **Worker Mode Switch:** Seamless single-tap toggle between Customer and Provider modes.
-* **Availability Control:** Realtime Online/Offline status switch.
-* **Race-Condition-Free Job Dispatch:** Accept/Reject requests with transparent base-fee and customer distance.
-* **COD Settlement Confirmation:** Provider cash-collected toggle integrated with customer star ratings.
-* **Public Profile & Portfolio:** Bio, hourly rates, verified credentials, and customer review ledger.
+
+- **Worker Mode Switch:** Seamless single-tap toggle between Customer and Provider modes.
+- **Availability Control:** Realtime Online/Offline status switch.
+- **Race-Condition-Free Job Dispatch:** Accept/Reject requests with transparent base-fee and customer distance.
+- **COD Settlement Confirmation:** Provider cash-collected toggle integrated with customer star ratings.
+- **Public Profile & Portfolio:** Bio, hourly rates, verified credentials, and customer review ledger.
 
 ### 🛡️ Admin & Back-Office (`/admin`)
-* **Role-Based Access Control:** Strict security gate restricting access to `role = 'admin'` users.
-* **KYC Verification Queue:** Document and CNIC inspection queue with instant Approve/Reject triggers.
-* **Content & Review Moderation:** Hide, unhide, or delete reviews with automatic provider rating re-computation.
-* **Abuse & Harassment Reports:** Resolve or dismiss customer and provider abuse flags.
-* **Append-Only Audit Trail:** Immutable `admin_actions` table tracking all administrative mutations.
+
+- **Role-Based Access Control:** Strict security gate restricting access to `role = 'admin'` users.
+- **KYC Verification Queue:** Document and CNIC inspection queue with instant Approve/Reject triggers.
+- **Content & Review Moderation:** Hide, unhide, or delete reviews with automatic provider rating re-computation.
+- **Abuse & Harassment Reports:** Resolve or dismiss customer and provider abuse flags.
+- **Append-Only Audit Trail:** Immutable `admin_actions` table tracking all administrative mutations.
 
 ---
 
@@ -92,6 +95,7 @@
 ```
 
 ### Key Engineering Innovations:
+
 1. **Low-Overhead Live GPS Tracking:** Migrated continuous 6-second PostgreSQL write polling to Supabase Realtime **Broadcast Channels** (`tracking:{bookingId}`). Database write load dropped to near zero during active navigation.
 2. **Atomic Booking State Machine:** Enforced mutual exclusion on status updates via conditional SQL (`UPDATE bookings SET status = $target WHERE id = $id AND status = $expected`) backed by PostgreSQL trigger `0009_booking_state_machine.sql`.
 3. **Automated Push Dispatcher:** Deno Edge Function (`supabase/functions/push-dispatcher`) sends automated Expo push notifications on KYC updates, booking transitions, and offline chat messages.
@@ -102,6 +106,7 @@
 ## ⚡ Quick Start
 
 ### Option A: Zero-Config Demo Mode (Recommended)
+
 Run the complete multi-role app locally with zero external accounts or API keys using the built-in in-memory mock client:
 
 ```bash
@@ -117,9 +122,10 @@ npm run web
 ```
 
 **Pre-seeded Demo Credentials** (Password for all: `123456`):
-* **Customer:** `demo@khidmat.app` (Ali Raza, Lahore)
-* **Provider:** `bilal@khidmat.app` (Bilal Ahmed, Electrician)
-* **Admin:** `admin@khidmat.app` (Khidmat Operations)
+
+- **Customer:** `demo@khidmat.app` (Ali Raza, Lahore)
+- **Provider:** `bilal@khidmat.app` (Bilal Ahmed, Electrician)
+- **Admin:** `admin@khidmat.app` (Khidmat Operations)
 
 ---
 
@@ -140,7 +146,7 @@ npm run web
    ```sql
    UPDATE public.profiles SET role = 'admin' WHERE email = 'you@example.com';
    ```
-5. *(Optional)* Start the AI Agent Server:
+5. _(Optional)_ Start the AI Agent Server:
    ```bash
    cd agent-server && npm install && npm run dev
    ```
@@ -149,16 +155,16 @@ npm run web
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Mobile Runtime** | Expo SDK 57 · React Native 0.86 · React 19 |
-| **Navigation** | Expo Router v57 (File-based typed routing) |
-| **State & Cache** | TanStack React Query v5 + Zustand |
-| **Styling & UI** | NativeWind v4 (Tailwind CSS, class-based dark mode) |
-| **Backend & DB** | Supabase (PostgreSQL 15, Auth, Storage, Edge Functions) |
-| **Realtime Engine** | Supabase Realtime WebSockets Broadcast |
-| **AI Proxy Server** | Node.js Express + Google Gemini 2.5 Flash |
-| **Testing** | Jest + jest-expo + Headless Chrome Puppeteer E2E |
+| Layer               | Technology                                              |
+| ------------------- | ------------------------------------------------------- |
+| **Mobile Runtime**  | Expo SDK 57 · React Native 0.86 · React 19              |
+| **Navigation**      | Expo Router v57 (File-based typed routing)              |
+| **State & Cache**   | TanStack React Query v5 + Zustand                       |
+| **Styling & UI**    | NativeWind v4 (Tailwind CSS, class-based dark mode)     |
+| **Backend & DB**    | Supabase (PostgreSQL 15, Auth, Storage, Edge Functions) |
+| **Realtime Engine** | Supabase Realtime WebSockets Broadcast                  |
+| **AI Proxy Server** | Node.js Express + Google Gemini 2.5 Flash               |
+| **Testing**         | Jest + jest-expo + Headless Chrome Puppeteer E2E        |
 
 ---
 
@@ -181,9 +187,10 @@ node scripts/e2e-qa-suite.mjs
 ```
 
 ### Verification Highlights:
-* ✅ **38/38 Unit & Integration Tests Passing** (State machine, Haversine, broadcast tracking, PII scrubbers, i18n parity).
-* ✅ **30/30 E2E Browser Flows Verified** with full visual screenshot artifacts in [`docs/qa-artifacts/`](docs/qa-artifacts/).
-* ✅ **Zero TypeScript & ESLint Errors**.
+
+- ✅ **38/38 Unit & Integration Tests Passing** (State machine, Haversine, broadcast tracking, PII scrubbers, i18n parity).
+- ✅ **30/30 E2E Browser Flows Verified** with full visual screenshot artifacts in [`docs/qa-artifacts/`](docs/qa-artifacts/).
+- ✅ **Zero TypeScript & ESLint Errors**.
 
 ---
 
@@ -215,12 +222,12 @@ khidmat_app-main/
 
 ## 📑 Documentation & Runbooks
 
-* 📊 **[E2E QA Execution Report](docs/QA_AGENT_REPORT.md)** — Comprehensive 30-flow verification matrix and evidence.
-* 🧪 **[Automated Test Report](docs/TEST_REPORT.md)** — Unit & integration test verification records.
-* 📱 **[Manual Device Test Checklist](docs/MANUAL_TESTS.md)** — Low-end device, slow network, and RTL test procedures.
-* 🏛️ **[System Architecture Guide](docs/ARCHITECTURE.md)** — Deep dive into state machines and push triggers.
-* 🚀 **[Play Store Launch Checklist](docs/LAUNCH_CHECKLIST.md)** — Pre-launch compliance and deployment runbook.
-* 📝 **[Changelog](CHANGELOG.md)** — Chronological engineering modifications and fixes.
+- 📊 **[E2E QA Execution Report](docs/QA_AGENT_REPORT.md)** — Comprehensive 30-flow verification matrix and evidence.
+- 🧪 **[Automated Test Report](docs/TEST_REPORT.md)** — Unit & integration test verification records.
+- 📱 **[Manual Device Test Checklist](docs/MANUAL_TESTS.md)** — Low-end device, slow network, and RTL test procedures.
+- 🏛️ **[System Architecture Guide](docs/ARCHITECTURE.md)** — Deep dive into state machines and push triggers.
+- 🚀 **[Play Store Launch Checklist](docs/LAUNCH_CHECKLIST.md)** — Pre-launch compliance and deployment runbook.
+- 📝 **[Changelog](CHANGELOG.md)** — Chronological engineering modifications and fixes.
 
 ---
 

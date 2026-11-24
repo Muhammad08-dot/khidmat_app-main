@@ -1,10 +1,15 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { Platform, Linking } from 'react-native';
+import { Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { makeRedirectUri } from 'expo-auth-session';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase, DEMO_MODE } from '../services/supabase/client';
+import { supabase, DEMO_MODE, isConfigured, USE_MOCK, ConfigError } from '../services/supabase/client';
 import { profileColumnsFromCamel } from '../services/supabase/legacy';
 import { registerPushToken } from '../services/push';
+import { parseAuthRedirectUrl } from '../utils/authUrlParser';
 import { User as UserProfileModel } from '../types/models'; // Note: update models.ts to match Supabase schema later
+
+WebBrowser.maybeCompleteAuthSession();
 
 // Client-side throttle: max 5 auth attempts per 60s to blunt signup/OTP spam.
 const AUTH_WINDOW_MS = 60_000;
@@ -38,6 +43,11 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  if (!isConfigured && !USE_MOCK) {
+    throw new ConfigError(
+      'Configuration error: Missing Supabase URL or Anon Key. Please check your environment variables.'
+    );
+  }
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<any | null>(null);
@@ -111,7 +121,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -159,9 +171,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           role,
           location_lat: location.lat,
           location_lng: location.lng,
-          ...(providerDetails || {})
-        }
-      }
+          ...(providerDetails || {}),
+        },
+      },
     });
     if (error) throw error;
     return data;
@@ -205,15 +217,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     throttleAuth();
-    if (DEMO_MODE) {
+    if (DEMO_MODE && !process.env.EXPO_PUBLIC_SUPABASE_URL) {
       return signIn('demo@khidmat.app', '123456');
     }
+
     const redirectTo =
       Platform.OS === 'web'
         ? typeof window !== 'undefined'
-          ? window.location.origin
+          ? `${window.location.origin}/auth/callback`
           : undefined
-        : 'khidmat://';
+        : makeRedirectUri({
+            scheme: 'khidmat',
+            path: 'auth/callback',
+          });
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -221,24 +238,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         skipBrowserRedirect: Platform.OS !== 'web',
       },
     });
+
     if (error) throw error;
-    if (data?.url && Platform.OS !== 'web') {
-      try {
-        const resp = await fetch(data.url);
-        if (resp.status === 400) {
-          const body = await resp.text();
-          if (body.includes('Unsupported provider') || body.includes('provider is not enabled')) {
-            throw new Error('Google Sign-In is not enabled in your Supabase dashboard yet. Please log in using Email & Password or use the 1-Tap Demo Login.');
-          }
-        }
-      } catch (checkErr: any) {
-        if (checkErr.message?.includes('Google Sign-In is not enabled')) {
-          throw checkErr;
-        }
-      }
-      await Linking.openURL(data.url);
+    if (!data?.url) throw new Error('No authentication URL returned from Supabase.');
+
+    if (Platform.OS === 'web') {
+      return data;
     }
-    return data;
+
+    // Native session handling via WebBrowser
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+
+    if (result.type === 'success' && result.url) {
+      const parsed = parseAuthRedirectUrl(result.url);
+
+      if (parsed.type === 'error') {
+        throw new Error(parsed.errorDescription || parsed.error || 'Google authentication failed');
+      }
+
+      if (parsed.type === 'code' && parsed.code) {
+        const { data: sessionData, error: sessionErr } = await supabase.auth.exchangeCodeForSession(parsed.code);
+        if (sessionErr) throw sessionErr;
+        return sessionData;
+      }
+
+      if (parsed.type === 'token' && parsed.accessToken && parsed.refreshToken) {
+        const { data: sessionData, error: sessionErr } = await supabase.auth.setSession({
+          access_token: parsed.accessToken,
+          refresh_token: parsed.refreshToken,
+        });
+        if (sessionErr) throw sessionErr;
+        return sessionData;
+      }
+    } else if (result.type === 'cancel' || result.type === 'dismiss') {
+      // User cancelled browser window without completing OAuth
+      return null;
+    }
+
+    return null;
   };
 
   const PROVIDER_FIELD_MAP: Record<string, string> = {
@@ -273,7 +310,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (phone !== undefined) {
         const { error: contactErr } = await supabase
           .from('profile_contacts')
-          .upsert({ user_id: user.id, phone, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+          .upsert(
+            { user_id: user.id, phone, updated_at: new Date().toISOString() },
+            { onConflict: 'user_id' }
+          );
         if (contactErr) throw contactErr;
       }
     }
@@ -293,7 +333,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, userProfile, loading, signIn, signUp, logout, updateProfile, sendPasswordReset, updatePassword, sendPhoneOtp, verifyPhoneOtp, signInWithGoogle }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        user,
+        userProfile,
+        loading,
+        signIn,
+        signUp,
+        logout,
+        updateProfile,
+        sendPasswordReset,
+        updatePassword,
+        sendPhoneOtp,
+        verifyPhoneOtp,
+        signInWithGoogle,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

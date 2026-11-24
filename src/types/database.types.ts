@@ -4,107 +4,436 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[]
+  | Json[];
+
+export type UserRole = 'customer' | 'provider' | 'admin';
+
+export type BookingStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'in_progress'
+  | 'completed'
+  | 'reviewed'
+  | 'closed'
+  | 'rejected'
+  | 'cancelled';
+
+export type ProviderTier = 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
+
+export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
 
 export interface Database {
   public: {
     Tables: {
       categories: {
         Row: {
-          base_price: number
-          created_at: string
-          icon_name: string
-          id: string
-          name: string
-        }
+          id: string;
+          name: string;
+          icon_name: string;
+          base_price: number;
+          created_at: string;
+        };
         Insert: {
-          base_price?: number
-          created_at?: string
-          icon_name: string
-          id?: string
-          name: string
-        }
+          id?: string;
+          name: string;
+          icon_name: string;
+          base_price?: number;
+          created_at?: string;
+        };
         Update: {
-          base_price?: number
-          created_at?: string
-          icon_name?: string
-          id?: string
-          name?: string
-        }
-      }
+          id?: string;
+          name?: string;
+          icon_name?: string;
+          base_price?: number;
+          created_at?: string;
+        };
+      };
       profiles: {
         Row: {
-          city: string | null
-          created_at: string
-          id: string
-          location_lat: number | null
-          location_lng: number | null
-          name: string
-          phone: string | null
-          photo_url: string | null
-          role: 'customer' | 'provider'
-        }
+          id: string;
+          name: string;
+          city: string | null;
+          role: UserRole;
+          location_lat: number | null;
+          location_lng: number | null;
+          photo_url: string | null;
+          phone: string | null;
+          verification_status: VerificationStatus;
+          id_document_url: string | null;
+          current_mode: string;
+          addresses: Json | null;
+          created_at: string;
+        };
         Insert: {
-          city?: string | null
-          created_at?: string
-          id: string
-          location_lat?: number | null
-          location_lng?: number | null
-          name: string
-          phone?: string | null
-          photo_url?: string | null
-          role?: 'customer' | 'provider'
-        }
+          id: string;
+          name: string;
+          city?: string | null;
+          role?: UserRole;
+          location_lat?: number | null;
+          location_lng?: number | null;
+          photo_url?: string | null;
+          phone?: string | null;
+          verification_status?: VerificationStatus;
+          id_document_url?: string | null;
+          current_mode?: string;
+          addresses?: Json | null;
+          created_at?: string;
+        };
         Update: {
-          city?: string | null
-          created_at?: string
-          id?: string
-          location_lat?: number | null
-          location_lng?: number | null
-          name?: string
-          phone?: string | null
-          photo_url?: string | null
-          role?: 'customer' | 'provider'
-        }
-      }
+          id?: string;
+          name?: string;
+          city?: string | null;
+          role?: UserRole;
+          location_lat?: number | null;
+          location_lng?: number | null;
+          photo_url?: string | null;
+          phone?: string | null;
+          verification_status?: VerificationStatus;
+          id_document_url?: string | null;
+          current_mode?: string;
+          addresses?: Json | null;
+          created_at?: string;
+        };
+      };
+      profile_contacts: {
+        Row: {
+          user_id: string;
+          phone: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          phone?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          phone?: string | null;
+          updated_at?: string;
+        };
+      };
       providers: {
         Row: {
-          available: boolean | null
-          base_price: number | null
-          bio: string | null
-          category: string | null
-          created_at: string
-          id: string
-          rating: number | null
-          tier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | null
-          total_earnings: number | null
-          total_jobs: number | null
-        }
+          id: string;
+          category: string | null;
+          bio: string | null;
+          base_price: number | null;
+          rating: number | null;
+          total_jobs: number | null;
+          tier: ProviderTier | null;
+          available: boolean | null;
+          total_earnings: number | null;
+          created_at: string;
+        };
         Insert: {
-          available?: boolean | null
-          base_price?: number | null
-          bio?: string | null
-          category?: string | null
-          created_at?: string
-          id: string
-          rating?: number | null
-          tier?: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | null
-          total_earnings?: number | null
-          total_jobs?: number | null
-        }
+          id: string;
+          category?: string | null;
+          bio?: string | null;
+          base_price?: number | null;
+          rating?: number | null;
+          total_jobs?: number | null;
+          tier?: ProviderTier | null;
+          available?: boolean | null;
+          total_earnings?: number | null;
+          created_at?: string;
+        };
         Update: {
-          available?: boolean | null
-          base_price?: number | null
-          bio?: string | null
-          category?: string | null
-          created_at?: string
-          id?: string
-          rating?: number | null
-          tier?: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | null
-          total_earnings?: number | null
-          total_jobs?: number | null
-        }
-      }
-    }
-  }
+          id?: string;
+          category?: string | null;
+          bio?: string | null;
+          base_price?: number | null;
+          rating?: number | null;
+          total_jobs?: number | null;
+          tier?: ProviderTier | null;
+          available?: boolean | null;
+          total_earnings?: number | null;
+          created_at?: string;
+        };
+      };
+      bookings: {
+        Row: {
+          id: string;
+          customer_id: string;
+          provider_id: string | null;
+          category: string;
+          description: string;
+          status: BookingStatus;
+          urgency: string | null;
+          estimated_price: number | null;
+          total_price: number | null;
+          location_lat: number | null;
+          location_lng: number | null;
+          meta: Json;
+          cancel_reason: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          customer_id: string;
+          provider_id?: string | null;
+          category: string;
+          description: string;
+          status?: BookingStatus;
+          urgency?: string | null;
+          estimated_price?: number | null;
+          total_price?: number | null;
+          location_lat?: number | null;
+          location_lng?: number | null;
+          meta?: Json;
+          cancel_reason?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          customer_id?: string;
+          provider_id?: string | null;
+          category?: string;
+          description?: string;
+          status?: BookingStatus;
+          urgency?: string | null;
+          estimated_price?: number | null;
+          total_price?: number | null;
+          location_lat?: number | null;
+          location_lng?: number | null;
+          meta?: Json;
+          cancel_reason?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      messages: {
+        Row: {
+          id: string;
+          booking_id: string;
+          sender_id: string;
+          content: string;
+          seen_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          sender_id: string;
+          content: string;
+          seen_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          sender_id?: string;
+          content?: string;
+          seen_at?: string | null;
+          created_at?: string;
+        };
+      };
+      provider_locations: {
+        Row: {
+          id: string;
+          booking_id: string;
+          provider_id: string;
+          location_lat: number;
+          location_lng: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          provider_id: string;
+          location_lat: number;
+          location_lng: number;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          provider_id?: string;
+          location_lat?: number;
+          location_lng?: number;
+          updated_at?: string;
+        };
+      };
+      reviews: {
+        Row: {
+          id: string;
+          booking_id: string;
+          reviewer_id: string;
+          provider_id: string;
+          rating: number;
+          comment: string | null;
+          is_hidden: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          reviewer_id: string;
+          provider_id: string;
+          rating: number;
+          comment?: string | null;
+          is_hidden?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          reviewer_id?: string;
+          provider_id?: string;
+          rating?: number;
+          comment?: string | null;
+          is_hidden?: boolean;
+          created_at?: string;
+        };
+      };
+      push_tokens: {
+        Row: {
+          user_id: string;
+          token: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          token: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          token?: string;
+          updated_at?: string;
+        };
+      };
+      payments: {
+        Row: {
+          id: string;
+          booking_id: string;
+          payer_id: string;
+          method: string;
+          amount: number;
+          status: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          payer_id: string;
+          method: string;
+          amount: number;
+          status?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          payer_id?: string;
+          method?: string;
+          amount?: number;
+          status?: string;
+          created_at?: string;
+        };
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          type: string;
+          message: string;
+          booking_id: string | null;
+          read: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          type: string;
+          message: string;
+          booking_id?: string | null;
+          read?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          type?: string;
+          message?: string;
+          booking_id?: string | null;
+          read?: boolean;
+          created_at?: string;
+        };
+      };
+      admin_actions: {
+        Row: {
+          id: string;
+          actor_id: string;
+          action: string;
+          target_type: string;
+          target_id: string;
+          meta: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          actor_id: string;
+          action: string;
+          target_type: string;
+          target_id: string;
+          meta?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          actor_id?: string;
+          action?: string;
+          target_type?: string;
+          target_id?: string;
+          meta?: Json;
+          created_at?: string;
+        };
+      };
+      user_reports: {
+        Row: {
+          id: string;
+          reporter_id: string;
+          reported_id: string;
+          booking_id: string | null;
+          reason: string;
+          details: string | null;
+          status: string;
+          resolution_notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          reporter_id: string;
+          reported_id: string;
+          booking_id?: string | null;
+          reason: string;
+          details?: string | null;
+          status?: string;
+          resolution_notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          reporter_id?: string;
+          reported_id?: string;
+          booking_id?: string | null;
+          reason?: string;
+          details?: string | null;
+          status?: string;
+          resolution_notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+    };
+    Enums: {
+      user_role: UserRole;
+      booking_status: BookingStatus;
+      provider_tier: ProviderTier;
+    };
+  };
 }

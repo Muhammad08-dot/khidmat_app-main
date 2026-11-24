@@ -1,52 +1,129 @@
-# Setup & Local Development Guide
+# Setup & Local Development Guide — Khidmat v2.0.0
 
 ## Prerequisites
-- **Node.js**: v18 or newer
-- **npm** or **yarn**
-- **Expo Go** app installed on your physical device (or Android Studio / Xcode for emulators)
+
+- **Node.js**: v20 or newer
+- **npm**: v10 or newer
+- **Docker Desktop** (optional, required only for running local Supabase emulator)
+- **Expo Go** or native development build on physical Android phone / emulator
 
 ---
 
 ## 1. Environment Configuration
 
 ### Root `.env` (Mobile App)
-Copy the `.env.example` file to `.env` in the root directory:
-```bash
-cp .env.example .env
-```
-Ensure the `EXPO_PUBLIC_AGENT_SERVER_URL` is set to your local IP address if testing on a physical device, or `http://localhost:8787` for emulators.
 
-### Agent Server `.env`
-Navigate to the `agent-server` folder and copy the template:
+Copy `.env.example` to `.env` in the root directory:
+
 ```bash
-cd agent-server
 cp .env.example .env
 ```
-Fill in the `GEMINI_API_KEY` (and `OPENAI_API_KEY` if using ChatGPT for the healing agent).
+
+| Variable                          | Description                             | Default / Example                          |
+| :-------------------------------- | :-------------------------------------- | :----------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`        | Supabase API endpoint URL               | `https://sodxwchaqpqnwvnrnsaj.supabase.co` |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`   | Public anon/publishable key             | `sb_publishable_...`                       |
+| `EXPO_PUBLIC_USE_MOCK`            | Enable in-memory mock client (dev only) | `false`                                    |
+| `EXPO_PUBLIC_ENABLE_DEMO`         | Show 1-Tap Demo Login button (dev only) | `false`                                    |
+| `EXPO_PUBLIC_AGENT_SERVER_URL`    | Agent server endpoint                   | `http://localhost:8787`                    |
+| `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps API key (optional)          | `""`                                       |
+| `EXPO_PUBLIC_PHONE_AUTH_ENABLED`  | Phone SMS OTP flag                      | `false`                                    |
+| `EXPO_PUBLIC_BG_LOCATION_ENABLED` | Background GPS tracking flag            | `false`                                    |
 
 ---
 
-## 2. Running the Agent Server
-The Agent Server **must** be running for AI features (intent parsing, pricing, ranking) to work.
+## 2. Local Supabase Backend (Optional / Docker)
+
+Khidmat includes a fully configured local Supabase setup in `supabase/`:
+
+- Configuration file: `supabase/config.toml`
+- Schema Migrations: `supabase/migrations/0001` through `0012`
+- Seed Data: `supabase/seed.sql`
+
+### Booting Local Supabase from Scratch:
+
+```bash
+# 1. Start Docker Desktop on your machine
+# 2. Boot local Supabase containers:
+npx supabase start
+
+# 3. Apply all migrations (0001..0012) and seed data:
+npx supabase db reset
+```
+
+Local service ports:
+
+- **API URL:** `http://localhost:54321`
+- **Postgres DB:** `postgresql://postgres:postgres@localhost:54322/postgres`
+- **Studio Dashboard:** `http://localhost:54324`
+- **InBucket Email Sandbox:** `http://localhost:54325`
+
+---
+
+## 3. Running the Agent Server
+
+The Agent Server powers AI intent parsing, pricing suggestions, and provider ranking:
 
 ```bash
 cd agent-server
 npm install
 npm run dev
 ```
-The server will start on `http://localhost:8787`.
+
+Runs on `http://localhost:8787`.
 
 ---
 
-## 3. Running the Mobile App
-Open a new terminal window at the project root:
+## 4. Google OAuth & Deep Link Configuration (PRD v2 / P1-1)
+
+To allow "Continue with Google" to redirect directly back into the Android / iOS app:
+
+1. **Supabase Dashboard Configuration**:
+   - Go to: **Authentication -> URL Configuration**.
+   - Set **Site URL** to: `https://sodxwchaqpqnwvnrnsaj.supabase.co` (or your production web domain).
+   - Under **Redirect URLs**, add:
+     - `khidmat://*`
+     - `khidmat://auth/callback`
+     - `exp://**` (for local Expo Go development if applicable)
+2. **Google Cloud Console Configuration**:
+   - Authorized redirect URI for Supabase:
+     `https://<project-ref>.supabase.co/auth/v1/callback`
+3. **App Scheme**:
+   - The scheme `khidmat` is registered in `app.json`.
+   - On Android and iOS, deep links such as `khidmat://auth/callback?code=...` are routed by Expo Router directly to `app/auth/callback.tsx`.
+
+---
+
+## 5. Running the Mobile App
 
 ```bash
+# Install dependencies
 npm install
+
+# Start Expo dev server
 npx expo start
 ```
-- Press **`a`** to open the Android emulator.
-- Press **`i`** to open the iOS simulator.
-- Or scan the QR code with your phone's camera (iOS) or the Expo Go app (Android).
 
-> **Note**: If you are using a physical device, ensure both your computer and phone are on the same Wi-Fi network. Update `EXPO_PUBLIC_AGENT_SERVER_URL` in `.env` to your computer's local IP (e.g., `http://192.168.1.5:8787`).
+- Press **`a`** to launch Android emulator.
+- Press **`w`** to launch Web browser preview.
+- Or scan QR code with Expo Go on your physical Android phone.
+
+---
+
+## 5. Verification & Test Commands
+
+```bash
+# 1. Typecheck
+npx tsc --noEmit
+
+# 2. Linter
+npm run lint
+
+# 3. Unit & Integration Tests with Coverage
+npx jest --coverage
+
+# 4. Expo Health Check
+npx expo-doctor
+```
+
+All four checks must exit with code 0.

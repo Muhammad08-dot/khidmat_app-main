@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { BRAND } from "@/src/theme/colors";
-import { View, Text, Pressable } from "react-native";
-import { Icon } from "../ui/Icon";
-import { MapPin, Navigation, ShieldAlert, Sparkles } from "lucide-react-native";
-import { PAKISTAN_CITIES, type LocationCoords } from "../../utils/location";
+import React, { useState, useEffect } from 'react';
+import { BRAND } from '@/src/theme/colors';
+import { View, Text, Pressable } from 'react-native';
+import { Icon } from '../ui/Icon';
+import { MapPin, Navigation, ShieldAlert, Sparkles } from 'lucide-react-native';
+import { PAKISTAN_CITIES, type LocationCoords } from '../../utils/location';
 
 interface MapSelectorProps {
   value: LocationCoords;
@@ -16,9 +16,9 @@ export const MapSelector: React.FC<MapSelectorProps> = ({
   value,
   onChange,
   city,
-  className = "",
+  className = '',
 }) => {
-  const baseCityCoords = PAKISTAN_CITIES[city] || PAKISTAN_CITIES["Lahore"];
+  const baseCityCoords = PAKISTAN_CITIES[city] || PAKISTAN_CITIES['Lahore'];
   const [container, setContainer] = useState({ width: 320, height: 240 });
   const [pinFraction, setPinFraction] = useState({ fx: 0.5, fy: 0.5 });
 
@@ -48,8 +48,7 @@ export const MapSelector: React.FC<MapSelectorProps> = ({
     onChange(next);
   };
 
-  const clamp = (v: number, min = 0.05, max = 0.95) =>
-    Math.max(min, Math.min(max, v));
+  const clamp = (v: number, min = 0.05, max = 0.95) => Math.max(min, Math.min(max, v));
 
   return (
     <View className={`flex-col ${className}`}>
@@ -70,13 +69,13 @@ export const MapSelector: React.FC<MapSelectorProps> = ({
       >
         <View
           className="absolute inset-0 opacity-20"
-          style={{ flexDirection: "row", flexWrap: "wrap" }}
+          style={{ flexDirection: 'row', flexWrap: 'wrap' }}
         >
           {Array.from({ length: 24 }).map((_, i) => (
             <View
               key={i}
               className="border-l border-t border-slate-500"
-              style={{ width: "16.66%", height: "25%" }}
+              style={{ width: '16.66%', height: '25%' }}
             />
           ))}
         </View>
@@ -88,7 +87,7 @@ export const MapSelector: React.FC<MapSelectorProps> = ({
           <Text className="text-sm font-bold text-slate-600">{city}</Text>
         </View>
 
-        <Pressable 
+        <Pressable
           className="absolute inset-0 z-10"
           onPress={(e) => {
             const px = e.nativeEvent.locationX;
@@ -106,7 +105,7 @@ export const MapSelector: React.FC<MapSelectorProps> = ({
             left: pinFraction.fx * container.width - 16,
             top: pinFraction.fy * container.height - 28,
             width: 32,
-            height: 32
+            height: 32,
           }}
           pointerEvents="none"
         >
@@ -117,9 +116,7 @@ export const MapSelector: React.FC<MapSelectorProps> = ({
 
         <View className="absolute left-3 top-3 flex-row items-center gap-1.5 rounded-lg border border-slate-200 bg-white/80 px-3 py-1.5">
           <Icon icon={Sparkles} color={BRAND.primary} size={13} />
-          <Text className="text-[11px] font-medium text-slate-600">
-            Tap to place pin
-          </Text>
+          <Text className="text-[11px] font-medium text-slate-600">Tap to place pin</Text>
         </View>
 
         <View className="absolute bottom-3 left-3 flex-row items-center gap-1 rounded border border-slate-200 bg-white/90 px-2 py-1">
@@ -133,9 +130,7 @@ export const MapSelector: React.FC<MapSelectorProps> = ({
         onPress={() => onChange(baseCityCoords)}
         className="mt-2 self-start rounded-lg bg-surface-raised px-3 py-1.5"
       >
-        <Text className="text-[11px] font-semibold text-primary">
-          Reset to {city} center
-        </Text>
+        <Text className="text-[11px] font-semibold text-primary">Reset to {city} center</Text>
       </Pressable>
     </View>
   );

@@ -1,5 +1,5 @@
-import * as Location from "expo-location";
-import { type LocationCoords } from "./location";
+import * as Location from 'expo-location';
+import { type LocationCoords } from './location';
 
 export type { LocationCoords };
 
@@ -11,8 +11,8 @@ export type { LocationCoords };
 export async function getCurrentCoords(): Promise<LocationCoords | null> {
   try {
     const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      console.warn("[location] Permission not granted by user");
+    if (status !== 'granted') {
+      console.warn('[location] Permission not granted by user');
       return null;
     }
     const pos = await Location.getCurrentPositionAsync({
@@ -25,7 +25,7 @@ export async function getCurrentCoords(): Promise<LocationCoords | null> {
   } catch (err) {
     // Denied/unavailable is an expected user state, not an app failure —
     // console.error surfaces as a red overlay in web dev builds.
-    console.warn("[location] Failed to get current position:", err);
+    console.warn('[location] Failed to get current position:', err);
     return null;
   }
 }

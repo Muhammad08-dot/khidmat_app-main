@@ -17,7 +17,7 @@ export function dispatchEvent(name: string, detail?: unknown): void {
     try {
       fn(detail);
     } catch (e) {
-      console.warn("[eventEmitter] listener threw for", name, e);
+      console.warn('[eventEmitter] listener threw for', name, e);
     }
   });
 }

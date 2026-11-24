@@ -19,7 +19,8 @@ describe('Error Reporter PII Scrubbing', () => {
   });
 
   it('redacts JWT and bearer tokens', () => {
-    const fakeToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.doNotLeakThisSignatureValue';
+    const fakeToken =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.doNotLeakThisSignatureValue';
     const raw = `Authorization header Bearer ${fakeToken} failed`;
     expect(scrubPII(raw)).toBe('Authorization header Bearer [REDACTED_TOKEN] failed');
   });

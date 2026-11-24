@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { BRAND } from "@/src/theme/colors";
+import React, { useState, useRef, useEffect } from 'react';
+import { BRAND } from '@/src/theme/colors';
 import {
   View,
   Text,
@@ -11,33 +11,27 @@ import {
   Modal,
   ActivityIndicator,
   useWindowDimensions,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
-import {
-  Bot,
-  X,
-  Send,
-  Trash2,
-  Sparkles,
-} from "lucide-react-native";
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MotiView } from 'moti';
+import { Bot, X, Send, Trash2, Sparkles } from 'lucide-react-native';
 import { askSiteAgent } from '@/src/services/api/agentClient';
-import { Icon } from "../ui/Icon";
+import { Icon } from '../ui/Icon';
 
 interface Message {
-  role: "user" | "agent";
+  role: 'user' | 'agent';
   text: string;
 }
 
 const WELCOME: Message = {
-  role: "agent",
-  text: "Hello! I am the Khidmat Support Agent. How can I help you with our platform today?",
+  role: 'agent',
+  text: 'Hello! I am the Khidmat Support Agent. How can I help you with our platform today?',
 };
 
 const SUGGESTIONS = [
-  "How do I book a provider?",
-  "What are the pricing details?",
-  "How do I become a provider?",
+  'How do I book a provider?',
+  'What are the pricing details?',
+  'How do I become a provider?',
 ];
 
 /** Floating, bottom-docked support agent chat (port of the web Rnd widget —
@@ -45,15 +39,14 @@ const SUGGESTIONS = [
 export const SiteAgentWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const scrollRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
 
-  const scrollToBottom = () =>
-    scrollRef.current?.scrollToEnd({ animated: true });
+  const scrollToBottom = () => scrollRef.current?.scrollToEnd({ animated: true });
 
   useEffect(() => {
     if (isOpen) setTimeout(scrollToBottom, 100);
@@ -62,19 +55,19 @@ export const SiteAgentWidget: React.FC = () => {
   const send = async (overrideText?: string) => {
     const text = (overrideText ?? input).trim();
     if (!text || isTyping) return;
-    setInput("");
+    setInput('');
     setShowSuggestions(false);
-    setMessages((prev) => [...prev, { role: "user", text }]);
+    setMessages((prev) => [...prev, { role: 'user', text }]);
     setIsTyping(true);
     try {
       const reply = await askSiteAgent(text);
-      setMessages((prev) => [...prev, { role: "agent", text: reply }]);
+      setMessages((prev) => [...prev, { role: 'agent', text: reply }]);
     } catch {
       setMessages((prev) => [
         ...prev,
         {
-          role: "agent",
-          text: "Sorry, I encountered an error connecting to our support system. Please try again later.",
+          role: 'agent',
+          text: 'Sorry, I encountered an error connecting to our support system. Please try again later.',
         },
       ]);
     } finally {
@@ -93,7 +86,7 @@ export const SiteAgentWidget: React.FC = () => {
     <Pressable
       onPress={() => setIsOpen((o) => !o)}
       className={`absolute z-40 items-center justify-center rounded-full ${
-        isOpen ? "bg-ink" : "bg-primary"
+        isOpen ? 'bg-ink' : 'bg-primary'
       } shadow-large`}
       style={{
         width: 56,
@@ -117,18 +110,15 @@ export const SiteAgentWidget: React.FC = () => {
           statusBarTranslucent
         >
           <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             className="flex-1 justify-end"
-            style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+            style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
           >
-            <Pressable
-              className="absolute inset-0"
-              onPress={() => setIsOpen(false)}
-            />
+            <Pressable className="absolute inset-0" onPress={() => setIsOpen(false)} />
             <MotiView
               from={{ translateY: 40, opacity: 0 }}
               animate={{ translateY: 0, opacity: 1 }}
-              transition={{ type: "spring", damping: 22, stiffness: 260 }}
+              transition={{ type: 'spring', damping: 22, stiffness: 260 }}
               style={{ height: panelHeight, paddingBottom: insets.bottom }}
               className="bg-[#0B1220] overflow-hidden"
             >
@@ -160,13 +150,13 @@ export const SiteAgentWidget: React.FC = () => {
                 {messages.map((msg, idx) => (
                   <View
                     key={idx}
-                    className={`mb-3 ${msg.role === "user" ? "items-end" : "items-start"}`}
+                    className={`mb-3 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
                   >
                     <Text
                       className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm ${
-                        msg.role === "user"
-                          ? "rounded-br-sm bg-emerald-600 text-white"
-                          : "rounded-bl-sm bg-slate-700 text-slate-200"
+                        msg.role === 'user'
+                          ? 'rounded-br-sm bg-emerald-600 text-white'
+                          : 'rounded-bl-sm bg-slate-700 text-slate-200'
                       }`}
                     >
                       {msg.text}
@@ -196,9 +186,7 @@ export const SiteAgentWidget: React.FC = () => {
                       onPress={() => send(s)}
                       className="mr-2 rounded-full border border-emerald-500/30 bg-slate-800 px-3 py-1.5"
                     >
-                      <Text className="text-[11px] font-medium text-emerald-400">
-                        {s}
-                      </Text>
+                      <Text className="text-[11px] font-medium text-emerald-400">{s}</Text>
                     </Pressable>
                   ))}
                 </ScrollView>
@@ -225,8 +213,7 @@ export const SiteAgentWidget: React.FC = () => {
 
               <View className="items-center pb-1">
                 <Text className="text-[10px] text-slate-500">
-                  <Icon icon={Sparkles} color={BRAND.muted} size={10} /> AI-powered
-                  by Khidmat
+                  <Icon icon={Sparkles} color={BRAND.muted} size={10} /> AI-powered by Khidmat
                 </Text>
               </View>
             </MotiView>

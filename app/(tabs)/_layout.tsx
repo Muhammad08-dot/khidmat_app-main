@@ -1,11 +1,11 @@
-import React from "react";
-import { BRAND } from "@/src/theme/colors";
-import { Tabs } from "expo-router";
-import { Home, CalendarDays, MessageSquare, Bell, User, LucideIcon } from "lucide-react-native";
-import type { ColorValue } from "react-native";
-import { useAuth } from "@/src/context/AuthContext";
-import { useNotifications } from "@/src/hooks/useSupabase";
-import { t } from "@/src/i18n";
+import React from 'react';
+import { BRAND } from '@/src/theme/colors';
+import { Tabs } from 'expo-router';
+import { Home, CalendarDays, MessageSquare, Bell, User, LucideIcon } from 'lucide-react-native';
+import type { ColorValue } from 'react-native';
+import { useAuth } from '@/src/context/AuthContext';
+import { useNotifications } from '@/src/hooks/useSupabase';
+import { t } from '@/src/i18n';
 
 /** Props the tab bar passes to each icon renderer. */
 type TabIconProps = { color: ColorValue; size: number; focused: boolean };
@@ -30,10 +30,10 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: BRAND.primary,
-        tabBarInactiveTintColor: "rgba(20,35,28,0.55)",
-        tabBarLabelStyle: { fontSize: 10, fontWeight: "700" },
+        tabBarInactiveTintColor: 'rgba(20,35,28,0.55)',
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '700' },
         tabBarStyle: {
-          backgroundColor: "#FBFAF6",
+          backgroundColor: '#FBFAF6',
           borderTopColor: BRAND.border,
           height: 62,
           paddingBottom: 8,
@@ -45,28 +45,28 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: t("tab_home"),
+          title: t('tab_home'),
           tabBarIcon: tabIcon(Home),
         }}
       />
       <Tabs.Screen
         name="bookings"
         options={{
-          title: t("tab_bookings"),
+          title: t('tab_bookings'),
           tabBarIcon: tabIcon(CalendarDays),
         }}
       />
       <Tabs.Screen
         name="inbox"
         options={{
-          title: t("tab_inbox"),
+          title: t('tab_inbox'),
           tabBarIcon: tabIcon(MessageSquare),
         }}
       />
       <Tabs.Screen
         name="notifications"
         options={{
-          title: t("tab_notifications"),
+          title: t('tab_notifications'),
           tabBarIcon: tabIcon(Bell),
           tabBarBadge: unread > 0 ? unread : undefined,
         }}
@@ -74,7 +74,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: t("tab_profile"),
+          title: t('tab_profile'),
           tabBarIcon: tabIcon(User),
         }}
       />

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { BRAND } from "@/src/theme/colors";
+import React, { useEffect, useState } from 'react';
+import { BRAND } from '@/src/theme/colors';
 import {
   View,
   Text,
@@ -10,8 +10,8 @@ import {
   TextInput,
   RefreshControl,
   Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
+} from 'react-native';
+import { useRouter } from 'expo-router';
 import {
   AlertCircle,
   Calendar,
@@ -27,17 +27,21 @@ import {
   Sparkles,
   XCircle,
   Info,
-} from "lucide-react-native";
-import { useAuth } from "@/src/context/AuthContext";
-import { createNotification, submitProviderReview, mergeBookingMeta } from "@/src/services/supabase/legacy";
-import { recordCodSettlement } from "@/src/services/payments";
-import { track, AnalyticsEvents } from "@/src/services/analytics";
-import { startProviderTracking, stopProviderTracking } from "@/src/services/backgroundLocation";
-import { useBookings, useUpdateBookingStatus, useSendMessage } from "@/src/hooks/useSupabase";
+} from 'lucide-react-native';
+import { useAuth } from '@/src/context/AuthContext';
+import {
+  createNotification,
+  submitProviderReview,
+  mergeBookingMeta,
+} from '@/src/services/supabase/legacy';
+import { recordCodSettlement } from '@/src/services/payments';
+import { track, AnalyticsEvents } from '@/src/services/analytics';
+import { startProviderTracking, stopProviderTracking } from '@/src/services/backgroundLocation';
+import { useBookings, useUpdateBookingStatus, useSendMessage } from '@/src/hooks/useSupabase';
 
-import { Card } from "@/src/components/ui/Card";
-import { Skeleton } from "@/src/components/ui/Skeleton";
-import { Icon } from "@/src/components/ui/Icon";
+import { Card } from '@/src/components/ui/Card';
+import { Skeleton } from '@/src/components/ui/Skeleton';
+import { Icon } from '@/src/components/ui/Icon';
 
 interface Booking {
   id?: string;
@@ -51,25 +55,30 @@ interface Booking {
   date: string;
   timeSlot: string;
   address: string;
-  status: "pending" | "confirmed" | "in_progress" | "completed" | "closed" | "cancelled";
+  status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'closed' | 'cancelled';
   totalPrice: number;
   distanceKm: number;
   customerRating?: number;
   reviewedAt?: string;
 }
 
-type Tab = "all" | "pending" | "confirmed" | "completed" | "cancelled";
+type Tab = 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled';
 
-const TABS: Tab[] = ["all", "pending", "confirmed", "completed", "cancelled"];
+const TABS: Tab[] = ['all', 'pending', 'confirmed', 'completed', 'cancelled'];
 
 export default function BookingsScreen() {
   const router = useRouter();
   const { user, userProfile } = useAuth();
 
-  const role = userProfile?.current_mode === "worker" ? "provider" : "customer";
-  const { data: bookingsData, isLoading: loading, refetch, isRefetching } = useBookings(user?.id, role);
+  const role = userProfile?.current_mode === 'worker' ? 'provider' : 'customer';
+  const {
+    data: bookingsData,
+    isLoading: loading,
+    refetch,
+    isRefetching,
+  } = useBookings(user?.id, role);
   const bookings = (bookingsData as Booking[]) || [];
-  const [activeTab, setActiveTab] = useState<Tab>("all");
+  const [activeTab, setActiveTab] = useState<Tab>('all');
   const [pageLimit, setPageLimit] = useState(10);
 
   const [ratingBookingId, setRatingBookingId] = useState<string | null>(null);
@@ -77,20 +86,20 @@ export default function BookingsScreen() {
   const [submittingRating, setSubmittingRating] = useState(false);
 
   const CANCEL_REASONS = [
-    "Emergency / no longer needed",
-    "Provider not responding",
-    "Found a better option",
-    "Wrong service or schedule",
-    "Other",
+    'Emergency / no longer needed',
+    'Provider not responding',
+    'Found a better option',
+    'Wrong service or schedule',
+    'Other',
   ];
   const [cancellingBooking, setCancellingBooking] = useState<Booking | null>(null);
   const [cancelReason, setCancelReason] = useState<string | null>(null);
-  const [cancelReasonText, setCancelReasonText] = useState("");
+  const [cancelReasonText, setCancelReasonText] = useState('');
   const [cancelling, setCancelling] = useState(false);
 
   const requestCancel = (booking: Booking) => {
     setCancelReason(null);
-    setCancelReasonText("");
+    setCancelReasonText('');
     setCancellingBooking(booking);
   };
 
@@ -100,31 +109,31 @@ export default function BookingsScreen() {
     setCancelling(true);
     try {
       const reasonText =
-        cancelReason === "Other"
-          ? cancelReasonText.trim() || "Other"
-          : cancelReason;
+        cancelReason === 'Other' ? cancelReasonText.trim() || 'Other' : cancelReason;
       await mergeBookingMeta(cancellingBooking.bookingId, {
         cancellationReason: reasonText,
-        cancelledBy: isWorker ? "provider" : "customer",
+        cancelledBy: isWorker ? 'provider' : 'customer',
       });
-      await handleUpdateStatus(cancellingBooking, "cancelled");
-      track(AnalyticsEvents.BOOKING_CANCELLED, { reason: cancelReason === "Other" ? "other" : "preset" });
+      await handleUpdateStatus(cancellingBooking, 'cancelled');
+      track(AnalyticsEvents.BOOKING_CANCELLED, {
+        reason: cancelReason === 'Other' ? 'other' : 'preset',
+      });
       setCancellingBooking(null);
     } finally {
       setCancelling(false);
     }
   };
 
-  const isWorker = userProfile?.current_mode === "worker";
+  const isWorker = userProfile?.current_mode === 'worker';
   const { mutateAsync: updateStatus } = useUpdateBookingStatus();
   const { mutateAsync: sendMsg } = useSendMessage();
 
   // --- Reschedule ------------------------------------------------------
   const RESCHED_SLOTS = [
-    "Morning (9am - 12pm)",
-    "Afternoon (12pm - 3pm)",
-    "Evening (3pm - 6pm)",
-    "Night (6pm - 9pm)",
+    'Morning (9am - 12pm)',
+    'Afternoon (12pm - 3pm)',
+    'Evening (3pm - 6pm)',
+    'Night (6pm - 9pm)',
   ];
   const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
   const [reschedDates, setReschedDates] = useState<string[]>([]);
@@ -134,8 +143,21 @@ export default function BookingsScreen() {
 
   // Built inside the tap handler (not render) so Date usage stays lint-clean.
   const requestReschedule = (booking: Booking) => {
-    const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const mon = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const dow = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const mon = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     const days: string[] = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date();
@@ -144,7 +166,11 @@ export default function BookingsScreen() {
     }
     setReschedDates(days);
     setReschedDate(days.includes(booking.date) ? booking.date : days[0]);
-    setReschedSlot(RESCHED_SLOTS.find((s) => booking.timeSlot?.startsWith(s.split(" ")[0])) ?? booking.timeSlot ?? RESCHED_SLOTS[0]);
+    setReschedSlot(
+      RESCHED_SLOTS.find((s) => booking.timeSlot?.startsWith(s.split(' ')[0])) ??
+        booking.timeSlot ??
+        RESCHED_SLOTS[0]
+    );
     setRescheduleBooking(booking);
   };
 
@@ -155,32 +181,28 @@ export default function BookingsScreen() {
       await mergeBookingMeta(rescheduleBooking.bookingId, {
         date: reschedDate,
         timeSlot: reschedSlot,
-        rescheduledBy: isWorker ? "provider" : "customer",
+        rescheduledBy: isWorker ? 'provider' : 'customer',
         rescheduledAt: new Date().toISOString(),
       });
-      const targetId = isWorker
-        ? rescheduleBooking.customerId
-        : rescheduleBooking.providerId;
+      const targetId = isWorker ? rescheduleBooking.customerId : rescheduleBooking.providerId;
       await createNotification(
         targetId,
-        "booking_rescheduled",
+        'booking_rescheduled',
         `A booking was rescheduled to ${reschedDate}, ${reschedSlot}.`,
         rescheduleBooking.bookingId
       );
       await refetch();
       setRescheduleBooking(null);
     } catch (err) {
-      console.warn("Reschedule failed:", err);
+      console.warn('Reschedule failed:', err);
     } finally {
       setReschedSaving(false);
     }
   };
 
-  
-
   const handleUpdateStatus = async (
     booking: Booking,
-    newStatus: "confirmed" | "in_progress" | "completed" | "closed" | "cancelled"
+    newStatus: 'confirmed' | 'in_progress' | 'completed' | 'closed' | 'cancelled'
   ) => {
     try {
       const updatedBooking = { ...booking, status: newStatus };
@@ -191,73 +213,66 @@ export default function BookingsScreen() {
       });
 
       // Live job tracking lifecycle (flag-guarded; no-op when disabled).
-      if (newStatus === "in_progress" && isWorker) {
+      if (newStatus === 'in_progress' && isWorker) {
         void startProviderTracking(booking.bookingId);
-      } else if (
-        newStatus === "completed" ||
-        newStatus === "cancelled" ||
-        newStatus === "closed"
-      ) {
+      } else if (newStatus === 'completed' || newStatus === 'cancelled' || newStatus === 'closed') {
         void stopProviderTracking();
       }
 
       const statusTexts: Record<string, string> = {
-        confirmed:
-          "Worker accepted the booking request and has marked it as CONFIRMED.",
-        in_progress:
-          "Worker has started working on this booking. Status is now IN PROGRESS.",
-        completed:
-          "Worker completed the task successfully. Booking is marked as COMPLETED.",
-        closed: "Booking was marked as CLOSED.",
-        cancelled: `Booking was cancelled by the ${
-          isWorker ? "worker" : "customer"
-        }.`,
+        confirmed: 'Worker accepted the booking request and has marked it as CONFIRMED.',
+        in_progress: 'Worker has started working on this booking. Status is now IN PROGRESS.',
+        completed: 'Worker completed the task successfully. Booking is marked as COMPLETED.',
+        closed: 'Booking was marked as CLOSED.',
+        cancelled: `Booking was cancelled by the ${isWorker ? 'worker' : 'customer'}.`,
       };
 
       const tasks: Promise<any>[] = [];
       tasks.push(
-        sendMsg({ bookingId: booking.bookingId, senderId: user?.id || "", content: JSON.stringify({
+        sendMsg({
+          bookingId: booking.bookingId,
+          senderId: user?.id || '',
+          content: JSON.stringify({
             text: statusTexts[newStatus],
             isSystemEvent: true,
             eventStatus: newStatus,
-          }) })
+          }),
+        })
       );
 
-      if (newStatus === "confirmed") {
+      if (newStatus === 'confirmed') {
         tasks.push(
           createNotification(
             booking.customerId,
-            "job_accepted",
+            'job_accepted',
             `Your booking request has been accepted by ${booking.providerName}!`,
             booking.bookingId
           )
         );
-      } else if (newStatus === "in_progress") {
+      } else if (newStatus === 'in_progress') {
         tasks.push(
           createNotification(
             booking.customerId,
-            "job_accepted",
+            'job_accepted',
             `Worker ${booking.providerName} has started working on your job request.`,
             booking.bookingId
           )
         );
-      } else if (newStatus === "completed") {
+      } else if (newStatus === 'completed') {
         tasks.push(
           createNotification(
             booking.customerId,
-            "job_completed",
+            'job_completed',
             `Worker ${booking.providerName} has marked your job complete. Please review & confirm completion.`,
             booking.bookingId
           )
         );
-      } else if (newStatus === "cancelled") {
-        const targetUserId = isWorker
-          ? booking.customerId
-          : booking.providerId;
+      } else if (newStatus === 'cancelled') {
+        const targetUserId = isWorker ? booking.customerId : booking.providerId;
         tasks.push(
           createNotification(
             targetUserId,
-            "job_confirmed",
+            'job_confirmed',
             `Your booking request with ${
               isWorker ? booking.customerName : booking.providerName
             } has been cancelled.`,
@@ -268,10 +283,11 @@ export default function BookingsScreen() {
 
       await Promise.all(tasks);
     } catch (err: any) {
-      console.error("Failed to update status:", err);
+      console.error('Failed to update status:', err);
       Alert.alert(
-        "Update Conflict",
-        err?.message || "Could not update booking status because it was modified by the other party."
+        'Update Conflict',
+        err?.message ||
+          'Could not update booking status because it was modified by the other party.'
       );
       refetch();
     }
@@ -282,67 +298,69 @@ export default function BookingsScreen() {
     try {
       setSubmittingRating(true);
       await submitProviderReview(booking.bookingId, booking.providerId, selectedRating);
-      await sendMsg({ bookingId: booking.bookingId, senderId: user?.id || "", content: JSON.stringify({
+      await sendMsg({
+        bookingId: booking.bookingId,
+        senderId: user?.id || '',
+        content: JSON.stringify({
           text: `Customer confirmed completion and rated the service ${selectedRating} stars.`,
           isSystemEvent: true,
-          eventStatus: "closed",
-        }) });
+          eventStatus: 'closed',
+        }),
+      });
       await createNotification(
         booking.providerId,
-        "job_confirmed",
+        'job_confirmed',
         `Customer ${booking.customerName} confirmed completion and rated you ${selectedRating} stars.`,
         booking.bookingId
       );
       // COD settlement ledger entry + close the booking; never block the rating.
       try {
         await recordCodSettlement(booking.bookingId, booking.customerId, booking.totalPrice);
-        await mergeBookingMeta(booking.bookingId, { paymentMethod: "cod" });
-        await updateStatus({ bookingId: booking.bookingId, status: "closed" });
+        await mergeBookingMeta(booking.bookingId, { paymentMethod: 'cod' });
+        await updateStatus({ bookingId: booking.bookingId, status: 'closed' });
       } catch (payErr) {
-        console.warn("COD settlement ledger entry failed:", payErr);
+        console.warn('COD settlement ledger entry failed:', payErr);
       }
       track(AnalyticsEvents.BOOKING_CLOSED, { category: booking.providerCategory });
       refetch();
       setRatingBookingId(null);
       setSelectedRating(5);
     } catch (err) {
-      console.error("Failed to submit rating:", err);
+      console.error('Failed to submit rating:', err);
     } finally {
       setSubmittingRating(false);
     }
   };
 
-  const isCompletedTab = (s: string) =>
-    s === "completed" || s === "closed" || s === "in_progress";
+  const isCompletedTab = (s: string) => s === 'completed' || s === 'closed' || s === 'in_progress';
 
   const filteredBookings = bookings.filter((b) => {
-    if (activeTab === "all") return true;
-    if (activeTab === "completed") return isCompletedTab(b.status);
+    if (activeTab === 'all') return true;
+    if (activeTab === 'completed') return isCompletedTab(b.status);
     return b.status === activeTab;
   });
 
   const getTabCount = (tab: Tab) => {
-    if (tab === "all") return bookings.length;
-    if (tab === "completed")
-      return bookings.filter((b) => isCompletedTab(b.status)).length;
+    if (tab === 'all') return bookings.length;
+    if (tab === 'completed') return bookings.filter((b) => isCompletedTab(b.status)).length;
     return bookings.filter((b) => b.status === tab).length;
   };
 
   const getStatusStyle = (status: string) => {
     switch (status) {
-      case "confirmed":
-        return { color: BRAND.gold, label: "Confirmed" };
-      case "in_progress":
-        return { color: BRAND.primary, label: "In Progress" };
-      case "completed":
-        return { color: BRAND.info, label: "Completed" };
-      case "closed":
-        return { color: BRAND.success, label: "Closed" };
-      case "cancelled":
-        return { color: BRAND.danger, label: "Cancelled" };
-      case "pending":
+      case 'confirmed':
+        return { color: BRAND.gold, label: 'Confirmed' };
+      case 'in_progress':
+        return { color: BRAND.primary, label: 'In Progress' };
+      case 'completed':
+        return { color: BRAND.info, label: 'Completed' };
+      case 'closed':
+        return { color: BRAND.success, label: 'Closed' };
+      case 'cancelled':
+        return { color: BRAND.danger, label: 'Cancelled' };
+      case 'pending':
       default:
-        return { color: BRAND.caution, label: "Pending" };
+        return { color: BRAND.caution, label: 'Pending' };
     }
   };
 
@@ -352,17 +370,20 @@ export default function BookingsScreen() {
       contentContainerStyle={{ paddingTop: 20, paddingBottom: 120 }}
       showsVerticalScrollIndicator={false}
       refreshControl={
-        <RefreshControl refreshing={!!isRefetching} onRefresh={() => void refetch()} tintColor={BRAND.primary} colors={[BRAND.primary]} />
+        <RefreshControl
+          refreshing={!!isRefetching}
+          onRefresh={() => void refetch()}
+          tintColor={BRAND.primary}
+          colors={[BRAND.primary]}
+        />
       }
     >
       <View className="px-4">
-        <Text className="font-display text-2xl font-medium text-ink">
-          My Bookings
-        </Text>
+        <Text className="font-display text-2xl font-medium text-ink">My Bookings</Text>
         <Text className="mt-1 text-sm text-ink/70">
           {isWorker
-            ? "Manage jobs assigned to you by customers"
-            : "Track your requested home service calls"}
+            ? 'Manage jobs assigned to you by customers'
+            : 'Track your requested home service calls'}
         </Text>
 
         {/* Tabs */}
@@ -372,17 +393,13 @@ export default function BookingsScreen() {
               <View className="flex-row items-center gap-1.5">
                 <Text
                   className={`text-sm ${
-                    activeTab === tab
-                      ? "font-bold text-primary"
-                      : "text-ink/60"
+                    activeTab === tab ? 'font-bold text-primary' : 'text-ink/60'
                   }`}
                 >
-                  {tab === "all" ? "All Bookings" : tab}
+                  {tab === 'all' ? 'All Bookings' : tab}
                 </Text>
                 <View className="rounded-full bg-ink/5 px-1.5 py-0.5">
-                  <Text className="text-[10px] font-bold text-ink/50">
-                    {getTabCount(tab)}
-                  </Text>
+                  <Text className="text-[10px] font-bold text-ink/50">{getTabCount(tab)}</Text>
                 </View>
               </View>
               {activeTab === tab && (
@@ -408,37 +425,31 @@ export default function BookingsScreen() {
         ) : filteredBookings.length === 0 ? (
           <View className="items-center py-16">
             <Icon icon={AlertCircle} color="rgba(20,35,28,0.4)" size={48} />
-            <Text className="mt-4 text-lg font-bold text-ink">
-              No Bookings Found
-            </Text>
+            <Text className="mt-4 text-lg font-bold text-ink">No Bookings Found</Text>
             <Text className="mt-2 text-center text-sm text-ink/70">
-              {activeTab === "all"
+              {activeTab === 'all'
                 ? "You don't have any bookings logged in this category yet."
                 : `No bookings match your current "${activeTab}" filter.`}
             </Text>
-            {!isWorker && activeTab === "all" && (
+            {!isWorker && activeTab === 'all' && (
               <Pressable
-                onPress={() => router.push("/")}
+                onPress={() => router.push('/')}
                 className="mt-6 rounded-xl bg-primary px-6 py-3"
               >
-                <Text className="font-semibold text-white">
-                  Request Service Now
-                </Text>
+                <Text className="font-semibold text-white">Request Service Now</Text>
               </Pressable>
             )}
           </View>
         ) : (
           <View className="gap-4">
             {filteredBookings.slice(0, pageLimit).map((b) => {
-              const isCompleted = b.status === "completed";
-              const isClosed = b.status === "closed";
-              const isPending = b.status === "pending";
-              const isConfirmed = b.status === "confirmed";
-              const isInProgress = b.status === "in_progress";
+              const isCompleted = b.status === 'completed';
+              const isClosed = b.status === 'closed';
+              const isPending = b.status === 'pending';
+              const isConfirmed = b.status === 'confirmed';
+              const isInProgress = b.status === 'in_progress';
               const clientView = !isWorker;
-              const displayTitle = clientView
-                ? b.providerCategory
-                : "Incoming Job Request";
+              const displayTitle = clientView ? b.providerCategory : 'Incoming Job Request';
               const displayName = clientView ? b.providerName : b.customerName;
               const status = getStatusStyle(b.status);
 
@@ -451,14 +462,10 @@ export default function BookingsScreen() {
                         <Icon icon={Calendar} color={BRAND.primary} size={16} />
                       </View>
                       <View>
-                        <Text className="text-sm font-bold text-ink">
-                          {displayTitle}
-                        </Text>
+                        <Text className="text-sm font-bold text-ink">{displayTitle}</Text>
                         <Text className="mt-0.5 text-[10px] text-ink/50">
-                          Booking ID:{" "}
-                          <Text className="font-mono">
-                            {b.bookingId.substring(0, 8)}
-                          </Text>
+                          Booking ID:{' '}
+                          <Text className="font-mono">{b.bookingId.substring(0, 8)}</Text>
                         </Text>
                       </View>
                     </View>
@@ -491,7 +498,7 @@ export default function BookingsScreen() {
                     </View>
                     <View>
                       <Text className="font-mono text-[9px] font-bold uppercase tracking-widest text-ink/40">
-                        {clientView ? "Assigned Worker" : "Client Contact"}
+                        {clientView ? 'Assigned Worker' : 'Client Contact'}
                       </Text>
                       <Text className="mt-0.5 flex-row items-center gap-1 text-xs font-semibold capitalize text-ink">
                         <Icon icon={User} color={BRAND.primary} size={14} />
@@ -511,9 +518,7 @@ export default function BookingsScreen() {
 
                   {/* Price */}
                   <View className="mt-3 flex-row items-center justify-between rounded-lg border border-border bg-surface px-4 py-2.5">
-                    <Text className="text-xs font-bold text-ink/60">
-                      Total Price Estimate
-                    </Text>
+                    <Text className="text-xs font-bold text-ink/60">Total Price Estimate</Text>
                     <Text className="flex-row items-center gap-0.5 text-xs font-bold text-primary">
                       <Icon icon={DollarSign} color={BRAND.primary} size={14} />
                       Rs. {b.totalPrice}
@@ -545,8 +550,8 @@ export default function BookingsScreen() {
                                 Rate {b.providerName}'s Work
                               </Text>
                               <Text className="mt-0.5 text-[10px] text-ink/50">
-                                Your rating recalculates their tier and helps
-                                maintain high quality standards!
+                                Your rating recalculates their tier and helps maintain high quality
+                                standards!
                               </Text>
                             </View>
                             <View className="flex-row gap-0.5">
@@ -561,7 +566,7 @@ export default function BookingsScreen() {
                                   <Icon
                                     icon={Star}
                                     color={
-                                      selectedRating >= n ? BRAND.warning : BRAND.warning + "55"
+                                      selectedRating >= n ? BRAND.warning : BRAND.warning + '55'
                                     }
                                     size={22}
                                   />
@@ -577,9 +582,7 @@ export default function BookingsScreen() {
                                 className="rounded-lg bg-primary px-4 py-2"
                               >
                                 <Text className="text-[11px] font-bold text-white">
-                                  {submittingRating
-                                    ? "Submitting..."
-                                    : "Submit Review Score"}
+                                  {submittingRating ? 'Submitting...' : 'Submit Review Score'}
                                 </Text>
                               </Pressable>
                             </View>
@@ -591,14 +594,18 @@ export default function BookingsScreen() {
 
                   {/* Actions */}
                   <View className="mt-3 flex-row flex-wrap items-center justify-between gap-2 border-t border-border pt-2.5">
-                    {b.status === "cancelled" ? (
+                    {b.status === 'cancelled' ? (
                       <View className="flex-row items-center justify-between w-full">
                         <Text className="flex-row items-center gap-1 text-[10px] font-bold text-accent-terracotta">
                           <Icon icon={XCircle} color={BRAND.caution} size={13} /> Booking Cancelled
                         </Text>
                         {clientView && (
                           <Pressable
-                            onPress={() => router.push(`/providers?category=${encodeURIComponent(b.providerCategory)}&reassignFrom=${b.bookingId}`)}
+                            onPress={() =>
+                              router.push(
+                                `/providers?category=${encodeURIComponent(b.providerCategory)}&reassignFrom=${b.bookingId}`
+                              )
+                            }
                             className="flex-row items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5"
                           >
                             <Icon icon={Sparkles} color="#fff" size={13} />
@@ -608,57 +615,48 @@ export default function BookingsScreen() {
                       </View>
                     ) : (
                       <Text className="flex-row items-center gap-1 text-[10px] font-bold text-ink/50">
-                        <Icon icon={Info} color={BRAND.primary} size={13} /> Contact
-                        details will unlock in Chat
+                        <Icon icon={Info} color={BRAND.primary} size={13} /> Contact details will
+                        unlock in Chat
                       </Text>
                     )}
 
                     <View className="flex-row flex-wrap gap-2">
-                      {b.status !== "cancelled" && (
+                      {b.status !== 'cancelled' && (
                         <Pressable
                           onPress={() => router.push(`/chat?bookingId=${b.bookingId}`)}
                           className="flex-row items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2.5"
                         >
                           <Icon icon={MessageSquare} color={BRAND.primary} size={16} />
-                          <Text className="text-xs font-bold text-ink">
-                            Live Chat
-                          </Text>
+                          <Text className="text-xs font-bold text-ink">Live Chat</Text>
                         </Pressable>
                       )}
 
-                      {(b.status === "pending" || b.status === "confirmed") && (
+                      {(b.status === 'pending' || b.status === 'confirmed') && (
                         <Pressable
                           onPress={() => requestReschedule(b)}
                           className="flex-row items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2.5"
                         >
                           <Icon icon={Calendar} color={BRAND.primary} size={16} />
-                          <Text className="text-xs font-bold text-ink">
-                            Reschedule
-                          </Text>
+                          <Text className="text-xs font-bold text-ink">Reschedule</Text>
                         </Pressable>
                       )}
 
-                      {b.status !== "cancelled" &&
-                        (isConfirmed || isInProgress) && (
-                          <Pressable
-                            onPress={() => router.push(`/track/${b.bookingId}`)}
-                            className="flex-row items-center gap-1.5 rounded-lg bg-primary px-4 py-2.5"
-                          >
-                            <Icon icon={Navigation} color="#fff" size={16} />
-                            <Text className="text-xs font-bold text-white">
-                              Track Map
-                            </Text>
-                          </Pressable>
-                        )}
+                      {b.status !== 'cancelled' && (isConfirmed || isInProgress) && (
+                        <Pressable
+                          onPress={() => router.push(`/track/${b.bookingId}`)}
+                          className="flex-row items-center gap-1.5 rounded-lg bg-primary px-4 py-2.5"
+                        >
+                          <Icon icon={Navigation} color="#fff" size={16} />
+                          <Text className="text-xs font-bold text-white">Track Map</Text>
+                        </Pressable>
+                      )}
 
                       {clientView && isPending && (
                         <Pressable
                           onPress={() => requestCancel(b)}
                           className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2.5"
                         >
-                          <Text className="text-xs font-bold text-red-600">
-                            Cancel Booking
-                          </Text>
+                          <Text className="text-xs font-bold text-red-600">Cancel Booking</Text>
                         </Pressable>
                       )}
 
@@ -668,12 +666,10 @@ export default function BookingsScreen() {
                             onPress={() => requestCancel(b)}
                             className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2.5"
                           >
-                            <Text className="text-xs font-bold text-red-600">
-                              Cancel Job
-                            </Text>
+                            <Text className="text-xs font-bold text-red-600">Cancel Job</Text>
                           </Pressable>
                           <Pressable
-                            onPress={() => handleUpdateStatus(b, "confirmed")}
+                            onPress={() => handleUpdateStatus(b, 'confirmed')}
                             className="rounded-lg bg-emerald-500 px-4 py-2.5"
                           >
                             <Text className="text-xs font-bold text-white">
@@ -685,18 +681,16 @@ export default function BookingsScreen() {
 
                       {!clientView && isConfirmed && (
                         <Pressable
-                          onPress={() => handleUpdateStatus(b, "in_progress")}
+                          onPress={() => handleUpdateStatus(b, 'in_progress')}
                           className="rounded-lg bg-amber-500 px-4 py-2.5"
                         >
-                          <Text className="text-xs font-bold text-white">
-                            Start Work
-                          </Text>
+                          <Text className="text-xs font-bold text-white">Start Work</Text>
                         </Pressable>
                       )}
 
                       {!clientView && isInProgress && (
                         <Pressable
-                          onPress={() => handleUpdateStatus(b, "completed")}
+                          onPress={() => handleUpdateStatus(b, 'completed')}
                           className="rounded-lg bg-blue-500 px-4 py-2.5"
                         >
                           <Text className="text-xs font-bold text-white">
@@ -737,7 +731,7 @@ export default function BookingsScreen() {
               onPress={(e) => e.stopPropagation()}
             >
               <Text className="text-lg font-bold text-ink">
-                {isWorker ? "Cancel this job?" : "Cancel this booking?"}
+                {isWorker ? 'Cancel this job?' : 'Cancel this booking?'}
               </Text>
               <Text className="text-sm text-ink/60 mt-1">
                 Tell us why so the other side understands and we can improve matching.
@@ -749,12 +743,12 @@ export default function BookingsScreen() {
                     key={r}
                     onPress={() => setCancelReason(r)}
                     className={`flex-row items-center gap-3 rounded-xl border px-4 py-3 ${
-                      cancelReason === r ? "border-primary bg-primary/5" : "border-gray-200"
+                      cancelReason === r ? 'border-primary bg-primary/5' : 'border-gray-200'
                     }`}
                   >
                     <View
                       className={`h-4 w-4 rounded-full border-2 ${
-                        cancelReason === r ? "border-primary bg-primary" : "border-gray-300"
+                        cancelReason === r ? 'border-primary bg-primary' : 'border-gray-300'
                       }`}
                     />
                     <Text className="text-sm font-semibold text-ink flex-1">{r}</Text>
@@ -762,7 +756,7 @@ export default function BookingsScreen() {
                 ))}
               </View>
 
-              {cancelReason === "Other" && (
+              {cancelReason === 'Other' && (
                 <TextInput
                   value={cancelReasonText}
                   onChangeText={setCancelReasonText}
@@ -815,16 +809,22 @@ export default function BookingsScreen() {
               </Text>
 
               <Text className="mt-4 mb-2 text-xs font-bold uppercase text-ink/50">Date</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 8 }}
+              >
                 {reschedDates.map((d) => (
                   <Pressable
                     key={d}
                     onPress={() => setReschedDate(d)}
                     className={`rounded-xl border px-3.5 py-2.5 ${
-                      reschedDate === d ? "border-primary bg-primary/5" : "border-gray-200"
+                      reschedDate === d ? 'border-primary bg-primary/5' : 'border-gray-200'
                     }`}
                   >
-                    <Text className={`text-xs font-bold ${reschedDate === d ? "text-primary" : "text-ink/70"}`}>
+                    <Text
+                      className={`text-xs font-bold ${reschedDate === d ? 'text-primary' : 'text-ink/70'}`}
+                    >
                       {d}
                     </Text>
                   </Pressable>
@@ -838,12 +838,12 @@ export default function BookingsScreen() {
                     key={s}
                     onPress={() => setReschedSlot(s)}
                     className={`flex-row items-center gap-3 rounded-xl border px-4 py-3 ${
-                      reschedSlot === s ? "border-primary bg-primary/5" : "border-gray-200"
+                      reschedSlot === s ? 'border-primary bg-primary/5' : 'border-gray-200'
                     }`}
                   >
                     <View
                       className={`h-4 w-4 rounded-full border-2 ${
-                        reschedSlot === s ? "border-primary bg-primary" : "border-gray-300"
+                        reschedSlot === s ? 'border-primary bg-primary' : 'border-gray-300'
                       }`}
                     />
                     <Text className="text-sm font-semibold text-ink flex-1">{s}</Text>

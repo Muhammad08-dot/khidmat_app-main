@@ -1,23 +1,26 @@
 import { supabase } from './client';
 import { Database } from '../../types/database.types';
 import { mapBookingRow, recomputeProviderRating } from './legacy';
+import { handleServiceError } from '../errors';
 
 export const getCategories = async () => {
   const { data, error } = await supabase.from('categories').select('*').order('name');
-  if (error) throw error;
+  if (error) handleServiceError(error);
   return data;
 };
 
 export const getProvidersByCategory = async (category: string) => {
   const { data, error } = await supabase
     .from('providers')
-    .select(`
+    .select(
+      `
       *,
       profiles:id ( name, city, location_lat, location_lng, photo_url )
-    `)
+    `
+    )
     .eq('category', category)
     .eq('available', true);
-  if (error) throw error;
+  if (error) handleServiceError(error);
   return data;
 };
 
@@ -30,31 +33,35 @@ export const clearAntiSpam = () => {
 };
 
 export const createBooking = async (
-  customerId: string, 
-  providerId: string, 
-  category: string, 
-  description: string, 
-  urgency: string, 
+  customerId: string,
+  providerId: string,
+  category: string,
+  description: string,
+  urgency: string,
   estimatedPrice: number
 ) => {
   const now = Date.now();
   const lastBooking = lastBookingMap.get(customerId) || 0;
   if (now - lastBooking < 2000) {
-    throw new Error("Please wait a moment before submitting another booking request.");
+    throw new Error('Please wait a moment before submitting another booking request.');
   }
   lastBookingMap.set(customerId, now);
 
-  const { data, error } = await supabase.from('bookings').insert({
-    customer_id: customerId,
-    provider_id: providerId,
-    category,
-    description,
-    urgency,
-    estimated_price: estimatedPrice,
-    status: 'pending'
-  }).select().single();
-  
-  if (error) throw error;
+  const { data, error } = await supabase
+    .from('bookings')
+    .insert({
+      customer_id: customerId,
+      provider_id: providerId,
+      category,
+      description,
+      urgency,
+      estimated_price: estimatedPrice,
+      status: 'pending',
+    })
+    .select()
+    .single();
+
+  if (error) handleServiceError(error);
   return data;
 };
 
@@ -62,15 +69,17 @@ export const getUserBookings = async (userId: string, role: 'customer' | 'provid
   const column = role === 'customer' ? 'customer_id' : 'provider_id';
   const { data, error } = await supabase
     .from('bookings')
-    .select(`
+    .select(
+      `
       *,
       customer:profiles!bookings_customer_id_fkey(id, name),
       provider:providers!bookings_provider_id_fkey(base_price, profiles!providers_id_fkey(id, name))
-    `)
+    `
+    )
     .eq(column, userId)
     .order('created_at', { ascending: false });
-    
-  if (error) throw error;
+
+  if (error) handleServiceError(error);
   // Screens consume the legacy camelCase booking view model.
   return (data ?? []).map(mapBookingRow);
 };
@@ -81,8 +90,8 @@ export const getMessages = async (bookingId: string) => {
     .select('*, sender:profiles!messages_sender_id_fkey(name)')
     .eq('booking_id', bookingId)
     .order('created_at', { ascending: true });
-    
-  if (error) throw error;
+
+  if (error) handleServiceError(error);
   // Normalize to the ChatMessage shape the screens render.
   return (data ?? []).map((row: any) => {
     let parsed: any = {};
@@ -111,23 +120,32 @@ export const sendMessage = async (bookingId: string, senderId: string, content: 
   const now = Date.now();
   const lastMsg = lastMessageMap.get(senderId) || 0;
   if (!content.includes('"isSystemEvent":true') && now - lastMsg < 400) {
-    throw new Error("You are sending messages too fast. Please slow down.");
+    throw new Error('You are sending messages too fast. Please slow down.');
   }
   lastMessageMap.set(senderId, now);
 
-  const { data, error } = await supabase.from('messages').insert({
-    booking_id: bookingId,
-    sender_id: senderId,
-    content
-  }).select().single();
-  
-  if (error) throw error;
+  const { data, error } = await supabase
+    .from('messages')
+    .insert({
+      booking_id: bookingId,
+      sender_id: senderId,
+      content,
+    })
+    .select()
+    .single();
+
+  if (error) handleServiceError(error);
 
   // Best-effort push notification
   try {
-    const { data: booking } = await supabase.from('bookings').select('customer_id, provider_id').eq('id', bookingId).single();
+    const { data: booking } = await supabase
+      .from('bookings')
+      .select('customer_id, provider_id')
+      .eq('id', bookingId)
+      .single();
     if (booking) {
-      const receiverId = booking.customer_id === senderId ? booking.provider_id : booking.customer_id;
+      const receiverId =
+        booking.customer_id === senderId ? booking.provider_id : booking.customer_id;
       let bodyText = content;
       try {
         const parsed = JSON.parse(content);
@@ -156,7 +174,7 @@ export const markMessagesSeen = async (bookingId: string, myUserId: string) => {
     .eq('booking_id', bookingId)
     .neq('sender_id', myUserId)
     .is('seen_at', null);
-  if (error) throw error;
+  if (error) handleServiceError(error);
 };
 
 // Individual reviews for a provider's public page, with the reviewer's name
@@ -168,7 +186,7 @@ export const getProviderReviews = async (providerId: string) => {
     .eq('provider_id', providerId)
     .neq('is_hidden', true)
     .order('created_at', { ascending: false });
-  if (error) throw error;
+  if (error) handleServiceError(error);
   return (data ?? []).map((row: any) => ({
     id: row.id as string,
     rating: row.rating as number,
@@ -178,15 +196,20 @@ export const getProviderReviews = async (providerId: string) => {
   }));
 };
 
-export const updateProviderLocation = async (providerId: string, bookingId: string, lat: number, lng: number) => {
+export const updateProviderLocation = async (
+  providerId: string,
+  bookingId: string,
+  lat: number,
+  lng: number
+) => {
   const { error } = await supabase.from('provider_locations').upsert({
     provider_id: providerId,
     booking_id: bookingId,
     lat,
     lng,
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   });
-  if (error) throw error;
+  if (error) handleServiceError(error);
 };
 
 export const getNotifications = async (userId: string) => {
@@ -196,7 +219,7 @@ export const getNotifications = async (userId: string) => {
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(50);
-  if (error) throw error;
+  if (error) handleServiceError(error);
   return data;
 };
 
@@ -206,7 +229,7 @@ export const markNotificationsRead = async (userId: string) => {
     .update({ read: true })
     .eq('user_id', userId)
     .eq('read', false);
-  if (error) throw error;
+  if (error) handleServiceError(error);
 };
 
 /* ------------------------------------------------------------------ */
@@ -222,10 +245,12 @@ const logAdminAction = async (
   action: string,
   targetType: 'profile' | 'review' | 'user_report',
   targetId: string,
-  meta: Record<string, unknown> = {},
+  meta: Record<string, unknown> = {}
 ) => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user?.id) return;
     await supabase.from('admin_actions').insert({
       actor_id: user.id,
@@ -247,7 +272,7 @@ export const getPendingProviders = async () => {
     .eq('role', 'provider')
     .in('verification_status', ['pending', 'unverified'])
     .order('created_at', { ascending: false });
-  if (error) throw error;
+  if (error) handleServiceError(error);
   const rows = (data ?? []) as any[];
   // Phone lives in profile_contacts (owner / admin / booking-counterparty RLS).
   // Admin passes the RLS check, so a batched lookup returns phones for the queue.
@@ -258,7 +283,8 @@ export const getPendingProviders = async () => {
       .from('profile_contacts')
       .select('user_id, phone')
       .in('user_id', ids);
-    for (const c of (contacts ?? []) as any[]) phoneById.set(c.user_id as string, (c.phone as string | null) ?? null);
+    for (const c of (contacts ?? []) as any[])
+      phoneById.set(c.user_id as string, (c.phone as string | null) ?? null);
   }
   return rows.map((row: any) => ({
     id: row.id as string,
@@ -271,17 +297,20 @@ export const getPendingProviders = async () => {
 };
 
 /** Approve / reject a provider's KYC by writing profiles.verification_status. */
-export const setProviderVerification = async (profileId: string, status: 'verified' | 'rejected') => {
+export const setProviderVerification = async (
+  profileId: string,
+  status: 'verified' | 'rejected'
+) => {
   const { error } = await supabase
     .from('profiles')
     .update({ verification_status: status })
     .eq('id', profileId);
-  if (error) throw error;
+  if (error) handleServiceError(error);
   await logAdminAction(
     status === 'verified' ? 'provider.verified' : 'provider.rejected',
     'profile',
     profileId,
-    { status },
+    { status }
   );
 };
 
@@ -294,7 +323,7 @@ export const getRecentReviews = async (limit = 50) => {
     )
     .order('created_at', { ascending: false })
     .limit(limit);
-  if (error) throw error;
+  if (error) handleServiceError(error);
   return (data ?? []).map((row: any) => ({
     id: row.id as string,
     rating: row.rating as number,
@@ -308,9 +337,13 @@ export const getRecentReviews = async (limit = 50) => {
 };
 
 /** Soft-hide / unhide a review, then refresh the provider's average rating. */
-export const setReviewHidden = async (reviewId: string, providerId: string | null, hidden: boolean) => {
+export const setReviewHidden = async (
+  reviewId: string,
+  providerId: string | null,
+  hidden: boolean
+) => {
   const { error } = await supabase.from('reviews').update({ is_hidden: hidden }).eq('id', reviewId);
-  if (error) throw error;
+  if (error) handleServiceError(error);
   if (providerId) await recomputeProviderRating(providerId);
   await logAdminAction(hidden ? 'review.hidden' : 'review.unhidden', 'review', reviewId, {
     provider_id: providerId,
@@ -320,7 +353,7 @@ export const setReviewHidden = async (reviewId: string, providerId: string | nul
 /** Permanently delete a review, then refresh the provider's average rating. */
 export const deleteReview = async (reviewId: string, providerId: string | null) => {
   const { error } = await supabase.from('reviews').delete().eq('id', reviewId);
-  if (error) throw error;
+  if (error) handleServiceError(error);
   if (providerId) await recomputeProviderRating(providerId);
   await logAdminAction('review.deleted', 'review', reviewId, { provider_id: providerId });
 };
@@ -395,7 +428,7 @@ export const transitionBookingStatus = async (params: TransitionBookingParams) =
     .eq('status', expectedStatus)
     .select();
 
-  if (error) throw error;
+  if (error) handleServiceError(error);
   if (!data || data.length === 0) {
     throw new Error(
       `Status conflict: booking status could not be changed to "${newStatus}" because its status was already modified by the other party.`
@@ -425,7 +458,7 @@ export const deleteUserAccount = async (userId: string): Promise<boolean> => {
   await supabase.from('profile_contacts').delete().eq('user_id', userId);
   await supabase.from('providers').delete().eq('id', userId);
   const { error } = await supabase.from('profiles').delete().eq('id', userId);
-  if (error) throw error;
+  if (error) handleServiceError(error);
 
   await logAdminAction('account.deleted', 'profile', userId, { user_id: userId });
   await supabase.auth.signOut();
@@ -442,21 +475,27 @@ export interface UserReportParams {
 }
 
 export const submitUserReport = async (params: UserReportParams) => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const reporterId = user?.id || params.reporterId;
-  if (!reporterId) throw new Error("Must be logged in to submit a report.");
+  if (!reporterId) throw new Error('Must be logged in to submit a report.');
 
-  const { data, error } = await supabase.from('user_reports').insert({
-    reporter_id: reporterId,
-    reported_id: params.reportedId || null,
-    target_type: params.targetType,
-    target_id: params.targetId,
-    reason: params.reason,
-    details: params.details || null,
-    status: 'pending',
-  }).select().single();
+  const { data, error } = await supabase
+    .from('user_reports')
+    .insert({
+      reporter_id: reporterId,
+      reported_id: params.reportedId || null,
+      target_type: params.targetType,
+      target_id: params.targetId,
+      reason: params.reason,
+      details: params.details || null,
+      status: 'pending',
+    })
+    .select()
+    .single();
 
-  if (error) throw error;
+  if (error) handleServiceError(error);
   return data;
 };
 
@@ -468,12 +507,14 @@ export const getPendingReports = async (limit = 50) => {
     .order('created_at', { ascending: false })
     .limit(limit);
 
-  if (error) throw error;
+  if (error) handleServiceError(error);
   return data ?? [];
 };
 
 export const resolveUserReport = async (reportId: string, action: 'resolved' | 'dismissed') => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from('user_reports')
     .update({
@@ -484,7 +525,7 @@ export const resolveUserReport = async (reportId: string, action: 'resolved' | '
     .eq('id', reportId)
     .select();
 
-  if (error) throw error;
+  if (error) handleServiceError(error);
   await logAdminAction(`report.${action}`, 'user_report', reportId, { status: action });
   return data?.[0];
 };

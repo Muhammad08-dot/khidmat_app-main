@@ -10,7 +10,7 @@ import {
   sendMessage,
   clearAntiSpam,
 } from '../queries';
-import { createMockSupabase } from '../mockClient';
+import { createMockSupabase } from '@/src/test-utils/mockClient';
 
 describe('Phase 3 Feature Suite: Account Deletion, Reporting, & Anti-Spam', () => {
   beforeEach(() => {
@@ -61,9 +61,9 @@ describe('Phase 3 Feature Suite: Account Deletion, Reporting, & Anti-Spam', () =
     await sendMessage(bookingId, senderId, 'Hello!');
 
     // Immediate consecutive message throws anti-spam error
-    await expect(
-      sendMessage(bookingId, senderId, 'Hello again right now!')
-    ).rejects.toThrow(/You are sending messages too fast/);
+    await expect(sendMessage(bookingId, senderId, 'Hello again right now!')).rejects.toThrow(
+      /You are sending messages too fast/
+    );
   });
 
   it('successfully executes account deletion and anonymization', async () => {
@@ -71,14 +71,20 @@ describe('Phase 3 Feature Suite: Account Deletion, Reporting, & Anti-Spam', () =
     const { supabase } = require('../client');
 
     // Insert user data on the active supabase instance
-    await supabase.from('profiles').insert({ id: tempUserId, name: 'Doomed User', role: 'customer' });
+    await supabase
+      .from('profiles')
+      .insert({ id: tempUserId, name: 'Doomed User', role: 'customer' });
     await supabase.from('push_tokens').insert({ user_id: tempUserId, token: 'fake-token' });
 
     const result = await deleteUserAccount(tempUserId);
     expect(result).toBe(true);
 
     // Verify user profile is deleted
-    const { data: profile } = await supabase.from('profiles').select('id').eq('id', tempUserId).maybeSingle();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', tempUserId)
+      .maybeSingle();
     expect(profile).toBeNull();
   });
 });

@@ -1,14 +1,7 @@
-
-import React, { useEffect, useState } from "react";
-import { BRAND } from "@/src/theme/colors";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from 'react';
+import { BRAND } from '@/src/theme/colors';
+import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft,
   AlertCircle,
@@ -18,25 +11,25 @@ import {
   Sparkles,
   Compass,
   BadgeCheck,
-} from "lucide-react-native";
-import { useAuth } from "@/src/context/AuthContext";
+} from 'lucide-react-native';
+import { useAuth } from '@/src/context/AuthContext';
 import {
   getCollectionDocs,
   sendInvitationEmail,
   createInvitationNotification,
-} from "@/src/services/supabase/legacy";
+} from '@/src/services/supabase/legacy';
 
 import {
   rankProvidersWithAI,
   estimateJobPriceWithAI,
   type PriceEstimateResult,
 } from '@/src/services/api/agentClient';
-import { getDistanceKm, estimateTravelTimeMinutes } from "@/src/utils/location";
-import { Card } from "@/src/components/ui/Card";
-import { EmptyState } from "@/src/components/ui/EmptyState";
-import { Avatar } from "@/src/components/ui/Avatar";
-import { TierBadge } from "@/src/components/ui/TierBadge";
-import { Icon } from "@/src/components/ui/Icon";
+import { getDistanceKm, estimateTravelTimeMinutes } from '@/src/utils/location';
+import { Card } from '@/src/components/ui/Card';
+import { EmptyState } from '@/src/components/ui/EmptyState';
+import { Avatar } from '@/src/components/ui/Avatar';
+import { TierBadge } from '@/src/components/ui/TierBadge';
+import { Icon } from '@/src/components/ui/Icon';
 
 interface Provider {
   id?: string;
@@ -58,18 +51,19 @@ interface Provider {
 
 export default function ProviderListScreen() {
   const router = useRouter();
-  const { category: categoryParam, q, urgency: urgencyParam } = useLocalSearchParams<{
+  const {
+    category: categoryParam,
+    q,
+    urgency: urgencyParam,
+  } = useLocalSearchParams<{
     category?: string;
     q?: string;
     urgency?: string;
   }>();
   const { user, userProfile } = useAuth();
 
-  const category = typeof categoryParam === "string" ? categoryParam : "";
-  const jobSummary =
-    typeof q === "string" && q.trim()
-      ? q
-      : `Request for ${category} services.`;
+  const category = typeof categoryParam === 'string' ? categoryParam : '';
+  const jobSummary = typeof q === 'string' && q.trim() ? q : `Request for ${category} services.`;
 
   const [providers, setProviders] = useState<Provider[]>([]);
   const [rankedReasons, setRankedReasons] = useState<Record<string, string>>({});
@@ -90,19 +84,19 @@ export default function ProviderListScreen() {
     setNotifyingId(p.userId);
     try {
       await sendInvitationEmail(
-        p.email || "worker@email.com",
+        p.email || 'worker@email.com',
         p.name,
         userProfile.name,
-        user?.id || "",
-        userProfile.email || user?.email || "",
+        user?.id || '',
+        userProfile.email || user?.email || '',
         p.category,
         p.city
       );
       await createInvitationNotification(
         p.userId,
         userProfile.name,
-        user?.id || "",
-        userProfile.email || user?.email || "",
+        user?.id || '',
+        userProfile.email || user?.email || '',
         p.category,
         p.city
       );
@@ -110,7 +104,7 @@ export default function ProviderListScreen() {
       setShowSuccessToast({ visible: true, name: p.name });
       setTimeout(() => setShowSuccessToast(null), 4000);
     } catch (err) {
-      console.error("Failed to notify worker:", err);
+      console.error('Failed to notify worker:', err);
     } finally {
       setNotifyingId(null);
     }
@@ -119,7 +113,7 @@ export default function ProviderListScreen() {
   useEffect(() => {
     const fetchAndRankProviders = async () => {
       if (!category) {
-        setError("Invalid category selection.");
+        setError('Invalid category selection.');
         setLoading(false);
         return;
       }
@@ -127,7 +121,7 @@ export default function ProviderListScreen() {
         setLoading(true);
         setError(null);
 
-        const rawProviders = (await getCollectionDocs("providers")) as Provider[];
+        const rawProviders = (await getCollectionDocs('providers')) as Provider[];
         const allProviders = rawProviders.filter(
           (p) => p.category && p.category.toLowerCase() === category.toLowerCase()
         );
@@ -136,7 +130,7 @@ export default function ProviderListScreen() {
         const onlineProviders = eligibleProviders.filter((p) => p.available === true);
         const offlineProviders = eligibleProviders.filter((p) => p.available !== true);
 
-        const userCity = userProfile?.city || "Lahore";
+        const userCity = userProfile?.city || 'Lahore';
         const localOffline = offlineProviders.filter(
           (p) => p.city.toLowerCase() === userCity.toLowerCase()
         );
@@ -186,7 +180,8 @@ export default function ProviderListScreen() {
           reasonsMap[item.userId] = item.reason;
         });
         localOffline.forEach((p) => {
-          reasonsMap[p.userId] = `${p.name} is a local provider in ${p.city} who is currently offline. You can notify them by email/in-app alert to get online!`;
+          reasonsMap[p.userId] =
+            `${p.name} is a local provider in ${p.city} who is currently offline. You can notify them by email/in-app alert to get online!`;
         });
 
         const rankedOnlineProviders = [...matchedOnline].sort((a, b) => {
@@ -202,8 +197,8 @@ export default function ProviderListScreen() {
         setRankedReasons(reasonsMap);
         setPriceEstimate(priceResult);
       } catch (err) {
-        console.error("Error fetching/matching providers:", err);
-        setError("Failed to query match recommendations. Please check your connection.");
+        console.error('Error fetching/matching providers:', err);
+        setError('Failed to query match recommendations. Please check your connection.');
       } finally {
         setLoading(false);
       }
@@ -217,7 +212,7 @@ export default function ProviderListScreen() {
       <View className="flex-1 items-center justify-center bg-surface px-6">
         <ActivityIndicator size="large" color={BRAND.primary} />
         <Text className="mt-4 text-sm font-medium text-ink/60">
-          Finding the best matches in {userProfile?.city || "your city"}...
+          Finding the best matches in {userProfile?.city || 'your city'}...
         </Text>
       </View>
     );
@@ -235,18 +230,14 @@ export default function ProviderListScreen() {
         {/* Header */}
         <View className="mb-4 flex-row items-center gap-3">
           <Pressable
-            onPress={() => router.replace("/")}
+            onPress={() => router.replace('/')}
             className="h-10 w-10 items-center justify-center rounded-full border border-border"
           >
             <Icon icon={ArrowLeft} color={BRAND.ink} size={20} />
           </Pressable>
           <View className="flex-1">
-            <Text className="font-display text-lg font-medium text-ink">
-              Matched Workers
-            </Text>
-            <Text className="text-xs text-ink/70">
-              Ranked matches for "{category}"
-            </Text>
+            <Text className="font-display text-lg font-medium text-ink">Matched Workers</Text>
+            <Text className="text-xs text-ink/70">Ranked matches for "{category}"</Text>
           </View>
         </View>
 
@@ -261,7 +252,7 @@ export default function ProviderListScreen() {
               title="No Matching Workers Found"
               description={`We currently don't have any registered providers for "${category}". Check back soon or register a provider account to test!`}
               actionLabel="Go Back Home"
-              onAction={() => router.replace("/")}
+              onAction={() => router.replace('/')}
             />
           </Card>
         ) : (
@@ -271,8 +262,8 @@ export default function ProviderListScreen() {
                 <Icon icon={Info} color={BRAND.caution} size={20} />
                 <Text className="flex-1 text-sm text-accent-terracotta">
                   <Text className="font-bold">Outside Local Area: </Text>
-                  No direct workers found in {userProfile?.city}. Displaying nearby
-                  specialists from other cities. Travel charges will apply.
+                  No direct workers found in {userProfile?.city}. Displaying nearby specialists from
+                  other cities. Travel charges will apply.
                 </Text>
               </View>
             )}
@@ -306,13 +297,13 @@ export default function ProviderListScreen() {
                     <View
                       className={`absolute right-3 top-3 h-6 w-6 items-center justify-center rounded-full font-mono ${
                         index === 0
-                          ? "border border-accent-gold/30 bg-accent-gold/15"
-                          : "bg-primary/10"
+                          ? 'border border-accent-gold/30 bg-accent-gold/15'
+                          : 'bg-primary/10'
                       }`}
                     >
                       <Text
                         className={`font-mono text-xs font-bold ${
-                          index === 0 ? "text-accent-gold" : "text-primary"
+                          index === 0 ? 'text-accent-gold' : 'text-primary'
                         }`}
                       >
                         #{index + 1}
@@ -320,37 +311,31 @@ export default function ProviderListScreen() {
                     </View>
 
                     <View className="flex-row gap-3">
-                      <Avatar
-                        src={p.photoURL}
-                        name={p.name}
-                        className="h-16 w-16 rounded-2xl"
-                      />
+                      <Avatar src={p.photoURL} name={p.name} className="h-16 w-16 rounded-2xl" />
                       <View className="flex-1 pr-6">
                         <View className="flex-row flex-wrap items-center gap-2">
                           <Text className="text-base font-bold text-ink">{p.name}</Text>
-                          {p.verified && (
-                            <Icon icon={BadgeCheck} color={BRAND.primary} size={16} />
-                          )}
+                          {p.verified && <Icon icon={BadgeCheck} color={BRAND.primary} size={16} />}
                           <TierBadge tier={p.tier} />
                           <View
                             className={`rounded-full border px-2 py-0.5 ${
                               p.available
-                                ? "border-emerald-500/20 bg-emerald-500/10"
-                                : "border-slate-500/20 bg-slate-500/10"
+                                ? 'border-emerald-500/20 bg-emerald-500/10'
+                                : 'border-slate-500/20 bg-slate-500/10'
                             }`}
                           >
                             <View className="flex-row items-center gap-1">
                               <View
                                 className={`h-1.5 w-1.5 rounded-full ${
-                                  p.available ? "bg-emerald-500" : "bg-slate-400"
+                                  p.available ? 'bg-emerald-500' : 'bg-slate-400'
                                 }`}
                               />
                               <Text
                                 className={`text-[10px] font-bold ${
-                                  p.available ? "text-emerald-600" : "text-slate-500"
+                                  p.available ? 'text-emerald-600' : 'text-slate-500'
                                 }`}
                               >
-                                {p.available ? "Online" : "Offline"}
+                                {p.available ? 'Online' : 'Offline'}
                               </Text>
                             </View>
                           </View>
@@ -385,8 +370,8 @@ export default function ProviderListScreen() {
                               disabled={notifyingId === p.userId || notifiedWorkers[p.userId]}
                               className={`flex-row items-center gap-1.5 rounded-xl border px-4 py-2 ${
                                 notifiedWorkers[p.userId]
-                                  ? "border-emerald-500/20 bg-emerald-500/10"
-                                  : "border-primary bg-primary"
+                                  ? 'border-emerald-500/20 bg-emerald-500/10'
+                                  : 'border-primary bg-primary'
                               }`}
                             >
                               {notifyingId === p.userId ? (
@@ -394,18 +379,18 @@ export default function ProviderListScreen() {
                               ) : (
                                 <Icon
                                   icon={Sparkles}
-                                  color={notifiedWorkers[p.userId] ? BRAND.success : "#fff"}
+                                  color={notifiedWorkers[p.userId] ? BRAND.success : '#fff'}
                                   size={14}
                                 />
                               )}
                               <Text
                                 className={`text-xs font-bold ${
-                                  notifiedWorkers[p.userId] ? "text-emerald-600" : "text-white"
+                                  notifiedWorkers[p.userId] ? 'text-emerald-600' : 'text-white'
                                 }`}
                               >
                                 {notifiedWorkers[p.userId]
-                                  ? "Worker Notified ✓"
-                                  : "Notify to get Online"}
+                                  ? 'Worker Notified ✓'
+                                  : 'Notify to get Online'}
                               </Text>
                             </Pressable>
                           </View>
@@ -435,18 +420,14 @@ export default function ProviderListScreen() {
                   </Text>
                 </View>
                 <View className="mt-3 gap-1.5">
-                  <Text className="text-xs font-bold text-ink">
-                    How this was calculated:
-                  </Text>
-                  <Text className="text-xs text-ink/70">
-                    {priceEstimate.explanation}
-                  </Text>
+                  <Text className="text-xs font-bold text-ink">How this was calculated:</Text>
+                  <Text className="text-xs text-ink/70">{priceEstimate.explanation}</Text>
                 </View>
                 <View className="mt-3 flex-row gap-2 border-t border-border pt-3">
                   <Icon icon={Info} color={BRAND.primary} size={16} />
                   <Text className="flex-1 text-[10px] leading-relaxed text-ink/50">
-                    Final prices can be negotiated directly with your worker in the
-                    chat screen after booking.
+                    Final prices can be negotiated directly with your worker in the chat screen
+                    after booking.
                   </Text>
                 </View>
               </Card>

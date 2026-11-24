@@ -17,33 +17,33 @@
  */
 export const BRAND = {
   /** Tailwind token: `primary` */
-  primary: "#1F5D3F",
+  primary: '#1F5D3F',
   /** Tailwind token: `primary-hover` */
-  primaryHover: "#17452F",
+  primaryHover: '#17452F',
   /** Tailwind token: `ink` */
-  ink: "#14231C",
+  ink: '#14231C',
   /** Tailwind token: `surface` */
-  surface: "#FBFAF6",
+  surface: '#FBFAF6',
   /** Tailwind token: `surface-raised` */
-  surfaceRaised: "#FFFFFF",
+  surfaceRaised: '#FFFFFF',
   /** Tailwind token: `border` */
-  border: "#E4E2D8",
+  border: '#E4E2D8',
   /** Tailwind token: `accent` / `accent-gold` */
-  gold: "#B8863B",
+  gold: '#B8863B',
   /** Tailwind token: `accent-terracotta` */
-  terracotta: "#C1613F",
+  terracotta: '#C1613F',
   /** Success / verified / positive. */
-  success: "#059669",
+  success: '#059669',
   /** Destructive / delete / cancelled. */
-  danger: "#EF4444",
+  danger: '#EF4444',
   /** In-progress / attention (amber). */
-  warning: "#F59E0B",
+  warning: '#F59E0B',
   /** Neutral info / offline / closed (slate). */
-  muted: "#64748B",
+  muted: '#64748B',
   /** Pending / secondary caution (deep orange). */
-  caution: "#C2410C",
+  caution: '#C2410C',
   /** Informational blue. */
-  info: "#4A7FA0",
+  info: '#4A7FA0',
 } as const;
 
 export type BrandColor = keyof typeof BRAND;

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { View, Text } from "react-native";
-import { Image } from "expo-image";
+import React, { useState, useEffect } from 'react';
+import { View, Text } from 'react-native';
+import { Image } from 'expo-image';
 
 interface AvatarProps {
   src?: string;
@@ -8,11 +8,7 @@ interface AvatarProps {
   className?: string;
 }
 
-export const Avatar: React.FC<AvatarProps> = ({
-  src,
-  name,
-  className = "w-12 h-12",
-}) => {
+export const Avatar: React.FC<AvatarProps> = ({ src, name, className = 'w-12 h-12' }) => {
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
@@ -21,14 +17,14 @@ export const Avatar: React.FC<AvatarProps> = ({
 
   const initials = name
     ? name
-        .split(" ")
+        .split(' ')
         .map((w) => w[0])
-        .join("")
+        .join('')
         .toUpperCase()
         .slice(0, 2)
-    : "?";
+    : '?';
 
-  if (src && src.trim() !== "" && !hasError) {
+  if (src && src.trim() !== '' && !hasError) {
     return (
       <Image
         source={{ uri: src }}

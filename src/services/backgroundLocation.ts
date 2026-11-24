@@ -22,7 +22,8 @@ export const TRACKING_TASK_NAME = 'khidmat-provider-tracking';
 // Task payload contract persisted in AsyncStorage by start/stop helpers.
 const BOOKING_KEY = 'khidmat.activeTrackingBooking';
 
-let AsyncStorageRef: typeof import('@react-native-async-storage/async-storage').default | null = null;
+let AsyncStorageRef: typeof import('@react-native-async-storage/async-storage').default | null =
+  null;
 const getAsyncStorage = async () => {
   if (!AsyncStorageRef) {
     AsyncStorageRef = (await import('@react-native-async-storage/async-storage')).default;
@@ -35,7 +36,9 @@ defineTask(TRACKING_TASK_NAME, async () => {
   try {
     const storage = await getAsyncStorage();
     const bookingId = await storage.getItem(BOOKING_KEY);
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!bookingId || !user) return { ok: false };
 
     const coords = await Location.getLastKnownPositionAsync({ maxAge: 120_000 });

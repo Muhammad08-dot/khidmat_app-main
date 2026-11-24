@@ -18,7 +18,12 @@ web-build/
 .DS_Store
 .env
 .env.local
+.env.test
+.env.test.local
 .env.*.local
+docs/qa-artifacts/*.png
 agent-server/.env
 .idea/
 *.apk
+coverage/
+

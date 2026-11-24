@@ -1,0 +1,5 @@
+# Khidmat v2.0.0 — Open Questions & Decision Log
+
+| ID | Phase / Task | Question / Ambiguity | Context / Code Reference | Status | Proposed Resolution / Owner Actions |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Q-01** | P0-3 | Local Docker availability on developer host (`docker --version` exited with code 1) | The Windows host machine does not have Docker Desktop installed. Running `supabase start` and `supabase db reset` requires the Docker engine to manage local Postgres, Auth, and Realtime containers. Therefore, `supabase/config.toml` is generated per specification but remains unvalidated locally. | **BLOCKED** | **Owner Decision Required:**<br>1. **Option A (Local):** Install Docker Desktop on the machine if RAM permits (≥8 GB recommended).<br>2. **Option B (Recommended for Phase 3/5):** Create a dedicated free Supabase cloud project named `khidmat-test` and apply migrations via `supabase db push`. Never run destructive integration tests on the production instance.<br>*Note: Phases 1 and 2 do not require local Docker and can proceed safely.* |

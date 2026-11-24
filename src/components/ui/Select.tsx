@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { BRAND } from "@/src/theme/colors";
-import { View, Text, Pressable, Modal, ScrollView } from "react-native";
-import { ChevronDown } from "lucide-react-native";
-import { Icon } from "./Icon";
+import React, { useState } from 'react';
+import { BRAND } from '@/src/theme/colors';
+import { View, Text, Pressable, Modal, ScrollView } from 'react-native';
+import { ChevronDown } from 'lucide-react-native';
+import { Icon } from './Icon';
 
 interface SelectOption {
   label: string;
@@ -17,15 +17,10 @@ interface SelectProps {
 }
 
 /** Simple dropdown built as a modal option list (RN has no <select>). */
-export const Select: React.FC<SelectProps> = ({
-  label,
-  options,
-  value,
-  onChange,
-}) => {
+export const Select: React.FC<SelectProps> = ({ label, options, value, onChange }) => {
   const [open, setOpen] = useState(false);
   const normalized: SelectOption[] = options.map((o) =>
-    typeof o === "string" ? { label: o, value: o } : o
+    typeof o === 'string' ? { label: o, value: o } : o
   );
 
   const selected = normalized.find((o) => o.value === value);
@@ -33,7 +28,7 @@ export const Select: React.FC<SelectProps> = ({
   return (
     <View>
       {label && (
-        <Text className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink/50 text-left">
+        <Text className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink/50 text-start">
           {label}
         </Text>
       )}
@@ -41,16 +36,11 @@ export const Select: React.FC<SelectProps> = ({
         onPress={() => setOpen(true)}
         className="flex-row items-center justify-between rounded-xl border border-border bg-surface px-4 py-3.5"
       >
-        <Text className="text-sm text-ink text-left">{selected?.label ?? "Select..."}</Text>
-        <Icon icon={ChevronDown} color={BRAND.primary + "66"} size={16} />
+        <Text className="text-sm text-ink text-start">{selected?.label ?? 'Select...'}</Text>
+        <Icon icon={ChevronDown} color={BRAND.primary + '66'} size={16} />
       </Pressable>
 
-      <Modal
-        transparent
-        visible={open}
-        animationType="fade"
-        onRequestClose={() => setOpen(false)}
-      >
+      <Modal transparent visible={open} animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable
           className="flex-1 items-center justify-center bg-ink/40 p-6"
           onPress={() => setOpen(false)}
@@ -66,15 +56,9 @@ export const Select: React.FC<SelectProps> = ({
                       onChange(opt.value);
                       setOpen(false);
                     }}
-                    className={`rounded-lg px-4 py-3 ${
-                      active ? "bg-primary/10" : ""
-                    }`}
+                    className={`rounded-lg px-4 py-3 ${active ? 'bg-primary/10' : ''}`}
                   >
-                    <Text
-                      className={`text-sm ${
-                        active ? "font-bold text-primary" : "text-ink"
-                      }`}
-                    >
+                    <Text className={`text-sm ${active ? 'font-bold text-primary' : 'text-ink'}`}>
                       {opt.label}
                     </Text>
                   </Pressable>

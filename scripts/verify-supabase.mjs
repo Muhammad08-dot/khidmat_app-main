@@ -9,7 +9,7 @@ const tables = [
   'messages',
   'reviews',
   'user_reports',
-  'admin_actions'
+  'admin_actions',
 ];
 
 async function verify() {
@@ -18,9 +18,9 @@ async function verify() {
     try {
       const res = await fetch(`${url}/rest/v1/${table}?select=*`, {
         headers: {
-          'apikey': key,
-          'Authorization': `Bearer ${key}`
-        }
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+        },
       });
       if (res.ok) {
         const data = await res.json();

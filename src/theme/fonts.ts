@@ -1,11 +1,11 @@
-import { useFonts } from "expo-font";
+import { useFonts } from 'expo-font';
 import {
   Outfit_400Regular,
   Outfit_500Medium,
   Outfit_600SemiBold,
   Outfit_700Bold,
   Outfit_800ExtraBold,
-} from "@expo-google-fonts/outfit";
+} from '@expo-google-fonts/outfit';
 import {
   PlusJakartaSans_300Light,
   PlusJakartaSans_400Regular,
@@ -13,11 +13,11 @@ import {
   PlusJakartaSans_600SemiBold,
   PlusJakartaSans_700Bold,
   PlusJakartaSans_800ExtraBold,
-} from "@expo-google-fonts/plus-jakarta-sans";
+} from '@expo-google-fonts/plus-jakarta-sans';
 import {
   NotoNastaliqUrdu_400Regular,
   NotoNastaliqUrdu_700Bold,
-} from "@expo-google-fonts/noto-nastaliq-urdu";
+} from '@expo-google-fonts/noto-nastaliq-urdu';
 
 /**
  * All font assets used by the Khidmat design system. Loaded once at the root

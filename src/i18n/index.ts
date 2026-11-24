@@ -7,13 +7,13 @@
  * native, so the UI degrades gracefully (strings switch immediately, layout
  * mirrors after reload).
  */
-import { I18nManager } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Localization from 'expo-localization';
 import en from './en.json';
 import ur from './ur.json';
+import { isRTL, syncDirection, SupportedLang } from './direction';
 
-export type Lang = 'en' | 'ur';
+export type Lang = SupportedLang;
+export { isRTL, syncDirection };
 
 const DICTS: Record<Lang, Record<string, string>> = { en, ur };
 const STORAGE_KEY = 'khidmat.lang';
@@ -24,11 +24,7 @@ export const getLang = (): Lang => currentLang;
 
 export function setLang(lang: Lang): void {
   currentLang = lang;
-  const wantsRTL = lang === 'ur';
-  if (I18nManager.isRTL !== wantsRTL) {
-    I18nManager.allowRTL(wantsRTL);
-    I18nManager.forceRTL(wantsRTL);
-  }
+  syncDirection(lang);
   AsyncStorage.setItem(STORAGE_KEY, lang).catch(() => {});
 }
 
@@ -38,18 +34,12 @@ export async function initI18n(): Promise<void> {
     const stored = await AsyncStorage.getItem(STORAGE_KEY);
     if (stored === 'en' || stored === 'ur') {
       currentLang = stored;
-      const wantsRTL = stored === 'ur';
-      if (I18nManager.isRTL !== wantsRTL) {
-        I18nManager.allowRTL(wantsRTL);
-        I18nManager.forceRTL(wantsRTL);
-      }
+      syncDirection(stored);
     } else {
-      I18nManager.allowRTL(false);
-      I18nManager.forceRTL(false);
+      syncDirection('en');
     }
   } catch {
-    I18nManager.allowRTL(false);
-    I18nManager.forceRTL(false);
+    syncDirection('en');
   }
 }
 

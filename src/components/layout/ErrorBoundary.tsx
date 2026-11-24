@@ -1,6 +1,6 @@
-import React from "react";
-import { View, Text, Pressable } from "react-native";
-import { captureError } from "@/src/services/api/errorReporter";
+import React from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { captureError } from '@/src/services/api/errorReporter';
 
 interface Props {
   children: React.ReactNode;
@@ -32,19 +32,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
     if (this.state.hasError) {
       return (
         <View className="flex-1 items-center justify-center bg-surface px-8">
-          <Text className="font-display text-xl font-bold text-ink">
-            Something went wrong
-          </Text>
+          <Text className="font-display text-xl font-bold text-ink">Something went wrong</Text>
           <Text className="mt-2 text-center text-sm text-ink/70">
-            {this.state.message || "An unexpected error occurred."}
+            {this.state.message || 'An unexpected error occurred.'}
           </Text>
           <Text className="mt-1 text-center text-xs text-ink/50">
             The issue has been reported to the Khidmat self-healing agent.
           </Text>
-          <Pressable
-            onPress={this.reset}
-            className="mt-6 rounded-xl bg-primary px-6 py-3"
-          >
+          <Pressable onPress={this.reset} className="mt-6 rounded-xl bg-primary px-6 py-3">
             <Text className="font-bold text-white">Try again</Text>
           </Pressable>
         </View>

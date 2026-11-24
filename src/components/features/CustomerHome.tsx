@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { BRAND } from "@/src/theme/colors";
+import React, { useEffect, useState } from 'react';
+import { BRAND } from '@/src/theme/colors';
 import {
   View,
   Text,
@@ -9,19 +9,42 @@ import {
   ScrollView,
   Modal,
   useWindowDimensions,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { MotiView } from "moti";
-import * as Speech from "expo-speech";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { MotiView } from 'moti';
+import * as Speech from 'expo-speech';
 import {
-  Zap, Droplet, Hammer, Paintbrush, Snowflake, Sparkles,
-  Settings, Car, Sprout, Truck, Bug, Eye, Flame, Layers, Wrench,
-  Camera, Video, PartyPopper, Music, Utensils, UserCheck,
-  Search, Mic, ShieldCheck, AlertCircle, Heart, Users,
-} from "lucide-react-native";
+  Zap,
+  Droplet,
+  Hammer,
+  Paintbrush,
+  Snowflake,
+  Sparkles,
+  Settings,
+  Car,
+  Sprout,
+  Truck,
+  Bug,
+  Eye,
+  Flame,
+  Layers,
+  Wrench,
+  Camera,
+  Video,
+  PartyPopper,
+  Music,
+  Utensils,
+  UserCheck,
+  Search,
+  Mic,
+  ShieldCheck,
+  AlertCircle,
+  Heart,
+  Users,
+} from 'lucide-react-native';
 import { useAuth } from '@/src/context/AuthContext';
-import { getCurrentCoords } from "../../utils/geolocation";
-import { Icon, type IconProps } from "../ui/Icon";
+import { getCurrentCoords } from '../../utils/geolocation';
+import { Icon, type IconProps } from '../ui/Icon';
 
 interface Category {
   name: string;
@@ -30,31 +53,31 @@ interface Category {
 }
 
 export const CATEGORIES: Category[] = [
-  { name: "Electrician", icon: Zap, color: "text-accent-gold" },
-  { name: "Plumber", icon: Droplet, color: "text-accent-sky" },
-  { name: "Carpenter", icon: Hammer, color: "text-accent-sage" },
-  { name: "Painter", icon: Paintbrush, color: "text-accent-gold" },
-  { name: "AC Technician", icon: Snowflake, color: "text-accent-sky" },
-  { name: "House Cleaner", icon: Sparkles, color: "text-accent-sage" },
-  { name: "Appliance Repair", icon: Settings, color: "text-accent-gold" },
-  { name: "Mechanic", icon: Car, color: "text-accent-sky" },
-  { name: "Gardener", icon: Sprout, color: "text-accent-sage" },
-  { name: "Movers & Packers", icon: Truck, color: "text-accent-gold" },
-  { name: "Pest Control", icon: Bug, color: "text-accent-sky" },
-  { name: "CCTV Technician", icon: Eye, color: "text-accent-sage" },
+  { name: 'Electrician', icon: Zap, color: 'text-accent-gold' },
+  { name: 'Plumber', icon: Droplet, color: 'text-accent-sky' },
+  { name: 'Carpenter', icon: Hammer, color: 'text-accent-sage' },
+  { name: 'Painter', icon: Paintbrush, color: 'text-accent-gold' },
+  { name: 'AC Technician', icon: Snowflake, color: 'text-accent-sky' },
+  { name: 'House Cleaner', icon: Sparkles, color: 'text-accent-sage' },
+  { name: 'Appliance Repair', icon: Settings, color: 'text-accent-gold' },
+  { name: 'Mechanic', icon: Car, color: 'text-accent-sky' },
+  { name: 'Gardener', icon: Sprout, color: 'text-accent-sage' },
+  { name: 'Movers & Packers', icon: Truck, color: 'text-accent-gold' },
+  { name: 'Pest Control', icon: Bug, color: 'text-accent-sky' },
+  { name: 'CCTV Technician', icon: Eye, color: 'text-accent-sage' },
 ];
 
 const DEMO_COMMANDS = [
-  "I need an electrician for a short circuit",
-  "My kitchen pipe is leaking",
-  "Need painter for house renovation",
+  'I need an electrician for a short circuit',
+  'My kitchen pipe is leaking',
+  'Need painter for house renovation',
 ];
 
 export const CustomerHome: React.FC = () => {
   const router = useRouter();
   const { updateProfile } = useAuth();
   const { width } = useWindowDimensions();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [focused, setFocused] = useState(false);
   const [voiceModal, setVoiceModal] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -70,7 +93,7 @@ export const CustomerHome: React.FC = () => {
         const coords = await getCurrentCoords();
         if (coords) await updateProfile({ location: coords });
       } catch (err) {
-        console.warn("Failed to sync customer location:", err);
+        console.warn('Failed to sync customer location:', err);
       }
     })();
   }, []);
@@ -90,10 +113,9 @@ export const CustomerHome: React.FC = () => {
     );
     setIsListening(false);
     setVoiceModal(true);
-    void Speech.speak(
-      "Please describe what job or worker you are searching for.",
-      { language: "en-US" }
-    );
+    void Speech.speak('Please describe what job or worker you are searching for.', {
+      language: 'en-US',
+    });
   };
 
   const runCommand = (phrase: string) => {
@@ -115,36 +137,32 @@ export const CustomerHome: React.FC = () => {
           <MotiView
             from={{ opacity: 0, translateY: 12 }}
             animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: "timing", duration: 500 }}
+            transition={{ type: 'timing', duration: 500 }}
           >
             <View className="flex-row items-center gap-2.5 mb-3.5">
               <Image
-                source={require("@/assets/logo.jpeg")}
+                source={require('@/assets/logo.jpeg')}
                 style={{ width: 36, height: 36, borderRadius: 10 }}
                 resizeMode="cover"
               />
               <View className="flex-row items-center">
-                <Text className="font-display text-lg font-bold text-primary">
-                  Khidmat
-                </Text>
-                <Text className="ml-1 text-xs font-semibold text-accent-gold">
-                  خدمت
-                </Text>
+                <Text className="font-display text-lg font-bold text-primary">Khidmat</Text>
+                <Text className="ml-1 text-xs font-semibold text-accent-gold">خدمت</Text>
               </View>
             </View>
             <Text className="font-display text-3xl font-semibold leading-tight text-primary">
-              Professional Help,{"\n"}Right at Your Doorstep
+              Professional Help,{'\n'}Right at Your Doorstep
             </Text>
             <Text className="mt-3 max-w-md font-sans text-sm text-ink/80">
-              Trusted local experts for every home need. From fixing a leak to
-              planning your next big event.
+              Trusted local experts for every home need. From fixing a leak to planning your next
+              big event.
             </Text>
           </MotiView>
 
           {/* Search */}
           <View
             className={`mt-6 flex-row items-center rounded-xl border bg-surface-raised px-3 ${
-              focused ? "border-accent-gold" : "border-border"
+              focused ? 'border-accent-gold' : 'border-border'
             }`}
           >
             <Icon icon={Search} color={BRAND.primary} size={18} />
@@ -155,7 +173,7 @@ export const CustomerHome: React.FC = () => {
               onBlur={() => setFocused(false)}
               onSubmitEditing={() => submitSearch()}
               placeholder="Describe what service you need... (e.g. kitchen pipe leak)"
-              placeholderTextColor={BRAND.primary + "66"}
+              placeholderTextColor={BRAND.primary + '66'}
               className="ml-2 flex-1 py-3.5 text-sm font-medium text-ink"
               returnKeyType="search"
             />
@@ -167,17 +185,12 @@ export const CustomerHome: React.FC = () => {
 
         {/* CATEGORY GRID */}
         <View className="mt-8">
-          <Text className="font-display text-xl font-medium text-ink">
-            Explore Categories
-          </Text>
+          <Text className="font-display text-xl font-medium text-ink">Explore Categories</Text>
           <Text className="mt-1 text-xs text-ink/60">
             Verified professionals across 21 specialties
           </Text>
 
-          <View
-            className="mt-4 flex-row flex-wrap"
-            style={{ gap: 12, columnGap: 12 }}
-          >
+          <View className="mt-4 flex-row flex-wrap" style={{ gap: 12, columnGap: 12 }}>
             {CATEGORIES.map((cat, index) => {
               const IconCmp = cat.icon as React.ComponentType<IconProps>;
               return (
@@ -185,7 +198,7 @@ export const CustomerHome: React.FC = () => {
                   key={cat.name}
                   from={{ opacity: 0, translateY: 10 }}
                   animate={{ opacity: 1, translateY: 0 }}
-                  transition={{ delay: index * 40, type: "timing", duration: 220 }}
+                  transition={{ delay: index * 40, type: 'timing', duration: 220 }}
                   style={{ width: tileWidth }}
                 >
                   <Pressable
@@ -193,11 +206,18 @@ export const CustomerHome: React.FC = () => {
                     className="items-center rounded-xl border border-border bg-surface-raised px-2 py-4"
                   >
                     <View className="mb-2 h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
-                      <IconCmp color={cat.color === "text-accent-gold" ? BRAND.gold : cat.color === "text-accent-sky" ? BRAND.info : "#6B8F71"} size={22} />
+                      <IconCmp
+                        color={
+                          cat.color === 'text-accent-gold'
+                            ? BRAND.gold
+                            : cat.color === 'text-accent-sky'
+                              ? BRAND.info
+                              : '#6B8F71'
+                        }
+                        size={22}
+                      />
                     </View>
-                    <Text className="text-center text-xs font-medium text-ink">
-                      {cat.name}
-                    </Text>
+                    <Text className="text-center text-xs font-medium text-ink">{cat.name}</Text>
                   </Pressable>
                 </MotiView>
               );
@@ -205,12 +225,10 @@ export const CustomerHome: React.FC = () => {
           </View>
 
           <Pressable
-            onPress={() => router.push("/categories")}
+            onPress={() => router.push('/categories')}
             className="mt-6 self-center rounded-xl border border-primary px-8 py-3"
           >
-            <Text className="text-sm font-bold text-primary">
-              View More Categories
-            </Text>
+            <Text className="text-sm font-bold text-primary">View More Categories</Text>
           </Pressable>
         </View>
 
@@ -225,11 +243,11 @@ export const CustomerHome: React.FC = () => {
             </Text>
           </View>
           <Text className="text-sm leading-relaxed text-ink/70">
-            Every professional undergoes a 5-step background check and skill
-            verification process to ensure your safety and satisfaction.
+            Every professional undergoes a 5-step background check and skill verification process to
+            ensure your safety and satisfaction.
           </Text>
           <Pressable
-            onPress={() => router.push("/safety")}
+            onPress={() => router.push('/safety')}
             className="mt-4 self-start rounded-xl bg-primary px-6 py-3"
           >
             <Text className="text-sm font-bold text-white">Learn about Safety</Text>
@@ -248,17 +266,15 @@ export const CustomerHome: React.FC = () => {
             Why We Created Khidmat
           </Text>
           <Text className="mt-3 text-sm leading-relaxed text-ink/80">
-            Khidmat was created for the DYLP Hackathon with a simple but
-            powerful mission: to bridge the gap between skilled blue-collar
-            service professionals and Pakistani households.
+            Khidmat was created for the DYLP Hackathon with a simple but powerful mission: to bridge
+            the gap between skilled blue-collar service professionals and Pakistani households.
           </Text>
           <Text className="mt-3 text-sm leading-relaxed text-ink/80">
-            We realized that finding trustworthy, verified help for home
-            maintenance shouldn't require complex phone directories or unsafe
-            third-party suggestions. By digitizing safety rules, identity
-            validation, and fair-pricing estimations, Khidmat protects
-            customers from arbitrary rate hikes while guaranteeing micro-task
-            earners a reliable pipeline of local jobs.
+            We realized that finding trustworthy, verified help for home maintenance shouldn't
+            require complex phone directories or unsafe third-party suggestions. By digitizing
+            safety rules, identity validation, and fair-pricing estimations, Khidmat protects
+            customers from arbitrary rate hikes while guaranteeing micro-task earners a reliable
+            pipeline of local jobs.
           </Text>
         </View>
 
@@ -276,26 +292,24 @@ export const CustomerHome: React.FC = () => {
           <View className="mt-4 gap-4">
             {[
               {
-                n: "1",
-                t: "Government CNIC Verification",
-                d: "Every provider is identity-mapped with validated CNIC databases for total security.",
+                n: '1',
+                t: 'Government CNIC Verification',
+                d: 'Every provider is identity-mapped with validated CNIC databases for total security.',
               },
               {
-                n: "2",
-                t: "AI-Powered Worker Matching",
-                d: "Our custom ranking system matches you with the closest, highest-rated specialists in your city.",
+                n: '2',
+                t: 'AI-Powered Worker Matching',
+                d: 'Our custom ranking system matches you with the closest, highest-rated specialists in your city.',
               },
               {
-                n: "3",
-                t: "Fair Invoice Rate Protection",
-                d: "Automated pricing limits prevent overcharging by capping travel fees based on real-time distance calculations.",
+                n: '3',
+                t: 'Fair Invoice Rate Protection',
+                d: 'Automated pricing limits prevent overcharging by capping travel fees based on real-time distance calculations.',
               },
             ].map((item) => (
               <View key={item.n} className="flex-row gap-3">
                 <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                  <Text className="font-mono text-xs font-bold text-primary">
-                    {item.n}
-                  </Text>
+                  <Text className="font-mono text-xs font-bold text-primary">{item.n}</Text>
                 </View>
                 <View className="flex-1">
                   <Text className="text-sm font-bold text-ink">{item.t}</Text>
@@ -347,8 +361,7 @@ export const CustomerHome: React.FC = () => {
                   Voice Search Status
                 </Text>
                 <Text className="mt-1 px-2 text-center text-xs leading-relaxed text-ink/60">
-                  {voiceError ||
-                    "Speech window closed. No audio was detected."}
+                  {voiceError || 'Speech window closed. No audio was detected.'}
                 </Text>
 
                 <View className="mt-4 w-full rounded-xl border border-border bg-surface p-3">
@@ -362,9 +375,7 @@ export const CustomerHome: React.FC = () => {
                         onPress={() => runCommand(phrase)}
                         className="rounded-lg border border-border bg-surface-raised p-2.5"
                       >
-                        <Text className="text-xs font-semibold text-ink">
-                          "{phrase}"
-                        </Text>
+                        <Text className="text-xs font-semibold text-ink">"{phrase}"</Text>
                       </Pressable>
                     ))}
                   </View>
@@ -376,9 +387,7 @@ export const CustomerHome: React.FC = () => {
               onPress={() => setVoiceModal(false)}
               className="mt-4 w-full rounded-xl border border-border bg-surface py-3.5"
             >
-              <Text className="text-center text-sm font-bold text-ink">
-                Close Voice Dialog
-              </Text>
+              <Text className="text-center text-sm font-bold text-ink">Close Voice Dialog</Text>
             </Pressable>
           </View>
         </View>

@@ -1,7 +1,7 @@
-import React from "react";
-import { BRAND } from "@/src/theme/colors";
-import { View, Text, Pressable } from "react-native";
-import { LucideIcon } from "lucide-react-native";
+import React from 'react';
+import { BRAND } from '@/src/theme/colors';
+import { View, Text, Pressable } from 'react-native';
+import { LucideIcon } from 'lucide-react-native';
 
 /** Props a lucide icon accepts at runtime (kept permissive to dodge the
  *  strict SvgProps typing that trips on `color`). */
@@ -27,7 +27,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   description,
   actionLabel,
   onAction,
-  className = "",
+  className = '',
   iconProps,
 }) => {
   const IconCmp = Icon as React.ComponentType<IconProps>;
@@ -41,10 +41,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       <Text className="font-display text-xl font-semibold leading-tight text-ink">{title}</Text>
       <Text className="text-sm leading-relaxed text-ink/75 text-center">{description}</Text>
       {actionLabel && onAction && (
-        <Pressable
-          onPress={onAction}
-          className="w-full rounded-xl bg-primary px-6 py-3"
-        >
+        <Pressable onPress={onAction} className="w-full rounded-xl bg-primary px-6 py-3">
           <Text className="text-center text-sm font-semibold text-white">{actionLabel}</Text>
         </Pressable>
       )}

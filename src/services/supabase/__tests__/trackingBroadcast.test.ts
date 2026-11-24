@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createMockSupabase } from '../mockClient';
+import { createMockSupabase } from '@/src/test-utils/mockClient';
 
 describe('Realtime Tracking Broadcast', () => {
   it('delivers location broadcast messages across channel subscribers without writing to DB', async () => {
@@ -55,4 +55,3 @@ describe('Realtime Tracking Broadcast', () => {
     expect(received.length).toBe(1);
   });
 });
-
