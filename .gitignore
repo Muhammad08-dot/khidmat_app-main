@@ -22,3 +22,5 @@ web-build/
 agent-server/.env
 .idea/
 *.apk
+coverage/
+
