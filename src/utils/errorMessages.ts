@@ -18,25 +18,25 @@ export interface LocalizedErrorInfo {
  */
 export function getLocalizedError(err: unknown): LocalizedErrorInfo {
   if (err instanceof NetworkError) {
-    return { message: t('errors.network'), canRetry: true };
+    return { message: t('errors_network'), canRetry: true };
   }
   if (err instanceof AuthRequiredError) {
-    return { message: t('errors.auth_required'), canRetry: false };
+    return { message: t('errors_auth_required'), canRetry: false };
   }
   if (err instanceof PermissionDeniedError) {
-    return { message: t('errors.permission_denied'), canRetry: false };
+    return { message: t('errors_permission_denied'), canRetry: false };
   }
   if (err instanceof NotFoundError) {
-    return { message: t('errors.not_found'), canRetry: false };
+    return { message: t('errors_not_found'), canRetry: false };
   }
   if (err instanceof ValidationError) {
-    return { message: err.message || t('errors.validation'), canRetry: false };
+    return { message: err.message || t('errors_validation'), canRetry: false };
   }
 
   const msg = err instanceof Error ? err.message : '';
   if (msg.toLowerCase().includes('network') || msg.toLowerCase().includes('fetch')) {
-    return { message: t('errors.network'), canRetry: true };
+    return { message: t('errors_network'), canRetry: true };
   }
 
-  return { message: msg || t('errors.generic'), canRetry: false };
+  return { message: msg || t('errors_generic'), canRetry: false };
 }
