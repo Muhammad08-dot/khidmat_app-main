@@ -2,9 +2,10 @@ import React from 'react';
 import { BRAND } from '@/src/theme/colors';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Shield, ChevronLeft, CheckCircle2, PhoneCall, MapPin, Star } from 'lucide-react-native';
+import { Shield, ChevronLeft, ChevronRight, CheckCircle2, PhoneCall, MapPin, Star } from 'lucide-react-native';
 import { Card } from '@/src/components/ui/Card';
 import { Icon } from '@/src/components/ui/Icon';
+import { isRTL } from '@/src/i18n/direction';
 
 const SAFETY_STEPS = [
   {
@@ -51,6 +52,7 @@ const SAFETY_STEPS = [
 
 export default function SafetyScreen() {
   const router = useRouter();
+  const rtl = isRTL();
 
   return (
     <ScrollView
@@ -58,21 +60,23 @@ export default function SafetyScreen() {
       contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       showsVerticalScrollIndicator={false}
     >
-      <View className="px-4">
+      <View className="px-4" style={{ direction: rtl ? 'rtl' : 'ltr' }}>
         {/* Header */}
         <View className="mb-8 flex-row items-center gap-4">
           <Pressable
             onPress={() => router.back()}
             className="h-11 w-11 items-center justify-center rounded-full border border-border"
           >
-            <Icon icon={ChevronLeft} color={BRAND.ink} size={20} />
+            <Icon icon={rtl ? ChevronRight : ChevronLeft} color={BRAND.ink} size={20} />
           </Pressable>
-          <View>
-            <Text className="font-display text-3xl font-bold text-ink">
-              Safety &amp; Verification
+          <View className="flex-1">
+            <Text className="font-display text-3xl font-bold text-ink text-start">
+              {rtl ? 'حفاظت اور تصدیق' : 'Safety & Verification'}
             </Text>
-            <Text className="mt-0.5 text-xs text-ink/65">
-              How we secure your home service experience
+            <Text className="mt-0.5 text-xs text-ink/65 text-start">
+              {rtl
+                ? 'ہم آپ کی گھریلو سروس کے تجربے کو کیسے محفوظ بناتے ہیں'
+                : 'How we secure your home service experience'}
             </Text>
           </View>
         </View>

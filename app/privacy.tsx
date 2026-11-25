@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Shield, ChevronLeft } from 'lucide-react-native';
+import { Shield, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { BRAND } from '@/src/theme/colors';
 import { Icon } from '@/src/components/ui/Icon';
+import { isRTL } from '@/src/i18n/direction';
 
 const EFFECTIVE_DATE = 'Effective date: 9 October 2026';
 
@@ -76,31 +77,35 @@ const SECTIONS: { title: string; body: string[] }[] = [
 
 export default function PrivacyPolicyScreen() {
   const router = useRouter();
+  const rtl = isRTL();
   return (
     <ScrollView
       className="flex-1 bg-surface"
       contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       showsVerticalScrollIndicator={false}
     >
-      <View className="px-4">
+      <View className="px-4" style={{ direction: rtl ? 'rtl' : 'ltr' }}>
         <View className="mb-6 flex-row items-center gap-4">
           <Pressable
             onPress={() => router.back()}
             className="h-11 w-11 items-center justify-center rounded-full border border-border"
           >
-            <Icon icon={ChevronLeft} color={BRAND.ink} size={20} />
+            <Icon icon={rtl ? ChevronRight : ChevronLeft} color={BRAND.ink} size={20} />
           </Pressable>
           <View className="flex-1">
-            <Text className="font-display text-3xl font-bold text-ink">Privacy Policy</Text>
-            <Text className="mt-0.5 text-xs text-ink/60">{EFFECTIVE_DATE}</Text>
+            <Text className="font-display text-3xl font-bold text-ink text-start">
+              {rtl ? 'رازداری کی پالیسی' : 'Privacy Policy'}
+            </Text>
+            <Text className="mt-0.5 text-xs text-ink/60 text-start">{EFFECTIVE_DATE}</Text>
           </View>
         </View>
 
         <View className="mb-6 flex-row items-center gap-3 rounded-2xl border border-primary/20 bg-primary/10 p-4">
           <Icon icon={Shield} color={BRAND.primary} size={22} />
-          <Text className="flex-1 text-xs leading-relaxed text-ink/80">
-            Short version: we collect only what we need to match you with a provider and keep
-            bookings safe. We never sell your data.
+          <Text className="flex-1 text-xs leading-relaxed text-ink/80 text-start">
+            {rtl
+              ? 'مختصر: ہم صرف وہی معلومات جمع کرتے ہیں جو آپ کو ماہر کاریگر سے جوڑنے اور بکنگ کو محفوظ رکھنے کے لیے ضروری ہیں۔ ہم آپ کا ڈیٹا کبھی فروخت نہیں کرتے۔'
+              : 'Short version: we collect only what we need to match you with a provider and keep bookings safe. We never sell your data.'}
           </Text>
         </View>
 

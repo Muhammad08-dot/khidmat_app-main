@@ -27,6 +27,8 @@ import {
   UserCheck,
 } from 'lucide-react-native';
 import { Icon } from '@/src/components/ui/Icon';
+import { isRTL } from '@/src/i18n/direction';
+import { ChevronRight } from 'lucide-react-native';
 
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ color?: string; size?: number }>> = {
   Electrician: Zap,
@@ -84,6 +86,7 @@ const CATEGORIES = [
 
 export default function CategoriesScreen() {
   const router = useRouter();
+  const rtl = isRTL();
 
   return (
     <ScrollView
@@ -91,21 +94,23 @@ export default function CategoriesScreen() {
       contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       showsVerticalScrollIndicator={false}
     >
-      <View className="px-4">
+      <View className="px-4" style={{ direction: rtl ? 'rtl' : 'ltr' }}>
         {/* Header */}
         <View className="mb-8 flex-row items-center gap-3">
           <Pressable
             onPress={() => router.back()}
             className="h-10 w-10 items-center justify-center rounded-full border border-border"
           >
-            <Icon icon={ChevronLeft} color={BRAND.ink} size={20} />
+            <Icon icon={rtl ? ChevronRight : ChevronLeft} color={BRAND.ink} size={20} />
           </Pressable>
           <View className="flex-1">
-            <Text className="font-display text-2xl font-medium text-ink">
-              All Specialties &amp; Categories
+            <Text className="font-display text-2xl font-medium text-ink text-start">
+              {rtl ? 'تمام خدمات اور زمرہ جات' : 'All Specialties & Categories'}
             </Text>
-            <Text className="text-sm text-ink/60">
-              Select a specialty to find verified pros across Pakistan
+            <Text className="text-sm text-ink/60 text-start">
+              {rtl
+                ? 'پاکستان بھر میں تصدیق شدہ ماہرین تلاش کرنے کے لیے ایک زمرہ منتخب کریں'
+                : 'Select a specialty to find verified pros across Pakistan'}
             </Text>
           </View>
         </View>
