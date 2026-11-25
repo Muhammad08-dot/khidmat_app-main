@@ -73,7 +73,7 @@ export default function NotificationsScreen() {
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
-            onRefresh={() => refetch()}
+            onRefresh={() => { void refetch(); }}
             tintColor={BRAND.primary}
           />
         }

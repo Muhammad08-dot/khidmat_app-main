@@ -12,7 +12,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({ className = '' }) => {
       <MotiView
         from={{ opacity: 0.4 }}
         animate={{ opacity: 1 }}
-        transition={{ type: 'timing', duration: 900, loop: true, repeatReverse: true }}
+        transition={{ type: 'timing', duration: 900, loop: true, repeatReverse: true } as any}
         style={{ flex: 1 }}
       />
     </View>

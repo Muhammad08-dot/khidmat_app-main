@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, ElementRef } from 'react';
 import { BRAND } from '@/src/theme/colors';
 import {
   View,
@@ -42,7 +42,7 @@ export const SiteAgentWidget: React.FC = () => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ElementRef<typeof ScrollView> | null>(null);
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
 
@@ -118,7 +118,7 @@ export const SiteAgentWidget: React.FC = () => {
             <MotiView
               from={{ translateY: 40, opacity: 0 }}
               animate={{ translateY: 0, opacity: 1 }}
-              transition={{ type: 'spring', damping: 22, stiffness: 260 }}
+              transition={{ type: 'spring', damping: 22, stiffness: 260 } as any}
               style={{ height: panelHeight, paddingBottom: insets.bottom }}
               className="bg-[#0B1220] overflow-hidden"
             >

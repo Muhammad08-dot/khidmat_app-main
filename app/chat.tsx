@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, ElementRef } from 'react';
 import { BRAND } from '@/src/theme/colors';
 import {
   View,
@@ -80,7 +80,7 @@ export default function ChatScreen() {
   const [error, setError] = useState<string | null>(null);
   const [partnerTyping, setPartnerTyping] = useState(false);
 
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ElementRef<typeof ScrollView> | null>(null);
   const typingChannel = useRef<any>(null);
   const typingHideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const lastTypedPing = useRef(0);

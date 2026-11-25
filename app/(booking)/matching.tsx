@@ -156,7 +156,8 @@ export default function MatchingScreen() {
               key={i}
               from={{ opacity: 0.8, scale: 0.4 }}
               animate={{ opacity: 0, scale: 1.6 }}
-              transition={{ type: 'timing', duration: 2500, loop: true, delay: i * 800 }}
+              transition={{ type: 'timing', duration: 2500, loop: true } as any}
+              delay={i * 800}
               style={{
                 position: 'absolute',
                 width: '100%',

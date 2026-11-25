@@ -94,7 +94,7 @@ function RootNavigator() {
   }, [router]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#121212' : '#FBFAF6' }} className={colorScheme === 'dark' ? 'dark' : ''}>
+    <View style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#121212' : '#FBFAF6' }}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <RouteGuard>
         <Stack screenOptions={{ headerShown: false }}>
