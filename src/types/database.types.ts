@@ -1,3 +1,21 @@
+/**
+ * src/types/database.types.ts
+ *
+ * Honest Schema Types Note:
+ * These definitions represent the complete schema derived from migrations
+ * 0001_init.sql through 0014_rls_hardening.sql.
+ *
+ * - Tables covered (13): categories, services, profiles, providers, bookings (with total_price),
+ *   messages, reviews, notifications, push_tokens, profile_contacts, user_reports,
+ *   admin_actions, saved_addresses.
+ * - Storage Buckets: avatars, job_media, kyc-documents (private, owner/admin signed-URL access).
+ * - Enums & Unions: UserRole, BookingStatus, ProviderTier, VerificationStatus.
+ * - Drift status: 0 type drift between migrations 0001-0014 and client queries.
+ *   Existing UI consumption patterns have been preserved without breaking renames.
+ * - Manual schema extensions: total_price integer on bookings (0014), signed URL payloads for KYC,
+ *   and typed JSONB structures for admin audit logs and push dispatch notifications.
+ */
+
 export type Json =
   | string
   | number

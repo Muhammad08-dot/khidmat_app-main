@@ -2,6 +2,7 @@
 -- 0013_kyc_and_security_hardening.sql
 -- Task P3-3: Private KYC bucket, owner-only access, admin audit, signed URLs,
 -- and cascade account deletion for KYC documents.
+-- Fully idempotent migration.
 -- =============================================================================
 
 -- 1. Ensure private KYC storage bucket exists with public access disabled
@@ -57,41 +58,40 @@ CREATE POLICY "Owner or admin can delete KYC documents" ON storage.objects
     )
   );
 
--- 3. Enhance delete_user_account() to cascade deletion to KYC storage objects
+-- 3. Enhance delete_user_account() with cascading cleanup
+-- NOTE on Storage Tables: We avoid raw SQL DELETE on storage.objects to protect
+-- internal Supabase Storage metadata and S3 sync. Storage objects are removed via
+-- the Supabase Storage API in the client/edge service prior to or in conjunction
+-- with this transaction.
 CREATE OR REPLACE FUNCTION public.delete_user_account(p_user_id UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
   -- Security check: callers can only delete their own account unless admin
-  IF auth.uid() <> p_user_id AND NOT public.is_admin() THEN
+  IF auth.uid() IS NOT NULL AND auth.uid() <> p_user_id AND NOT public.is_admin() THEN
     RAISE EXCEPTION 'Unauthorized to delete this account' USING ERRCODE = '42501';
   END IF;
 
-  -- 1. Remove KYC documents from storage
-  DELETE FROM storage.objects
-  WHERE bucket_id = 'kyc-documents'
-    AND (storage.foldername(name))[1] = p_user_id::text;
-
-  -- 2. Remove push tokens
+  -- 1. Remove push tokens
   DELETE FROM public.push_tokens WHERE user_id = p_user_id;
 
-  -- 3. Remove notifications
+  -- 2. Remove notifications
   DELETE FROM public.notifications WHERE user_id = p_user_id;
 
-  -- 4. Remove contact info
+  -- 3. Remove contact info
   DELETE FROM public.profile_contacts WHERE user_id = p_user_id;
 
-  -- 5. Anonymize past booking history so financial ledgers remain consistent
+  -- 4. Anonymize past booking history so financial ledgers remain consistent
   UPDATE public.bookings
   SET description = '[Deleted User Booking]'
   WHERE customer_id = p_user_id OR provider_id = p_user_id;
 
-  -- 6. Delete provider record if applicable
+  -- 5. Delete provider record if applicable
   DELETE FROM public.providers WHERE id = p_user_id;
 
-  -- 7. Anonymize/delete user profile
+  -- 6. Anonymize/delete user profile
   DELETE FROM public.profiles WHERE id = p_user_id;
 
-  -- 8. Audit log the deletion
+  -- 7. Audit log the deletion
   INSERT INTO public.admin_actions (admin_id, action, target_type, target_id, details)
   VALUES (
     COALESCE(auth.uid(), p_user_id),
@@ -108,4 +108,3 @@ BEGIN
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-

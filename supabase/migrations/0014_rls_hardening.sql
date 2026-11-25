@@ -1,18 +1,25 @@
 -- =============================================================================
 -- 0014_rls_hardening.sql
--- Security Hardening: Anti-self-escalation, immutable audit log,
+-- Task P3-4: Anti-role escalation, immutable admin_actions audit log,
 -- price-lock after booking confirmation, cross-user read protections,
 -- and authorized booking transitions.
+-- Fully idempotent migration with admin bootstrap path & completion price lock.
 -- =============================================================================
 
 -- 1. Anti-Self-Escalation on profiles.role
--- Non-admin callers cannot change their own (or anyone else's) role to 'admin' or 'provider'.
+-- Allows role change only by existing admins, service_role callers, or direct SQL (auth.uid() IS NULL)
 CREATE OR REPLACE FUNCTION public.prevent_role_self_escalation()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.role IS DISTINCT FROM OLD.role AND NOT public.is_admin() THEN
-    RAISE EXCEPTION 'Unauthorized: Only platform administrators can change user roles.'
-      USING ERRCODE = '42501';
+  IF NEW.role IS DISTINCT FROM OLD.role THEN
+    -- Admin bootstrap path: Allow if executed via direct SQL/seed (auth.uid() IS NULL),
+    -- service_role key, or by an authorized admin user.
+    IF auth.uid() IS NOT NULL
+       AND COALESCE(current_setting('request.jwt.claim.role', true), '') <> 'service_role'
+       AND NOT public.is_admin() THEN
+      RAISE EXCEPTION 'Unauthorized: Only platform administrators can change user roles.'
+        USING ERRCODE = '42501';
+    END IF;
   END IF;
   RETURN NEW;
 END;
@@ -24,19 +31,30 @@ CREATE TRIGGER trg_prevent_role_escalation
   FOR EACH ROW
   EXECUTE FUNCTION public.prevent_role_self_escalation();
 
--- 2. Price lock after acceptance
--- Once a booking moves beyond 'pending' (i.e. confirmed, in_progress, completed, closed),
--- the agreed price (estimated_price or total_price) is frozen and cannot be mutated by customer or provider.
+-- 2. Price lock after acceptance vs completion
+-- Once a booking moves beyond 'pending', estimated_price is locked forever.
+-- total_price can be finalized once during completion (if previously NULL),
+-- but once set, cannot be altered by non-admins.
 ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS total_price INTEGER;
 
 CREATE OR REPLACE FUNCTION public.prevent_price_tampering_after_acceptance()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF ((OLD.estimated_price IS DISTINCT FROM NEW.estimated_price) OR
-      (OLD.total_price IS DISTINCT FROM NEW.total_price))
-     AND OLD.status NOT IN ('pending') AND NOT public.is_admin() THEN
-    RAISE EXCEPTION 'Price tampering forbidden: Booking price cannot be altered after acceptance (status: %)', OLD.status
-      USING ERRCODE = '22023';
+  IF NOT public.is_admin() THEN
+    -- 1. estimated_price can NEVER be altered once booking is accepted / beyond pending
+    IF (OLD.estimated_price IS DISTINCT FROM NEW.estimated_price)
+       AND OLD.status NOT IN ('pending') THEN
+      RAISE EXCEPTION 'Price tampering forbidden: Estimated price cannot be altered after acceptance (status: %)', OLD.status
+        USING ERRCODE = '22023';
+    END IF;
+
+    -- 2. total_price can be set once during completion if previously NULL, but cannot be modified once finalized
+    IF OLD.total_price IS NOT NULL
+       AND NEW.total_price IS DISTINCT FROM OLD.total_price
+       AND OLD.status NOT IN ('pending') THEN
+      RAISE EXCEPTION 'Price tampering forbidden: Final total price is locked and cannot be altered (status: %)', OLD.status
+        USING ERRCODE = '22023';
+    END IF;
   END IF;
   RETURN NEW;
 END;
