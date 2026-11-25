@@ -1,0 +1,10 @@
+﻿
+Running 2 tests using 1 worker
+
+AXE_AUTH_VIOLATIONS: 2 color-contrast(serious), region(moderate)
+HAS_HOME_GREETING_TESTID: false
+AXE_HOME_VIOLATIONS: 2 color-contrast(serious), region(moderate)
+  ok 1 tests\app.spec.ts:10:3 › Khidmat Web E2E (Demo Mode — No DB) › Auth screen validation, Axe audit, wizard toggle, and login with seeded demo@khidmat.app (5.4s)
+  ok 2 tests\app.spec.ts:56:3 › Khidmat Web E2E (Demo Mode — No DB) › Customer Home categories, search, tabs, legal pages, admin guard, and offline resilience (10.3s)
+
+  2 passed (17.3s)

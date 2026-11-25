@@ -1,0 +1,57 @@
+﻿env: load .env
+env: export EXPO_PUBLIC_AGENT_SERVER_URL EXPO_PUBLIC_BG_LOCATION_ENABLED EXPO_PUBLIC_DEMO_MODE EXPO_PUBLIC_EMAIL_ENABLED EXPO_PUBLIC_PAYMENTS_ENABLED EXPO_PUBLIC_PHONE_AUTH_ENABLED EXPO_PUBLIC_POSTHOG_HOST EXPO_PUBLIC_POSTHOG_KEY EXPO_PUBLIC_SUPABASE_ANON_KEY EXPO_PUBLIC_SUPABASE_URL
+Starting Metro Bundler
+
+Android Bundled 52110ms node_modules\expo-router\entry.js (4241 modules)
+
+› Assets (54):
+assets\logo.jpeg (91KB)
+node_modules\@expo-google-fonts\noto-nastaliq-urdu\400Regular\NotoNastaliqUrdu_400Regular.ttf (529KB)
+node_modules\@expo-google-fonts\noto-nastaliq-urdu\500Medium\NotoNastaliqUrdu_500Medium.ttf (531KB)
+node_modules\@expo-google-fonts\noto-nastaliq-urdu\600SemiBold\NotoNastaliqUrdu_600SemiBold.ttf (531KB)
+node_modules\@expo-google-fonts\noto-nastaliq-urdu\700Bold\NotoNastaliqUrdu_700Bold.ttf (530KB)
+node_modules\@expo-google-fonts\outfit\100Thin\Outfit_100Thin.ttf (55KB)
+node_modules\@expo-google-fonts\outfit\200ExtraLight\Outfit_200ExtraLight.ttf (55KB)
+node_modules\@expo-google-fonts\outfit\300Light\Outfit_300Light.ttf (55KB)
+node_modules\@expo-google-fonts\outfit\400Regular\Outfit_400Regular.ttf (55KB)
+node_modules\@expo-google-fonts\outfit\500Medium\Outfit_500Medium.ttf (55KB)
+node_modules\@expo-google-fonts\outfit\600SemiBold\Outfit_600SemiBold.ttf (55KB)
+node_modules\@expo-google-fonts\outfit\700Bold\Outfit_700Bold.ttf (55KB)
+node_modules\@expo-google-fonts\outfit\800ExtraBold\Outfit_800ExtraBold.ttf (55KB)
+node_modules\@expo-google-fonts\outfit\900Black\Outfit_900Black.ttf (55KB)
+node_modules\@expo-google-fonts\plus-jakarta-sans\200ExtraLight_Italic\PlusJakartaSans_200ExtraLight_Italic.ttf (97KB)
+node_modules\@expo-google-fonts\plus-jakarta-sans\200ExtraLight\PlusJakartaSans_200ExtraLight.ttf (95KB)
+node_modules\@expo-google-fonts\plus-jakarta-sans\300Light_Italic\PlusJakartaSans_300Light_Italic.ttf (97KB)
+node_modules\@expo-google-fonts\plus-jakarta-sans\300Light\PlusJakartaSans_300Light.ttf (95KB)
+node_modules\@expo-google-fonts\plus-jakarta-sans\400Regular_Italic\PlusJakartaSans_400Regular_Italic.ttf (97KB)
+node_modules\@expo-google-fonts\plus-jakarta-sans\400Regular\PlusJakartaSans_400Regular.ttf (95KB)
+node_modules\@expo-google-fonts\plus-jakarta-sans\500Medium_Italic\PlusJakartaSans_500Medium_Italic.ttf (97KB)
+node_modules\@expo-google-fonts\plus-jakarta-sans\500Medium\PlusJakartaSans_500Medium.ttf (95KB)
+node_modules\@expo-google-fonts\plus-jakarta-sans\600SemiBold_Italic\PlusJakartaSans_600SemiBold_Italic.ttf (97KB)
+node_modules\@expo-google-fonts\plus-jakarta-sans\600SemiBold\PlusJakartaSans_600SemiBold.ttf (95KB)
+node_modules\@expo-google-fonts\plus-jakarta-sans\700Bold_Italic\PlusJakartaSans_700Bold_Italic.ttf (97KB)
+node_modules\@expo-google-fonts\plus-jakarta-sans\700Bold\PlusJakartaSans_700Bold.ttf (95KB)
+node_modules\@expo-google-fonts\plus-jakarta-sans\800ExtraBold_Italic\PlusJakartaSans_800ExtraBold_Italic.ttf (97KB)
+node_modules\@expo-google-fonts\plus-jakarta-sans\800ExtraBold\PlusJakartaSans_800ExtraBold.ttf (95KB)
+node_modules\expo-router\assets\arrow_down.png (9.5KB)
+node_modules\expo-router\assets\arrow_right.xml (307B)
+node_modules\expo-router\assets\checkmark.xml (312B)
+node_modules\expo-router\assets\error.png (469B)
+node_modules\expo-router\assets\file.png (138B)
+node_modules\expo-router\assets\forward.png (188B)
+node_modules\expo-router\assets\pkg.png (364B)
+node_modules\expo-router\assets\react-navigation\elements\back-icon-mask.png (653B)
+node_modules\expo-router\assets\react-navigation\elements\back-icon.png (4 variations | 152B)
+node_modules\expo-router\assets\react-navigation\elements\clear-icon.png (4 variations | 425B)
+node_modules\expo-router\assets\react-navigation\elements\close-icon.png (4 variations | 235B)
+node_modules\expo-router\assets\react-navigation\elements\search-icon.png (4 variations | 599B)
+node_modules\expo-router\assets\sitemap.png (465B)
+node_modules\expo-router\assets\unmatched.png (4.8KB)
+
+› android bundles (1):
+_expo/static/js/android/entry-343aac5736d27526c4eb6b55a64e734e.hbc (7.9MB)
+
+› Files (1):
+metadata.json (3.6KB)
+
+Exported: .tmp-export-android

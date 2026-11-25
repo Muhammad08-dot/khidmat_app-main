@@ -1,0 +1,761 @@
+﻿=== TRACKED FILES & LOC ===
+    24 agent-server/.env.example
+   106 agent-server/API.md
+  2305 agent-server/package-lock.json
+    36 agent-server/package.json
+   188 agent-server/src/__tests__/server.test.ts
+   216 agent-server/src/app.ts
+     9 agent-server/src/index.ts
+    87 agent-server/src/middleware/__tests__/auth.test.ts
+    32 agent-server/src/middleware/auth.ts
+    16 agent-server/tsconfig.json
+     8 app/(auth)/_layout.tsx
+   694 app/(auth)/auth.tsx
+   154 app/(auth)/reset-password.tsx
+    10 app/(booking)/_layout.tsx
+   397 app/(booking)/booking.tsx
+   276 app/(booking)/matching.tsx
+     0 app/(booking)/track/[id].tsx
+    78 app/(tabs)/_layout.tsx
+   856 app/(tabs)/bookings.tsx
+   194 app/(tabs)/inbox.tsx
+    11 app/(tabs)/index.tsx
+   112 app/(tabs)/notifications.tsx
+   781 app/(tabs)/profile.tsx
+    42 app/+not-found.tsx
+   157 app/_layout.tsx
+   359 app/admin.tsx
+    61 app/auth/callback.tsx
+    96 app/auth/complete-profile.tsx
+   136 app/categories.tsx
+   578 app/chat.tsx
+   127 app/privacy.tsx
+     0 app/provider/[id].tsx
+   422 app/providers.tsx
+   138 app/safety.tsx
+   122 app/terms.tsx
+    36 scripts/generate-migration-ledger.js
+   110 scripts/secret-scan.js
+   159 scripts/smoke-test.js
+    29 scripts/test-integration.js
+    24 scripts/use-env.js
+    35 scripts/verify-supabase.mjs
+   250 src/components/__tests__/screens.test.tsx
+   107 src/components/features/AgentStatus.tsx
+   282 src/components/features/CustomerHome.tsx
+    62 src/components/features/LiveMap.tsx
+    56 src/components/features/MapSelector.tsx
+   465 src/components/features/ProviderHome.tsx
+   212 src/components/features/SiteAgentWidget.tsx
+    90 src/components/layout/ErrorBoundary.tsx
+    68 src/components/layout/__tests__/ErrorBoundary.test.tsx
+    39 src/components/ui/Avatar.tsx
+    46 src/components/ui/Badge.tsx
+    86 src/components/ui/Button.tsx
+    19 src/components/ui/Card.tsx
+    41 src/components/ui/Chip.tsx
+    47 src/components/ui/EmptyState.tsx
+    60 src/components/ui/GoogleButton.tsx
+    23 src/components/ui/Icon.tsx
+   128 src/components/ui/Input.tsx
+    94 src/components/ui/ProviderCard.tsx
+    69 src/components/ui/SegmentedControl.tsx
+    68 src/components/ui/Select.tsx
+    18 src/components/ui/Skeleton.tsx
+    79 src/components/ui/StepIndicator.tsx
+    49 src/components/ui/TierBadge.tsx
+    45 src/components/ui/Toast.tsx
+   148 src/components/ui/__tests__/primitives.test.tsx
+   331 src/context/AuthContext.tsx
+    13 src/hooks/useDebounce.ts
+   183 src/hooks/useSupabase.ts
+    53 src/i18n/__tests__/authDirection.test.ts
+    43 src/i18n/__tests__/direction.test.ts
+    24 src/i18n/__tests__/i18n.test.ts
+    39 src/i18n/direction.ts
+    40 src/i18n/en.json
+    41 src/i18n/index.ts
+    40 src/i18n/ur.json
+    78 src/services/__tests__/errors.test.ts
+    34 src/services/analytics.ts
+    30 src/services/api/__tests__/errorReporter.test.ts
+   600 src/services/api/agentClient.ts
+    15 src/services/api/agentLogService.ts
+    98 src/services/api/errorReporter.ts
+    97 src/services/backgroundLocation.ts
+   151 src/services/errors.ts
+    95 src/services/payments.ts
+    89 src/services/push.ts
+    93 src/services/supabase/__tests__/accountDeletion.test.ts
+    42 src/services/supabase/__tests__/adminFlows.test.ts
+    47 src/services/supabase/__tests__/audit.test.ts
+    74 src/services/supabase/__tests__/bookingStatusRace.test.ts
+    62 src/services/supabase/__tests__/client.test.ts
+   172 src/services/supabase/__tests__/demoChecklist.test.ts
+   144 src/services/supabase/__tests__/integration/helper.ts
+   157 src/services/supabase/__tests__/integration/lifecycle.integration.test.ts
+   201 src/services/supabase/__tests__/integration/rls.integration.test.ts
+   182 src/services/supabase/__tests__/integration/stateMachine.integration.test.ts
+   104 src/services/supabase/__tests__/kyc.test.ts
+   146 src/services/supabase/__tests__/legacy.test.ts
+    74 src/services/supabase/__tests__/phase3Features.test.ts
+    48 src/services/supabase/__tests__/trackingBroadcast.test.ts
+    85 src/services/supabase/accountDeletion.ts
+   123 src/services/supabase/client.ts
+    99 src/services/supabase/kyc.ts
+   372 src/services/supabase/legacy.ts
+    62 src/services/supabase/mappers.ts
+   480 src/services/supabase/queries.ts
+   886 src/test-utils/mockClient.ts
+    28 src/theme/__tests__/tokens.test.ts
+    48 src/theme/colors.ts
+    43 src/theme/fonts.ts
+     3 src/theme/global.css
+   124 src/theme/tokens.ts
+   451 src/types/database.types.ts
+     4 src/types/models.ts
+    24 src/utils/__tests__/authRedirect.test.ts
+    45 src/utils/__tests__/authUrlParser.test.ts
+    18 src/utils/__tests__/demoAuth.test.ts
+    42 src/utils/__tests__/errorMessages.test.ts
+    21 src/utils/__tests__/location.test.ts
+    34 src/utils/__tests__/privacy.test.ts
+    31 src/utils/__tests__/ratings.test.ts
+    72 src/utils/authUrlParser.ts
+    16 src/utils/demoAuth.ts
+    38 src/utils/errorMessages.ts
+    29 src/utils/eventEmitter.ts
+    30 src/utils/geolocation.ts
+    50 src/utils/location.ts
+    59 src/utils/privacy.ts
+    20 src/utils/ratings.ts
+    48 supabase/config.toml
+   101 supabase/functions/delete-account/index.ts
+   105 supabase/functions/push-dispatcher/index.ts
+   163 supabase/migrations/0001_init.sql
+    45 supabase/migrations/0002_legacy_bridge.sql
+    49 supabase/migrations/0003_phase3_features.sql
+    16 supabase/migrations/0004_chat_push.sql
+    14 supabase/migrations/0005_chat_seen_receipts.sql
+     6 supabase/migrations/0006_saved_addresses.sql
+    46 supabase/migrations/0007_admin_moderation.sql
+   141 supabase/migrations/0008_security_hardening.sql
+    76 supabase/migrations/0009_booking_state_machine.sql
+    83 supabase/migrations/0010_push_notifications_trigger.sql
+    37 supabase/migrations/0011_account_deletion.sql
+    32 supabase/migrations/0012_user_reports.sql
+   125 supabase/migrations/0013_kyc_and_security_hardening.sql
+   216 supabase/migrations/0014_rls_hardening.sql
+    57 supabase/migrations/0015_fix_booking_state_machine.sql
+    22 supabase/migrations/0016_job_media_booking_rls.sql
+    36 supabase/migrations/0017_job_media_provider_upload.sql
+    14 supabase/seed.sql
+=== ONPRESS COUNT ===
+
+Lines Words Characters Property
+----- ----- ---------- --------
+  187                          
+
+
+
+=== ONPRESS LINES ===
+app/(auth)/auth.tsx:365:                onPress={handleForgotPassword}
+app/(auth)/auth.tsx:376:                onPress={handleLoginSubmit}
+app/(auth)/auth.tsx:390:                onPress={handleGoogleSignIn}
+app/(auth)/auth.tsx:401:                  onPress={async () => {
+app/(auth)/auth.tsx:555:                    onPress={() => {
+app/(auth)/auth.tsx:584:                            onPress={() => setCategory(spec)}
+app/(auth)/auth.tsx:626:                      onPress={() => setSignupStep(0)}
+app/(auth)/auth.tsx:632:                      onPress={() => {
+app/(auth)/auth.tsx:645:                    <Pressable onPress={pickPhoto} className="relative">
+app/(auth)/auth.tsx:661:                    <Pressable onPress={pickPhoto} className="mt-2">
+app/(auth)/auth.tsx:706:                      onPress={() => setSignupStep(1)}
+app/(auth)/auth.tsx:712:                      onPress={handleSignupSubmit}
+app/(auth)/auth.tsx:725:            onPress={() => {
+app/(auth)/reset-password.tsx:119:            onPress={() => router.replace('/(auth)/auth')}
+app/(auth)/reset-password.tsx:158:          <Button title="Update Password" onPress={handleSubmit} loading={loading} />
+app/(booking)/booking.tsx:219:          onPress={() => router.back()}
+app/(booking)/booking.tsx:245:            onPress={() => router.back()}
+app/(booking)/booking.tsx:301:                  onPress={() => setSelectedDate(date.value)}
+app/(booking)/booking.tsx:332:                  onPress={() => setSelectedTimeSlot(slot)}
+app/(booking)/booking.tsx:401:          onPress={handleBookingConfirm}
+app/(booking)/matching.tsx:197:              onPress={() => router.replace('/')}
+app/(booking)/matching.tsx:291:          onPress={handleFindProviders}
+app/(booking)/track/[id].tsx:149:          onPress: () => void dialEmergencyNumber('15', 'Police Emergency', 'ہنگامی پولیس رابطہ'),
+app/(booking)/track/[id].tsx:154:          onPress: () => void dialEmergencyNumber('1122', 'Rescue 1122', 'ریسکیو 1122'),
+app/(booking)/track/[id].tsx:192:          onPress={() => router.back()}
+app/(booking)/track/[id].tsx:239:              onPress={handleCall}
+app/(booking)/track/[id].tsx:245:              onPress={handleChat}
+app/(booking)/track/[id].tsx:269:          onPress={handleEmergencySOS}
+app/(tabs)/bookings.tsx:397:            <Pressable key={tab} onPress={() => setActiveTab(tab)} className="pb-3">
+app/(tabs)/bookings.tsx:441:                onPress={() => void refetch()}
+app/(tabs)/bookings.tsx:461:                onPress={() => router.push('/')}
+app/(tabs)/bookings.tsx:586:                                  onPress={() => {
+app/(tabs)/bookings.tsx:605:                                onPress={() => handleRatingSubmit(b)}
+app/(tabs)/bookings.tsx:629:                            onPress={() =>
+app/(tabs)/bookings.tsx:651:                          onPress={() => router.push(`/chat?bookingId=${b.bookingId}`)}
+app/(tabs)/bookings.tsx:661:                          onPress={() => requestReschedule(b)}
+app/(tabs)/bookings.tsx:671:                          onPress={() => router.push(`/track/${b.bookingId}`)}
+app/(tabs)/bookings.tsx:681:                          onPress={() => requestCancel(b)}
+app/(tabs)/bookings.tsx:691:                            onPress={() => requestCancel(b)}
+app/(tabs)/bookings.tsx:697:                            onPress={() => handleUpdateStatus(b, 'confirmed')}
+app/(tabs)/bookings.tsx:709:                          onPress={() => handleUpdateStatus(b, 'in_progress')}
+app/(tabs)/bookings.tsx:718:                          onPress={() => handleUpdateStatus(b, 'completed')}
+app/(tabs)/bookings.tsx:733:                onPress={() => setPageLimit((prev) => prev + 10)}
+app/(tabs)/bookings.tsx:752:        <Pressable className="flex-1 bg-black/50" onPress={() => setCancellingBooking(null)}>
+app/(tabs)/bookings.tsx:756:              onPress={(e) => e.stopPropagation()}
+app/(tabs)/bookings.tsx:769:                    onPress={() => setCancelReason(r)}
+app/(tabs)/bookings.tsx:796:                  onPress={() => setCancellingBooking(null)}
+app/(tabs)/bookings.tsx:802:                  onPress={confirmCancel}
+app/(tabs)/bookings.tsx:825:        <Pressable className="flex-1 bg-black/50" onPress={() => setRescheduleBooking(null)}>
+app/(tabs)/bookings.tsx:829:              onPress={(e) => e.stopPropagation()}
+app/(tabs)/bookings.tsx:845:                    onPress={() => setReschedDate(d)}
+app/(tabs)/bookings.tsx:864:                    onPress={() => setReschedSlot(s)}
+app/(tabs)/bookings.tsx:881:                  onPress={() => setRescheduleBooking(null)}
+app/(tabs)/bookings.tsx:887:                  onPress={confirmReschedule}
+app/(tabs)/inbox.tsx:152:                  onPress={() => router.push(`/chat?bookingId=${convo.bookingId}`)}
+app/(tabs)/notifications.tsx:95:              onPress={() => handlePress(n)}
+app/(tabs)/profile.tsx:81:  onPress,
+app/(tabs)/profile.tsx:86:  onPress: () => void;
+app/(tabs)/profile.tsx:90:    <Pressable onPress={onPress} className="flex-row items-center justify-between py-3">
+app/(tabs)/profile.tsx:251:        onPress: async () => {
+app/(tabs)/profile.tsx:270:        onPress: async () => {
+app/(tabs)/profile.tsx:318:                onPress={handleEditPhoto}
+app/(tabs)/profile.tsx:375:                  onPress={handleModeSwitch}
+app/(tabs)/profile.tsx:439:                  onPress={() => handleSwitchLang('en')}
+app/(tabs)/profile.tsx:449:                  onPress={() => handleSwitchLang('ur')}
+app/(tabs)/profile.tsx:467:              onPress={handleLogout}
+app/(tabs)/profile.tsx:480:            <LinkRow icon={Shield} label={t('nav_safety')} onPress={() => router.push('/safety')} />
+app/(tabs)/profile.tsx:485:              onPress={() => router.push('/privacy')}
+app/(tabs)/profile.tsx:488:            <LinkRow icon={Scale} label={t('nav_terms')} onPress={() => router.push('/terms')} />
+app/(tabs)/profile.tsx:495:                  onPress={() => router.push('/admin')}
+app/(tabs)/profile.tsx:504:              onPress={handleDeleteAccount}
+app/(tabs)/profile.tsx:516:                onPress={openAddAddr}
+app/(tabs)/profile.tsx:544:                    <Pressable onPress={() => openEditAddr(a)} className="p-1.5">
+app/(tabs)/profile.tsx:547:                    <Pressable onPress={() => removeAddr(a.id)} className="p-1.5">
+app/(tabs)/profile.tsx:640:                  onPress={() => router.push('/')}
+app/(tabs)/profile.tsx:653:                  onPress={() => router.push('/bookings')}
+app/(tabs)/profile.tsx:666:                  onPress={handleModeSwitch}
+app/(tabs)/profile.tsx:697:                onPress={() => setShowRegisterModal(false)}
+app/(tabs)/profile.tsx:741:              onPress={handleRegisterWorker}
+app/(tabs)/profile.tsx:760:        <Pressable className="flex-1 bg-black/50" onPress={() => setAddrModal(false)}>
+app/(tabs)/profile.tsx:764:              onPress={(e) => e.stopPropagation()}
+app/(tabs)/profile.tsx:775:                    onPress={() => setAddrLabel(l)}
+app/(tabs)/profile.tsx:802:                  onPress={() => setAddrModal(false)}
+app/(tabs)/profile.tsx:808:                  onPress={saveAddr}
+app/+not-found.tsx:41:          onPress={() => router.replace('/')}
+app/admin.tsx:139:        onPress={() => router.back()}
+app/admin.tsx:194:              onPress={() => setSection(tb.id)}
+app/admin.tsx:238:                      onPress={() => void handleOpenKycDoc((p as any).id_document_url)}
+app/admin.tsx:249:                      onPress={() => verifyMut.mutate({ id: p.id, status: 'verified' })}
+app/admin.tsx:256:                      onPress={() => verifyMut.mutate({ id: p.id, status: 'rejected' })}
+app/admin.tsx:305:                      onPress={() =>
+app/admin.tsx:316:                      onPress={() => delMut.mutate({ id: r.id, providerId: r.providerId })}
+app/admin.tsx:355:                    onPress={() => resolveReportMut.mutate({ id: rp.id, action: 'resolved' })}
+app/admin.tsx:362:                    onPress={() => resolveReportMut.mutate({ id: rp.id, action: 'dismissed' })}
+app/auth/callback.tsx:46:          onPress={() => router.replace("/(auth)/auth")}
+app/auth/complete-profile.tsx:55:              onPress={() => setRole("customer")}
+app/auth/complete-profile.tsx:63:              onPress={() => setRole("provider")}
+app/auth/complete-profile.tsx:92:            onPress={handleComplete}
+app/categories.tsx:101:            onPress={() => router.back()}
+app/categories.tsx:126:                onPress={() => router.push(`/matching?category=${encodeURIComponent(cat.name)}`)}
+app/chat.tsx:322:            onPress={() => router.push('/inbox')}
+app/chat.tsx:354:              onPress={() => router.push(`/track/${booking.bookingId}`)}
+app/chat.tsx:362:              onPress={() => Linking.openURL(`tel:${booking.customerPhone}`)}
+app/chat.tsx:369:            onPress={() => setShowReportModal(true)}
+app/chat.tsx:504:                  onPress={() => sendText(q)}
+app/chat.tsx:524:                onPress={handleSendMessage}
+app/chat.tsx:542:        <Pressable className="flex-1 bg-black/50" onPress={() => setShowReportModal(false)}>
+app/chat.tsx:546:              onPress={(e) => e.stopPropagation()}
+app/chat.tsx:553:                <Pressable onPress={() => setShowReportModal(false)} className="p-1">
+app/chat.tsx:563:                    onPress={() => setReportReason(r)}
+app/chat.tsx:592:                  onPress={() => setShowReportModal(false)}
+app/chat.tsx:598:                  onPress={handleSendReport}
+app/privacy.tsx:90:            onPress={() => router.back()}
+app/provider/[id].tsx:146:          onPress={() => router.back()}
+app/provider/[id].tsx:175:            onPress={() => router.back()}
+app/provider/[id].tsx:247:                  onPress={() => router.push(`/booking?providerId=${provider.userId}`)}
+app/provider/[id].tsx:263:                    onPress={handleNotifyWorker}
+app/provider/[id].tsx:285:                    onPress={() => router.push(`/booking?providerId=${provider.userId}`)}
+app/providers.tsx:233:            onPress={() => router.replace('/')}
+app/providers.tsx:293:                    onPress={() => router.push(`/provider/${p.userId}`)}
+app/providers.tsx:369:                              onPress={() => handleNotifyWorker(p)}
+app/safety.tsx:67:            onPress={() => router.back()}
+app/terms.tsx:84:            onPress={() => router.back()}
+src/components/features/CustomerHome.tsx:140:              onPress={() => router.push('/profile')}
+src/components/features/CustomerHome.tsx:152:              onPress={() => router.push('/notifications')}
+src/components/features/CustomerHome.tsx:200:            onPress={() => router.push('/bookings')}
+src/components/features/CustomerHome.tsx:214:            <Pressable onPress={() => router.push('/categories')}>
+src/components/features/CustomerHome.tsx:225:                  onPress={() => openCategory(cat.name)}
+src/components/features/CustomerHome.tsx:255:            <Pressable onPress={() => router.push('/providers')}>
+src/components/features/CustomerHome.tsx:270:              onPress={() => router.push(`/provider/${prov.id}`)}
+src/components/features/CustomerHome.tsx:289:            onPress={() => router.push('/safety')}
+src/components/features/LiveMap.tsx:51:          onPress={() => setRetryNonce((n) => n + 1)}
+src/components/features/MapSelector.tsx:47:            onPress={() => {
+src/components/features/ProviderHome.tsx:225:              onPress={toggleOnline}
+src/components/features/ProviderHome.tsx:379:                      onPress={() => declineBooking(b)}
+src/components/features/ProviderHome.tsx:384:                      onPress={() => acceptBooking(b)}
+src/components/features/ProviderHome.tsx:414:                      onPress={() => openChat(b.bookingId || b.id)}
+src/components/features/ProviderHome.tsx:419:                      onPress={() => openCompleteModal(b)}
+src/components/features/ProviderHome.tsx:446:                onPress={() => setCodCashReceived(!codCashReceived)}
+src/components/features/ProviderHome.tsx:462:                onPress={pickCompletionPhoto}
+src/components/features/ProviderHome.tsx:477:                  onPress={() => setCompletingBooking(null)}
+src/components/features/ProviderHome.tsx:482:                  onPress={confirmComplete}
+src/components/features/SiteAgentWidget.tsx:87:      onPress={() => setIsOpen((o) => !o)}
+src/components/features/SiteAgentWidget.tsx:117:            <Pressable className="absolute inset-0" onPress={() => setIsOpen(false)} />
+src/components/features/SiteAgentWidget.tsx:134:                  <Pressable onPress={clearChat}>
+src/components/features/SiteAgentWidget.tsx:137:                  <Pressable onPress={() => setIsOpen(false)}>
+src/components/features/SiteAgentWidget.tsx:186:                      onPress={() => send(s)}
+src/components/features/SiteAgentWidget.tsx:206:                  onPress={() => send()}
+src/components/layout/ErrorBoundary.tsx:91:            onPress={this.reset}
+src/components/ui/Button.tsx:9:  onPress?: () => void;
+src/components/ui/Button.tsx:53:  onPress,
+src/components/ui/Button.tsx:68:      onPress={onPress}
+src/components/ui/Chip.tsx:7:  onPress?: () => void;
+src/components/ui/Chip.tsx:16:  onPress,
+src/components/ui/Chip.tsx:24:      onPress={onPress}
+src/components/ui/EmptyState.tsx:44:        <Pressable onPress={onAction} className="w-full rounded-xl bg-primary px-6 py-3">
+src/components/ui/GoogleButton.tsx:6:  onPress: () => void;
+src/components/ui/GoogleButton.tsx:15:  onPress,
+src/components/ui/GoogleButton.tsx:25:      onPress={onPress}
+src/components/ui/Input.tsx:94:            onPress={onTogglePassword}
+src/components/ui/Input.tsx:106:            onPress={onTrailingPress}
+src/components/ui/ProviderCard.tsx:15:  onPress?: () => void;
+src/components/ui/ProviderCard.tsx:27:  onPress,
+src/components/ui/ProviderCard.tsx:34:      onPress={onPress}
+src/components/ui/SegmentedControl.tsx:41:            onPress={() => onChange(opt.value)}
+src/components/ui/Select.tsx:36:        onPress={() => setOpen(true)}
+src/components/ui/Select.tsx:46:          onPress={() => setOpen(false)}
+src/components/ui/Select.tsx:55:                    onPress={() => {
+src/components/ui/__tests__/primitives.test.tsx:15:    const onPress = jest.fn();
+src/components/ui/__tests__/primitives.test.tsx:18:      tree = renderer.create(<Button title="Book Service" onPress={onPress} />);
+src/components/ui/__tests__/primitives.test.tsx:24:      pressable.props.onPress();
+src/components/ui/__tests__/primitives.test.tsx:26:    expect(onPress).toHaveBeenCalledTimes(1);
+src/components/ui/__tests__/primitives.test.tsx:47:      toggle.props.onPress();
+src/components/ui/__tests__/primitives.test.tsx:72:      providerTab.props.onPress();
+src/components/ui/__tests__/primitives.test.tsx:78:    const onPress = jest.fn();
+src/components/ui/__tests__/primitives.test.tsx:82:        <GoogleButton onPress={onPress} label="Continue with Google" />
+src/components/ui/__tests__/primitives.test.tsx:89:      btn.props.onPress();
+src/components/ui/__tests__/primitives.test.tsx:91:    expect(onPress).toHaveBeenCalledTimes(1);
+src/components/ui/__tests__/primitives.test.tsx:104:    const onPress = jest.fn();
+src/components/ui/__tests__/primitives.test.tsx:107:      tree = renderer.create(<Chip label="Plumber" selected onPress={onPress} />);
+src/components/ui/__tests__/primitives.test.tsx:113:      chip.props.onPress();
+src/components/ui/__tests__/primitives.test.tsx:115:    expect(onPress).toHaveBeenCalledTimes(1);
+src/components/ui/__tests__/primitives.test.tsx:131:  test('ProviderCard renders details and fires onPress', () => {
+src/components/ui/__tests__/primitives.test.tsx:132:    const onPress = jest.fn();
+src/components/ui/__tests__/primitives.test.tsx:144:          onPress={onPress}
+src/components/ui/__tests__/primitives.test.tsx:152:      card.props.onPress();
+src/components/ui/__tests__/primitives.test.tsx:154:    expect(onPress).toHaveBeenCalledTimes(1);
+=== INTERACTIVE ELEMENTS ===
+app/(auth)/auth.tsx:9:  Pressable,
+app/(auth)/auth.tsx:11:  TextInput,
+app/(auth)/auth.tsx:31:import { SegmentedControl } from '@/src/components/ui/SegmentedControl';
+app/(auth)/auth.tsx:333:              <Input
+app/(auth)/auth.tsx:347:              <Input
+app/(auth)/auth.tsx:363:              <Pressable
+app/(auth)/auth.tsx:371:              </Pressable>
+app/(auth)/auth.tsx:373:              <Button
+app/(auth)/auth.tsx:397:                <Button
+app/(auth)/auth.tsx:460:                  <SegmentedControl
+app/(auth)/auth.tsx:478:                  <Input
+app/(auth)/auth.tsx:505:                      <TextInput
+app/(auth)/auth.tsx:522:                  <Input
+app/(auth)/auth.tsx:536:                  <Input
+app/(auth)/auth.tsx:552:                  <Button
+app/(auth)/auth.tsx:570:                    <Select options={PakistaniCities} value={city} onChange={setCity} />
+app/(auth)/auth.tsx:580:                          <Chip
+app/(auth)/auth.tsx:589:                      <Input
+app/(auth)/auth.tsx:599:                      <Input
+app/(auth)/auth.tsx:622:                    <Button
+app/(auth)/auth.tsx:629:                    <Button
+app/(auth)/auth.tsx:645:                    <Pressable onPress={pickPhoto} className="relative">
+app/(auth)/auth.tsx:660:                    </Pressable>
+app/(auth)/auth.tsx:661:                    <Pressable onPress={pickPhoto} className="mt-2">
+app/(auth)/auth.tsx:665:                    </Pressable>
+app/(auth)/auth.tsx:703:                    <Button
+app/(auth)/auth.tsx:709:                    <Button
+app/(auth)/auth.tsx:723:          <Pressable
+app/(auth)/auth.tsx:738:          </Pressable>
+app/(auth)/reset-password.tsx:117:          <Button
+app/(auth)/reset-password.tsx:143:          <Input
+app/(auth)/reset-password.tsx:150:          <Input
+app/(auth)/reset-password.tsx:158:          <Button title="Update Password" onPress={handleSubmit} loading={loading} />
+app/(booking)/booking.tsx:6:  Pressable,
+app/(booking)/booking.tsx:216:        <Button
+app/(booking)/booking.tsx:244:          <Pressable
+app/(booking)/booking.tsx:249:          </Pressable>
+app/(booking)/booking.tsx:299:                <Pressable
+app/(booking)/booking.tsx:314:                </Pressable>
+app/(booking)/booking.tsx:330:                <Pressable
+app/(booking)/booking.tsx:349:                </Pressable>
+app/(booking)/booking.tsx:361:          <Input
+app/(booking)/booking.tsx:367:          <Input
+app/(booking)/booking.tsx:399:        <Button
+app/(booking)/matching.tsx:3:import { View, Text, Pressable } from 'react-native';
+app/(booking)/matching.tsx:196:            <Pressable
+app/(booking)/matching.tsx:201:            </Pressable>
+app/(booking)/matching.tsx:290:        <Pressable
+app/(booking)/matching.tsx:296:        </Pressable>
+app/(booking)/track/[id].tsx:2:import { View, Text, ScrollView, Pressable, ActivityIndicator, Linking, Alert } from 'react-native';
+app/(booking)/track/[id].tsx:191:        <Pressable
+app/(booking)/track/[id].tsx:196:        </Pressable>
+app/(booking)/track/[id].tsx:238:            <Pressable
+app/(booking)/track/[id].tsx:243:            </Pressable>
+app/(booking)/track/[id].tsx:244:            <Pressable
+app/(booking)/track/[id].tsx:249:            </Pressable>
+app/(booking)/track/[id].tsx:267:        <Pressable
+app/(booking)/track/[id].tsx:276:        </Pressable>
+app/(tabs)/bookings.tsx:7:  Pressable,
+app/(tabs)/bookings.tsx:10:  TextInput,
+app/(tabs)/bookings.tsx:397:            <Pressable key={tab} onPress={() => setActiveTab(tab)} className="pb-3">
+app/(tabs)/bookings.tsx:413:            </Pressable>
+app/(tabs)/bookings.tsx:440:              <Pressable
+app/(tabs)/bookings.tsx:447:              </Pressable>
+app/(tabs)/bookings.tsx:460:              <Pressable
+app/(tabs)/bookings.tsx:465:              </Pressable>
+app/(tabs)/bookings.tsx:584:                                <Pressable
+app/(tabs)/bookings.tsx:598:                                </Pressable>
+app/(tabs)/bookings.tsx:604:                              <Pressable
+app/(tabs)/bookings.tsx:612:                              </Pressable>
+app/(tabs)/bookings.tsx:628:                          <Pressable
+app/(tabs)/bookings.tsx:638:                          </Pressable>
+app/(tabs)/bookings.tsx:650:                        <Pressable
+app/(tabs)/bookings.tsx:656:                        </Pressable>
+app/(tabs)/bookings.tsx:660:                        <Pressable
+app/(tabs)/bookings.tsx:666:                        </Pressable>
+app/(tabs)/bookings.tsx:670:                        <Pressable
+app/(tabs)/bookings.tsx:676:                        </Pressable>
+app/(tabs)/bookings.tsx:680:                        <Pressable
+app/(tabs)/bookings.tsx:685:                        </Pressable>
+app/(tabs)/bookings.tsx:690:                          <Pressable
+app/(tabs)/bookings.tsx:695:                          </Pressable>
+app/(tabs)/bookings.tsx:696:                          <Pressable
+app/(tabs)/bookings.tsx:703:                          </Pressable>
+app/(tabs)/bookings.tsx:708:                        <Pressable
+app/(tabs)/bookings.tsx:713:                        </Pressable>
+app/(tabs)/bookings.tsx:717:                        <Pressable
+app/(tabs)/bookings.tsx:724:                        </Pressable>
+app/(tabs)/bookings.tsx:732:              <Pressable
+app/(tabs)/bookings.tsx:739:              </Pressable>
+app/(tabs)/bookings.tsx:752:        <Pressable className="flex-1 bg-black/50" onPress={() => setCancellingBooking(null)}>
+app/(tabs)/bookings.tsx:754:            <Pressable
+app/(tabs)/bookings.tsx:767:                  <Pressable
+app/(tabs)/bookings.tsx:780:                  </Pressable>
+app/(tabs)/bookings.tsx:785:                <TextInput
+app/(tabs)/bookings.tsx:795:                <Pressable
+app/(tabs)/bookings.tsx:800:                </Pressable>
+app/(tabs)/bookings.tsx:801:                <Pressable
+app/(tabs)/bookings.tsx:811:                </Pressable>
+app/(tabs)/bookings.tsx:813:            </Pressable>
+app/(tabs)/bookings.tsx:815:        </Pressable>
+app/(tabs)/bookings.tsx:825:        <Pressable className="flex-1 bg-black/50" onPress={() => setRescheduleBooking(null)}>
+app/(tabs)/bookings.tsx:827:            <Pressable
+app/(tabs)/bookings.tsx:843:                  <Pressable
+app/(tabs)/bookings.tsx:855:                  </Pressable>
+app/(tabs)/bookings.tsx:862:                  <Pressable
+app/(tabs)/bookings.tsx:875:                  </Pressable>
+app/(tabs)/bookings.tsx:880:                <Pressable
+app/(tabs)/bookings.tsx:885:                </Pressable>
+app/(tabs)/bookings.tsx:886:                <Pressable
+app/(tabs)/bookings.tsx:896:                </Pressable>
+app/(tabs)/bookings.tsx:898:            </Pressable>
+app/(tabs)/bookings.tsx:900:        </Pressable>
+app/(tabs)/inbox.tsx:3:import { View, Text, ScrollView, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
+app/(tabs)/inbox.tsx:150:                <Pressable
+app/(tabs)/inbox.tsx:199:                </Pressable>
+app/(tabs)/notifications.tsx:3:import { View, Text, ScrollView, RefreshControl, Pressable } from 'react-native';
+app/(tabs)/notifications.tsx:93:            <Pressable
+app/(tabs)/notifications.tsx:115:            </Pressable>
+app/(tabs)/profile.tsx:7:  Pressable,
+app/(tabs)/profile.tsx:11:  TextInput,
+app/(tabs)/profile.tsx:90:    <Pressable onPress={onPress} className="flex-row items-center justify-between py-3">
+app/(tabs)/profile.tsx:96:    </Pressable>
+app/(tabs)/profile.tsx:317:              <Pressable
+app/(tabs)/profile.tsx:325:              </Pressable>
+app/(tabs)/profile.tsx:374:                <Pressable
+app/(tabs)/profile.tsx:382:                </Pressable>
+app/(tabs)/profile.tsx:438:                <Pressable
+app/(tabs)/profile.tsx:447:                </Pressable>
+app/(tabs)/profile.tsx:448:                <Pressable
+app/(tabs)/profile.tsx:457:                </Pressable>
+app/(tabs)/profile.tsx:466:            <Pressable
+app/(tabs)/profile.tsx:472:            </Pressable>
+app/(tabs)/profile.tsx:515:              <Pressable
+app/(tabs)/profile.tsx:521:              </Pressable>
+app/(tabs)/profile.tsx:544:                    <Pressable onPress={() => openEditAddr(a)} className="p-1.5">
+app/(tabs)/profile.tsx:546:                    </Pressable>
+app/(tabs)/profile.tsx:547:                    <Pressable onPress={() => removeAddr(a.id)} className="p-1.5">
+app/(tabs)/profile.tsx:549:                    </Pressable>
+app/(tabs)/profile.tsx:639:                <Pressable
+app/(tabs)/profile.tsx:650:                </Pressable>
+app/(tabs)/profile.tsx:652:                <Pressable
+app/(tabs)/profile.tsx:663:                </Pressable>
+app/(tabs)/profile.tsx:665:                <Pressable
+app/(tabs)/profile.tsx:676:                </Pressable>
+app/(tabs)/profile.tsx:696:              <Pressable
+app/(tabs)/profile.tsx:701:              </Pressable>
+app/(tabs)/profile.tsx:713:            <Select options={SPECIALTIES} value={categoryInput} onChange={setCategoryInput} />
+app/(tabs)/profile.tsx:718:            <TextInput
+app/(tabs)/profile.tsx:731:            <TextInput
+app/(tabs)/profile.tsx:740:            <Pressable
+app/(tabs)/profile.tsx:748:            </Pressable>
+app/(tabs)/profile.tsx:760:        <Pressable className="flex-1 bg-black/50" onPress={() => setAddrModal(false)}>
+app/(tabs)/profile.tsx:762:            <Pressable
+app/(tabs)/profile.tsx:773:                  <Pressable
+app/(tabs)/profile.tsx:785:                  </Pressable>
+app/(tabs)/profile.tsx:790:              <TextInput
+app/(tabs)/profile.tsx:801:                <Pressable
+app/(tabs)/profile.tsx:806:                </Pressable>
+app/(tabs)/profile.tsx:807:                <Pressable
+app/(tabs)/profile.tsx:817:                </Pressable>
+app/(tabs)/profile.tsx:819:            </Pressable>
+app/(tabs)/profile.tsx:821:        </Pressable>
+app/+not-found.tsx:3:import { View, Text, Pressable } from 'react-native';
+app/+not-found.tsx:40:        <Pressable
+app/+not-found.tsx:46:        </Pressable>
+app/admin.tsx:2:import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert, Linking } from 'react-native';
+app/admin.tsx:138:      <Pressable
+app/admin.tsx:143:      </Pressable>
+app/admin.tsx:192:            <Pressable
+app/admin.tsx:206:            </Pressable>
+app/admin.tsx:237:                    <Pressable
+app/admin.tsx:245:                    </Pressable>
+app/admin.tsx:248:                    <Pressable
+app/admin.tsx:254:                    </Pressable>
+app/admin.tsx:255:                    <Pressable
+app/admin.tsx:261:                    </Pressable>
+app/admin.tsx:304:                    <Pressable
+app/admin.tsx:314:                    </Pressable>
+app/admin.tsx:315:                    <Pressable
+app/admin.tsx:321:                    </Pressable>
+app/admin.tsx:354:                  <Pressable
+app/admin.tsx:360:                  </Pressable>
+app/admin.tsx:361:                  <Pressable
+app/admin.tsx:367:                  </Pressable>
+app/auth/callback.tsx:2:import { View, Text, ActivityIndicator, Pressable, Image } from "react-native";
+app/auth/callback.tsx:45:        <Pressable
+app/auth/callback.tsx:50:        </Pressable>
+app/auth/complete-profile.tsx:2:import { View, Text, TextInput, Pressable, ScrollView, Alert, KeyboardAvoidingView, Platform } from "react-native";
+app/auth/complete-profile.tsx:54:            <Pressable
+app/auth/complete-profile.tsx:61:            </Pressable>
+app/auth/complete-profile.tsx:62:            <Pressable
+app/auth/complete-profile.tsx:69:            </Pressable>
+app/auth/complete-profile.tsx:75:            <TextInput
+app/auth/complete-profile.tsx:88:            <Select options={PakistaniCities} value={city} onChange={setCity} />
+app/auth/complete-profile.tsx:91:          <Pressable
+app/auth/complete-profile.tsx:99:          </Pressable>
+app/categories.tsx:3:import { View, Text, ScrollView, Pressable } from 'react-native';
+app/categories.tsx:100:          <Pressable
+app/categories.tsx:105:          </Pressable>
+app/categories.tsx:124:              <Pressable
+app/categories.tsx:135:              </Pressable>
+app/chat.tsx:6:  TextInput,
+app/chat.tsx:8:  Pressable,
+app/chat.tsx:321:          <Pressable
+app/chat.tsx:326:          </Pressable>
+app/chat.tsx:353:            <Pressable
+app/chat.tsx:358:            </Pressable>
+app/chat.tsx:361:            <Pressable
+app/chat.tsx:366:            </Pressable>
+app/chat.tsx:368:          <Pressable
+app/chat.tsx:373:          </Pressable>
+app/chat.tsx:502:                <Pressable
+app/chat.tsx:508:                </Pressable>
+app/chat.tsx:512:              <TextInput
+app/chat.tsx:523:              <Pressable
+app/chat.tsx:529:              </Pressable>
+app/chat.tsx:542:        <Pressable className="flex-1 bg-black/50" onPress={() => setShowReportModal(false)}>
+app/chat.tsx:544:            <Pressable
+app/chat.tsx:553:                <Pressable onPress={() => setShowReportModal(false)} className="p-1">
+app/chat.tsx:555:                </Pressable>
+app/chat.tsx:561:                  <Pressable
+app/chat.tsx:573:                  </Pressable>
+app/chat.tsx:580:              <TextInput
+app/chat.tsx:591:                <Pressable
+app/chat.tsx:596:                </Pressable>
+app/chat.tsx:597:                <Pressable
+app/chat.tsx:607:                </Pressable>
+app/chat.tsx:609:            </Pressable>
+app/chat.tsx:611:        </Pressable>
+app/privacy.tsx:2:import { View, Text, ScrollView, Pressable } from 'react-native';
+app/privacy.tsx:89:          <Pressable
+app/privacy.tsx:94:          </Pressable>
+app/provider/[id].tsx:3:import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+app/provider/[id].tsx:145:        <Pressable
+app/provider/[id].tsx:151:        </Pressable>
+app/provider/[id].tsx:174:          <Pressable
+app/provider/[id].tsx:179:          </Pressable>
+app/provider/[id].tsx:246:                <Pressable
+app/provider/[id].tsx:252:                </Pressable>
+app/provider/[id].tsx:262:                  <Pressable
+app/provider/[id].tsx:283:                  </Pressable>
+app/provider/[id].tsx:284:                  <Pressable
+app/provider/[id].tsx:290:                  </Pressable>
+app/providers.tsx:3:import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+app/providers.tsx:232:          <Pressable
+app/providers.tsx:237:          </Pressable>
+app/providers.tsx:291:                  <Pressable
+app/providers.tsx:368:                            <Pressable
+app/providers.tsx:395:                            </Pressable>
+app/providers.tsx:400:                  </Pressable>
+app/safety.tsx:3:import { View, Text, ScrollView, Pressable } from 'react-native';
+app/safety.tsx:66:          <Pressable
+app/safety.tsx:71:          </Pressable>
+app/terms.tsx:2:import { View, Text, ScrollView, Pressable } from 'react-native';
+app/terms.tsx:83:          <Pressable
+app/terms.tsx:88:          </Pressable>
+src/components/features/CustomerHome.tsx:5:  TextInput,
+src/components/features/CustomerHome.tsx:6:  Pressable,
+src/components/features/CustomerHome.tsx:138:            <Pressable
+src/components/features/CustomerHome.tsx:147:            </Pressable>
+src/components/features/CustomerHome.tsx:150:            <Pressable
+src/components/features/CustomerHome.tsx:156:            </Pressable>
+src/components/features/CustomerHome.tsx:167:          <TextInput
+src/components/features/CustomerHome.tsx:199:          <Pressable
+src/components/features/CustomerHome.tsx:205:          </Pressable>
+src/components/features/CustomerHome.tsx:214:            <Pressable onPress={() => router.push('/categories')}>
+src/components/features/CustomerHome.tsx:216:            </Pressable>
+src/components/features/CustomerHome.tsx:223:                <Pressable
+src/components/features/CustomerHome.tsx:238:                </Pressable>
+src/components/features/CustomerHome.tsx:255:            <Pressable onPress={() => router.push('/providers')}>
+src/components/features/CustomerHome.tsx:257:            </Pressable>
+src/components/features/CustomerHome.tsx:288:          <Pressable
+src/components/features/CustomerHome.tsx:295:          </Pressable>
+src/components/features/LiveMap.tsx:2:import { View, Text, Pressable } from 'react-native';
+src/components/features/LiveMap.tsx:50:        <Pressable
+src/components/features/LiveMap.tsx:56:        </Pressable>
+src/components/features/MapSelector.tsx:2:import { View, Text, Pressable } from 'react-native';
+src/components/features/MapSelector.tsx:46:          <Pressable
+src/components/features/MapSelector.tsx:55:          </Pressable>
+src/components/features/ProviderHome.tsx:6:  Pressable,
+src/components/features/ProviderHome.tsx:224:            <Pressable
+src/components/features/ProviderHome.tsx:253:            </Pressable>
+src/components/features/ProviderHome.tsx:376:                    <Button
+src/components/features/ProviderHome.tsx:382:                    <Button
+src/components/features/ProviderHome.tsx:411:                    <Button
+src/components/features/ProviderHome.tsx:417:                    <Button
+src/components/features/ProviderHome.tsx:445:              <Pressable
+src/components/features/ProviderHome.tsx:459:              </Pressable>
+src/components/features/ProviderHome.tsx:461:              <Pressable
+src/components/features/ProviderHome.tsx:471:              </Pressable>
+src/components/features/ProviderHome.tsx:474:                <Button
+src/components/features/ProviderHome.tsx:480:                <Button
+src/components/features/SiteAgentWidget.tsx:6:  TextInput,
+src/components/features/SiteAgentWidget.tsx:7:  Pressable,
+src/components/features/SiteAgentWidget.tsx:86:    <Pressable
+src/components/features/SiteAgentWidget.tsx:99:    </Pressable>
+src/components/features/SiteAgentWidget.tsx:117:            <Pressable className="absolute inset-0" onPress={() => setIsOpen(false)} />
+src/components/features/SiteAgentWidget.tsx:134:                  <Pressable onPress={clearChat}>
+src/components/features/SiteAgentWidget.tsx:136:                  </Pressable>
+src/components/features/SiteAgentWidget.tsx:137:                  <Pressable onPress={() => setIsOpen(false)}>
+src/components/features/SiteAgentWidget.tsx:139:                  </Pressable>
+src/components/features/SiteAgentWidget.tsx:184:                    <Pressable
+src/components/features/SiteAgentWidget.tsx:190:                    </Pressable>
+src/components/features/SiteAgentWidget.tsx:197:                <TextInput
+src/components/features/SiteAgentWidget.tsx:205:                <Pressable
+src/components/features/SiteAgentWidget.tsx:211:                </Pressable>
+src/components/layout/ErrorBoundary.tsx:89:          <Button
+src/components/ui/Button.tsx:2:import { Pressable, Text, ActivityIndicator, View } from 'react-native';
+src/components/ui/Button.tsx:51:export const Button: React.FC<ButtonProps> = ({
+src/components/ui/Button.tsx:66:    <Pressable
+src/components/ui/Button.tsx:89:    </Pressable>
+src/components/ui/Chip.tsx:2:import { Pressable, Text, View } from 'react-native';
+src/components/ui/Chip.tsx:13:export const Chip: React.FC<ChipProps> = ({
+src/components/ui/Chip.tsx:22:    <Pressable
+src/components/ui/Chip.tsx:41:    </Pressable>
+src/components/ui/EmptyState.tsx:3:import { View, Text, Pressable } from 'react-native';
+src/components/ui/EmptyState.tsx:44:        <Pressable onPress={onAction} className="w-full rounded-xl bg-primary px-6 py-3">
+src/components/ui/EmptyState.tsx:46:        </Pressable>
+src/components/ui/GoogleButton.tsx:2:import { Pressable, Text, View, ActivityIndicator } from 'react-native';
+src/components/ui/GoogleButton.tsx:23:    <Pressable
+src/components/ui/GoogleButton.tsx:60:    </Pressable>
+src/components/ui/Input.tsx:4:  TextInput,
+src/components/ui/Input.tsx:6:  TextInputProps,
+src/components/ui/Input.tsx:7:  Pressable,
+src/components/ui/Input.tsx:12:export interface InputProps extends TextInputProps {
+src/components/ui/Input.tsx:26:export const Input: React.FC<InputProps> = ({
+src/components/ui/Input.tsx:73:        <TextInput
+src/components/ui/Input.tsx:93:          <Pressable
+src/components/ui/Input.tsx:103:          </Pressable>
+src/components/ui/Input.tsx:105:          <Pressable
+src/components/ui/Input.tsx:112:          </Pressable>
+src/components/ui/ProviderCard.tsx:2:import { View, Text, Pressable, Image } from 'react-native';
+src/components/ui/ProviderCard.tsx:33:    <Pressable
+src/components/ui/ProviderCard.tsx:99:    </Pressable>
+src/components/ui/SegmentedControl.tsx:2:import { View, Text, Pressable } from 'react-native';
+src/components/ui/SegmentedControl.tsx:12:export interface SegmentedControlProps<T extends string = string> {
+src/components/ui/SegmentedControl.tsx:20:export function SegmentedControl<T extends string = string>({
+src/components/ui/SegmentedControl.tsx:26:}: SegmentedControlProps<T>) {
+src/components/ui/SegmentedControl.tsx:38:          <Pressable
+src/components/ui/SegmentedControl.tsx:69:          </Pressable>
+src/components/ui/Select.tsx:3:import { View, Text, Pressable, Modal, ScrollView } from 'react-native';
+src/components/ui/Select.tsx:20:export const Select: React.FC<SelectProps> = ({ label, options, value, onChange }) => {
+src/components/ui/Select.tsx:35:      <Pressable
+src/components/ui/Select.tsx:41:      </Pressable>
+src/components/ui/Select.tsx:44:        <Pressable
+src/components/ui/Select.tsx:48:          <Pressable className="max-h-[60%] w-full max-w-sm rounded-2xl border border-border bg-surface-raised p-2">
+src/components/ui/Select.tsx:53:                  <Pressable
+src/components/ui/Select.tsx:64:                  </Pressable>
+src/components/ui/Select.tsx:68:          </Pressable>
+src/components/ui/Select.tsx:69:        </Pressable>
+src/components/ui/__tests__/primitives.test.tsx:5:import { SegmentedControl } from '../SegmentedControl';
+src/components/ui/__tests__/primitives.test.tsx:18:      tree = renderer.create(<Button title="Book Service" onPress={onPress} />);
+src/components/ui/__tests__/primitives.test.tsx:34:        <Input
+src/components/ui/__tests__/primitives.test.tsx:52:  test('SegmentedControl switches between options', () => {
+src/components/ui/__tests__/primitives.test.tsx:61:        <SegmentedControl
+src/components/ui/__tests__/primitives.test.tsx:107:      tree = renderer.create(<Chip label="Plumber" selected onPress={onPress} />);
+=== TESTIDS ===
+app/(auth)/auth.tsx:334:                testID="auth-email-input"
+app/(auth)/auth.tsx:348:                testID="auth-password-input"
+app/(auth)/auth.tsx:364:                testID="auth-forgot-password"
+app/(auth)/auth.tsx:374:                testID="auth-login-button"
+app/(auth)/auth.tsx:389:                testID="auth-google-button"
+app/(auth)/auth.tsx:398:                  testID="auth-demo-button"
+app/(auth)/auth.tsx:479:                    testID="signup-name-input"
+app/(auth)/auth.tsx:506:                        testID="signup-phone-input"
+app/(auth)/auth.tsx:523:                    testID="signup-email-input"
+app/(auth)/auth.tsx:537:                    testID="signup-password-input"
+app/(auth)/auth.tsx:553:                    testID="signup-next-button"
+app/(auth)/auth.tsx:623:                      testID="signup-back-button"
+app/(auth)/auth.tsx:630:                      testID="signup-next-button"
+app/(auth)/auth.tsx:710:                      testID="signup-submit-button"
+app/(auth)/auth.tsx:724:            testID="auth-switch-button"
+app/(booking)/track/[id].tsx:268:          testID="tracking-sos-button"
+app/admin.tsx:161:        <View testID="admin-root" className="px-4" style={{ direction: rtl ? 'rtl' : 'ltr' }}>
+app/admin.tsx:187:      <View testID="admin-root" className="px-4" style={{ direction: rtl ? 'rtl' : 'ltr' }}>
+src/components/features/CustomerHome.tsx:139:              testID="home-location-pill"
+src/components/features/CustomerHome.tsx:151:              testID="home-notifications-button"
+src/components/features/CustomerHome.tsx:168:            testID="home-search-input"
+src/components/features/CustomerHome.tsx:183:          testID="home-recent-activity"
+src/components/ui/Button.tsx:67:      testID={testID}
+src/components/ui/Chip.tsx:23:      testID={testID}
+src/components/ui/GoogleButton.tsx:24:      testID={testID}
+src/components/ui/Input.tsx:74:          testID={testID}
+src/components/ui/SegmentedControl.tsx:31:      testID={testID}
+src/components/ui/SegmentedControl.tsx:40:            testID={`segment-${opt.value}`}
+=== APP ROUTES ===
+D:\dev-stuff\khidmat_app-main\app\+not-found.tsx
+D:\dev-stuff\khidmat_app-main\app\admin.tsx
+D:\dev-stuff\khidmat_app-main\app\categories.tsx
+D:\dev-stuff\khidmat_app-main\app\chat.tsx
+D:\dev-stuff\khidmat_app-main\app\privacy.tsx
+D:\dev-stuff\khidmat_app-main\app\providers.tsx
+D:\dev-stuff\khidmat_app-main\app\safety.tsx
+D:\dev-stuff\khidmat_app-main\app\terms.tsx
+D:\dev-stuff\khidmat_app-main\app\_layout.tsx
+D:\dev-stuff\khidmat_app-main\app\(auth)\auth.tsx
+D:\dev-stuff\khidmat_app-main\app\(auth)\reset-password.tsx
+D:\dev-stuff\khidmat_app-main\app\(auth)\_layout.tsx
+D:\dev-stuff\khidmat_app-main\app\(booking)\booking.tsx
+D:\dev-stuff\khidmat_app-main\app\(booking)\matching.tsx
+D:\dev-stuff\khidmat_app-main\app\(booking)\_layout.tsx
+D:\dev-stuff\khidmat_app-main\app\(booking)\track\[id].tsx
+D:\dev-stuff\khidmat_app-main\app\(tabs)\bookings.tsx
+D:\dev-stuff\khidmat_app-main\app\(tabs)\inbox.tsx
+D:\dev-stuff\khidmat_app-main\app\(tabs)\index.tsx
+D:\dev-stuff\khidmat_app-main\app\(tabs)\notifications.tsx
+D:\dev-stuff\khidmat_app-main\app\(tabs)\profile.tsx
+D:\dev-stuff\khidmat_app-main\app\(tabs)\_layout.tsx
+D:\dev-stuff\khidmat_app-main\app\auth\callback.tsx
+D:\dev-stuff\khidmat_app-main\app\auth\complete-profile.tsx
+D:\dev-stuff\khidmat_app-main\app\provider\[id].tsx

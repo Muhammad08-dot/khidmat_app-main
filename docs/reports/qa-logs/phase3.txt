@@ -1,0 +1,14 @@
+﻿node.exe : PASS src/i18n/__tests__/qa-i18n-parity.test.ts
+At line:1 char:1
++ & "D:\node/node.exe" "D:\node/node_modules/npm/bin/npx-cli.js" jest s ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (PASS src/i18n/_...-parity.test.ts:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+PASS src/utils/__tests__/qa-logic.test.ts
+
+Test Suites: 2 passed, 2 total
+Tests:       7 passed, 7 total
+Snapshots:   0 total
+Time:        2.365 s
+Ran all test suites matching src/i18n/__tests__/qa-i18n-parity.test.ts|src/utils/__tests__/qa-logic.test.ts.

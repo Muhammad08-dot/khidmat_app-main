@@ -1,0 +1,303 @@
+﻿node.exe : PASS src/services/supabase/__tests__/client.test.ts (13.305 s)
+At line:1 char:1
++ & "D:\node/node.exe" "D:\node/node_modules/npm/bin/npx-cli.js" jest - ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (PASS src/servic...t.ts (13.305 s):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+ReferenceError: You are trying to `require` a file after the Jest environment has been torn down. From 
+src/services/supabase/__tests__/client.test.ts.
+
+    [0m [90m 16 |[39m [90m// radius than localStorage (which persists across tabs and reloads).[39m
+     [90m 17 |[39m [36mconst[39m getWebStore [33m=[39m ()[33m:[39m [33mStorage[39m [33m|[39m 
+[36mnull[39m [33m=>[39m {
+    [31m[1m>[22m[39m[90m 18 |[39m   [36mif[39m ([33mPlatform[39m[33m.[39m[33mOS[39m [33m!==[39m 
+[32m'web'[39m [33m||[39m [36mtypeof[39m window [33m===[39m [32m'undefined'[39m) [36mreturn[39m 
+[36mnull[39m[33m;[39m
+     [90m    |[39m       [31m[1m^[22m[39m
+     [90m 19 |[39m   [36mtry[39m {
+     [90m 20 |[39m     [36mreturn[39m window[33m.[39msessionStorage[33m;[39m
+     [90m 21 |[39m   } [36mcatch[39m {[0m
+
+      at Object.require [as Platform] (node_modules/react-native/index.js:323:12)
+      at Platform (src/services/supabase/client.ts:18:7)
+      at Object.getWebStore (src/services/supabase/client.ts:41:17)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+      at Object.apply [as getItem] (src/services/supabase/client.ts:40:10)
+      at getItemAsync (node_modules/@supabase/auth-js/src/lib/helpers.ts:138:31)
+      at SupabaseAuthClient.__loadSession (node_modules/@supabase/auth-js/src/GoTrueClient.ts:3044:46)
+      at SupabaseAuthClient._useSession (node_modules/@supabase/auth-js/src/GoTrueClient.ts:3001:33)
+      at SupabaseAuthClient._autoRefreshTokenTick (node_modules/@supabase/auth-js/src/GoTrueClient.ts:5572:20)
+      at Timeout._onTimeout (node_modules/@supabase/auth-js/src/GoTrueClient.ts:5344:18)
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "Auto refresh tick failed with error. This is likely a transient error. TypeError: Cannot read 
+properties of undefined (reading 'default')
+        at Object.get Platform [as Platform] (D:\dev-stuff\khidmat_app-main\node_modules\react-native\index.js:323:53)
+        at Platform (D:\dev-stuff\khidmat_app-main\src\services\supabase\client.ts:18:7)
+        at Object.getWebStore (D:\dev-stuff\khidmat_app-main\src\services\supabase\client.ts:41:17)
+        at Generator.next (<anonymous>)
+        at asyncGeneratorStep 
+(D:\dev-stuff\khidmat_app-main\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+        at _next (D:\dev-stuff\khidmat_app-main\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+        at D:\dev-stuff\khidmat_app-main\node_modules\@babel\runtime\helpers\asyncToGenerator.js:22:7
+        at new Promise (<anonymous>)
+        at Object.<anonymous> 
+(D:\dev-stuff\khidmat_app-main\node_modules\@babel\runtime\helpers\asyncToGenerator.js:14:12)
+        at Object.apply [as getItem] (D:\dev-stuff\khidmat_app-main\src\services\supabase\client.ts:40:10)
+        at getItemAsync (D:\dev-stuff\khidmat_app-main\node_modules\@supabase\auth-js\src\lib\helpers.ts:138:31)
+        at SupabaseAuthClient.__loadSession 
+(D:\dev-stuff\khidmat_app-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:3044:46)
+        at SupabaseAuthClient._useSession 
+(D:\dev-stuff\khidmat_app-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:3001:33)
+        at SupabaseAuthClient._autoRefreshTokenTick 
+(D:\dev-stuff\khidmat_app-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:5572:20)
+        at Timeout._onTimeout 
+(D:\dev-stuff\khidmat_app-main\node_modules\@supabase\auth-js\src\GoTrueClient.ts:5344:18)".
+
+    [0m [90m 16 |[39m [90m// radius than localStorage (which persists across tabs and reloads).[39m
+     [90m 17 |[39m [36mconst[39m getWebStore [33m=[39m ()[33m:[39m [33mStorage[39m [33m|[39m 
+[36mnull[39m [33m=>[39m {
+    [31m[1m>[22m[39m[90m 18 |[39m   [36mif[39m ([33mPlatform[39m[33m.[39m[33mOS[39m [33m!==[39m 
+[32m'web'[39m [33m||[39m [36mtypeof[39m window [33m===[39m [32m'undefined'[39m) [36mreturn[39m 
+[36mnull[39m[33m;[39m
+     [90m    |[39m       [31m[1m^[22m[39m
+     [90m 19 |[39m   [36mtry[39m {
+     [90m 20 |[39m     [36mreturn[39m window[33m.[39msessionStorage[33m;[39m
+     [90m 21 |[39m   } [36mcatch[39m {[0m
+
+      at Object.get Platform [as Platform] (node_modules/react-native/index.js:323:53)
+      at Platform (src/services/supabase/client.ts:18:7)
+      at Object.getWebStore (src/services/supabase/client.ts:41:17)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+      at Object.apply [as getItem] (src/services/supabase/client.ts:40:10)
+      at getItemAsync (node_modules/@supabase/auth-js/src/lib/helpers.ts:138:31)
+      at SupabaseAuthClient.__loadSession (node_modules/@supabase/auth-js/src/GoTrueClient.ts:3044:46)
+      at SupabaseAuthClient._useSession (node_modules/@supabase/auth-js/src/GoTrueClient.ts:3001:33)
+      at SupabaseAuthClient._autoRefreshTokenTick (node_modules/@supabase/auth-js/src/GoTrueClient.ts:5572:20)
+      at Timeout._onTimeout (node_modules/@supabase/auth-js/src/GoTrueClient.ts:5344:18)".
+      at SupabaseAuthClient._autoRefreshTokenTick (node_modules/@supabase/auth-js/src/GoTrueClient.ts:5597:17)
+      at Timeout._onTimeout (node_modules/@supabase/auth-js/src/GoTrueClient.ts:5344:7)
+
+PASS src/components/ui/__tests__/primitives.test.tsx (13.702 s)
+PASS src/services/supabase/__tests__/adminFlows.test.ts (13.786 s)
+PASS src/services/supabase/__tests__/bookingStatusRace.test.ts (13.778 s)
+PASS src/services/supabase/__tests__/accountDeletion.test.ts
+PASS src/services/supabase/__tests__/audit.test.ts (14.114 s)
+PASS src/i18n/__tests__/authDirection.test.ts
+PASS src/services/api/__tests__/errorReporter.test.ts
+PASS src/services/supabase/__tests__/phase3Features.test.ts
+PASS src/utils/__tests__/authRedirect.test.ts
+PASS src/services/supabase/__tests__/kyc.test.ts
+  ● Console
+
+    console.error
+      [agent] captured error: permission denied
+
+    [0m [90m 71 |[39m     timestamp[33m:[39m [36mnew[39m [33mDate[39m()[33m.[39mtoISOString()[33m,[39m
+     [90m 72 |[39m   }[33m;[39m
+    [31m[1m>[22m[39m[90m 73 |[39m   console[33m.[39merror([32m'[agent] captured error:'[39m[33m,[39m 
+entry[33m.[39mmessage)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m 74 |[39m
+     [90m 75 |[39m   [36mawait[39m persistError(entry)[33m;[39m
+     [90m 76 |[39m   [36mif[39m ([33mAGENT_ENDPOINT[39m) {[0m
+
+      at error (src/services/api/errorReporter.ts:73:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/services/api/errorReporter.ts:79:2)
+      at apply (src/services/api/errorReporter.ts:64:35)
+      at handleServiceError (src/services/errors.ts:149:20)
+      at src/services/supabase/kyc.ts:46:29
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+PASS src/services/__tests__/errors.test.ts
+  ● Console
+
+    console.error
+      [agent] captured error: Forbidden
+
+    [0m [90m 71 |[39m     timestamp[33m:[39m [36mnew[39m [33mDate[39m()[33m.[39mtoISOString()[33m,[39m
+     [90m 72 |[39m   }[33m;[39m
+    [31m[1m>[22m[39m[90m 73 |[39m   console[33m.[39merror([32m'[agent] captured error:'[39m[33m,[39m 
+entry[33m.[39mmessage)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m 74 |[39m
+     [90m 75 |[39m   [36mawait[39m persistError(entry)[33m;[39m
+     [90m 76 |[39m   [36mif[39m ([33mAGENT_ENDPOINT[39m) {[0m
+
+      at error (src/services/api/errorReporter.ts:73:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/services/api/errorReporter.ts:79:2)
+      at apply (src/services/api/errorReporter.ts:64:35)
+      at handleServiceError (src/services/errors.ts:149:20)
+      at src/services/__tests__/errors.test.ts:77:25
+      at Object.<anonymous> (node_modules/expect/build/index.js:1824:9)
+      at Object.throwingMatcher [as toThrow] (node_modules/expect/build/index.js:2235:93)
+      at Object.toThrow (src/services/__tests__/errors.test.ts:78:8)
+
+    console.error
+      [agent] captured error: network timeout ECONNREFUSED
+
+    [0m [90m 71 |[39m     timestamp[33m:[39m [36mnew[39m [33mDate[39m()[33m.[39mtoISOString()[33m,[39m
+     [90m 72 |[39m   }[33m;[39m
+    [31m[1m>[22m[39m[90m 73 |[39m   console[33m.[39merror([32m'[agent] captured error:'[39m[33m,[39m 
+entry[33m.[39mmessage)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m 74 |[39m
+     [90m 75 |[39m   [36mawait[39m persistError(entry)[33m;[39m
+     [90m 76 |[39m   [36mif[39m ([33mAGENT_ENDPOINT[39m) {[0m
+
+      at error (src/services/api/errorReporter.ts:73:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/services/api/errorReporter.ts:64:35)
+      at handleServiceError (src/services/errors.ts:149:20)
+      at handleServiceError (src/services/errors.ts:164:12)
+          at Generator.throw (<anonymous>)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _throw (node_modules/@babel/runtime/helpers/asyncToGenerator.js:20:9)
+
+PASS src/utils/__tests__/errorMessages.test.ts
+PASS src/utils/__tests__/ratings.test.ts
+PASS src/i18n/__tests__/direction.test.ts
+PASS src/utils/__tests__/authUrlParser.test.ts
+PASS src/services/supabase/__tests__/legacy.test.ts
+PASS src/theme/__tests__/tokens.test.ts
+PASS src/utils/__tests__/demoAuth.test.ts
+PASS src/i18n/__tests__/i18n.test.ts
+PASS src/components/layout/__tests__/ErrorBoundary.test.tsx
+PASS src/services/supabase/__tests__/trackingBroadcast.test.ts
+PASS src/utils/__tests__/location.test.ts
+PASS src/utils/__tests__/privacy.test.ts
+PASS src/services/supabase/__tests__/demoChecklist.test.ts (14.927 s)
+PASS src/components/__tests__/screens.test.tsx (21.158 s)
+A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due 
+to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure 
+that .unref() was called on them.
+-------------------------|---------|----------|---------|---------|-----------------------------------------------------------------------------------------------------
+File                     | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                   
+-------------------------|---------|----------|---------|---------|-----------------------------------------------------------------------------------------------------
+All files                |   28.12 |    24.88 |   21.71 |   29.13 |                                                                                                     
+ app                     |   10.74 |     5.27 |     3.3 |   11.22 |                                                                                                     
+  +not-found.tsx         |       0 |      100 |       0 |       0 | 9-41                                                                                                
+  _layout.tsx            |       0 |        0 |       0 |       0 | 17-166                                                                                              
+  admin.tsx              |   33.33 |     12.5 |    3.57 |   33.92 | 43-46,60-68,81,87-88,99-102,107-110,116,122-124,129,139,176-362                                     
+  categories.tsx         |       0 |        0 |       0 |       0 | 33-126                                                                                              
+  chat.tsx               |       0 |        0 |       0 |       0 | 70-592                                                                                              
+  privacy.tsx            |       0 |        0 |       0 |       0 | 9-117                                                                                               
+  providers.tsx          |   23.89 |    11.22 |    12.5 |   25.49 | 83-109,120-203,233-369                                                                              
+  safety.tsx             |       0 |        0 |       0 |       0 | 10-110                                                                                              
+  terms.tsx              |       0 |        0 |       0 |       0 | 9-111                                                                                               
+ app/(auth)              |   18.22 |     7.69 |    7.14 |   18.36 |                                                                                                     
+  _layout.tsx            |       0 |      100 |       0 |       0 | 4                                                                                                   
+  auth.tsx               |    24.5 |      9.9 |    9.52 |   24.48 | 99-112,117-134,138-149,153-170,175-213,218-237,242-255,356-728                                      
+  reset-password.tsx     |       0 |        0 |       0 |       0 | 22-127                                                                                              
+ app/(booking)           |   40.41 |    45.71 |   29.62 |   41.42 |                                                                                                     
+  _layout.tsx            |       0 |      100 |       0 |       0 | 4                                                                                                   
+  booking.tsx            |   67.81 |    64.86 |   57.14 |   67.44 | 107-109,126-130,156-195,211-219,245,301,332                                                         
+  matching.tsx           |       0 |        0 |       0 |       0 | 40-210                                                                                              
+ app/(booking)/track     |   67.85 |     32.2 |   42.85 |   71.15 |                                                                                                     
+  [id].tsx               |   67.85 |     32.2 |   42.85 |   71.15 | 84-86,112,123-124,129-132,142-154,161-162,192                                                       
+ app/(tabs)              |   15.19 |    14.12 |      10 |   14.89 |                                                                                                     
+  _layout.tsx            |       0 |        0 |       0 |       0 | 18-28                                                                                               
+  bookings.tsx           |   34.06 |    28.49 |   22.44 |   33.33 | 106-108,112-128,151-179,183-204,212-297,302-336,344-345,359-368,380,420-461,584-756,769-845,864-881 
+  inbox.tsx              |       0 |        0 |       0 |       0 | 33-152                                                                                              
+  index.tsx              |       0 |        0 |       0 |       0 | 7-13                                                                                                
+  notifications.tsx      |       0 |        0 |       0 |       0 | 13-95                                                                                               
+  profile.tsx            |       0 |        0 |       0 |       0 | 53-802                                                                                              
+ app/auth                |       0 |        0 |       0 |       0 |                                                                                                     
+  callback.tsx           |       0 |        0 |       0 |       0 | 8-55                                                                                                
+  complete-profile.tsx   |       0 |        0 |       0 |       0 | 9-77                                                                                                
+ app/provider            |       0 |        0 |       0 |       0 |                                                                                                     
+  [id].tsx               |       0 |        0 |       0 |       0 | 52-394                                                                                              
+ src/components/features |   26.33 |    23.35 |    14.7 |   27.31 |                                                                                                     
+  AgentStatus.tsx        |       0 |        0 |       0 |       0 | 18-79                                                                                               
+  CustomerHome.tsx       |   58.97 |    35.71 |   27.77 |   59.45 | 101,107-108,112,140-214,225-255,270-289                                                             
+  LiveMap.tsx            |      60 |       50 |   33.33 |      75 | 51                                                                                                  
+  MapSelector.tsx        |   14.28 |        0 |       0 |   16.66 | 26-49                                                                                               
+  ProviderHome.tsx       |   30.47 |       30 |   19.04 |   30.61 | 60-84,88-97,102-110,115-134,139-141,145-152,157-183,353-384,414-477                                 
+  SiteAgentWidget.tsx    |       0 |        0 |       0 |       0 | 26-206                                                                                              
+ src/components/layout   |   68.75 |    66.66 |      75 |   68.75 |                                                                                                     
+  ErrorBoundary.tsx      |   68.75 |    66.66 |      75 |   68.75 | 44-51                                                                                               
+ src/components/ui       |   72.16 |    57.71 |   58.06 |   73.68 |                                                                                                     
+  Avatar.tsx             |      80 |     37.5 |      75 |      80 | 28-32                                                                                               
+  Badge.tsx              |     100 |       50 |     100 |     100 | 37,40                                                                                               
+  Button.tsx             |     100 |    73.07 |     100 |     100 | 63,74-86                                                                                            
+  Card.tsx               |     100 |        0 |     100 |     100 | 13                                                                                                  
+  Chip.tsx               |     100 |       50 |     100 |     100 | 15,28-36                                                                                            
+  EmptyState.tsx         |   33.33 |        0 |       0 |   33.33 | 33-34                                                                                               
+  GoogleButton.tsx       |     100 |       70 |     100 |     100 | 16,30-33                                                                                            
+  Icon.tsx               |     100 |      100 |     100 |     100 |                                                                                                     
+  Input.tsx              |      50 |    52.77 |   33.33 |      50 | 82-87                                                                                               
+  ProviderCard.tsx       |     100 |     42.1 |     100 |     100 | 22-25,39-83                                                                                         
+  SegmentedControl.tsx   |     100 |    63.63 |     100 |     100 | 50,59-62                                                                                            
+  Select.tsx             |    7.14 |        0 |       0 |    7.69 | 21-57                                                                                               
+  Skeleton.tsx           |      50 |        0 |       0 |      50 | 10                                                                                                  
+  StepIndicator.tsx      |     100 |    95.23 |     100 |     100 | 27                                                                                                  
+  TierBadge.tsx          |    82.6 |    88.88 |     100 |    82.6 | 29-32                                                                                               
+  Toast.tsx              |   83.33 |    57.14 |     100 |     100 | 33,37-39                                                                                            
+ src/context             |       0 |        0 |       0 |       0 |                                                                                                     
+  AuthContext.tsx        |       0 |        0 |       0 |       0 | 12-366                                                                                              
+ src/hooks               |       0 |        0 |       0 |       0 |                                                                                                     
+  useDebounce.ts         |       0 |      100 |       0 |       0 | 4-16                                                                                                
+  useSupabase.ts         |       0 |        0 |       0 |       0 | 19-199                                                                                              
+ src/i18n                |   73.07 |    33.33 |      75 |      72 |                                                                                                     
+  direction.ts           |     100 |      100 |     100 |     100 |                                                                                                     
+  index.ts               |   56.25 |    14.28 |      60 |   53.33 | 33-42                                                                                               
+ src/services            |   35.71 |    34.09 |   43.47 |   38.84 |                                                                                                     
+  analytics.ts           |       0 |        0 |       0 |       0 | 8-28                                                                                                
+  backgroundLocation.ts  |   14.28 |        0 |       0 |    15.9 | 30-33,38-105                                                                                        
+  errors.ts              |   89.74 |    72.22 |     100 |    92.1 | 117,130-133                                                                                         
+  payments.ts            |   11.53 |        8 |       0 |    12.5 | 23-99                                                                                               
+  push.ts                |    30.3 |    18.18 |      20 |   33.33 | 19,37-62,82-95                                                                                      
+ src/services/api        |   14.46 |      5.2 |   20.83 |   14.09 |                                                                                                     
+  agentClient.ts         |    4.16 |        0 |       0 |    4.37 | 42-163,171-259,284-415,440-547,556-589,601-662                                                      
+  agentLogService.ts     |       0 |      100 |       0 |       0 | 2-19                                                                                                
+  errorReporter.ts       |   62.79 |     37.5 |   55.55 |   64.86 | 57,77,88-112                                                                                        
+ src/services/supabase   |   48.96 |    44.05 |   54.43 |   54.32 |                                                                                                     
+  accountDeletion.ts     |   83.33 |    59.09 |     100 |   82.85 | 19,30,45,60,91,99                                                                                   
+  client.ts              |   55.55 |    59.45 |   43.75 |    54.9 | 19-33,46-59,128-132                                                                                 
+  kyc.ts                 |   83.87 |     82.6 |     100 |   83.87 | 41,79,89,110,115                                                                                    
+  legacy.ts              |      14 |    19.73 |   22.72 |   16.26 | 57-63,100-187,214-245,266-321,336,349-415                                                           
+  mappers.ts             |   85.71 |    85.18 |     100 |     100 | 7-12,15,24,30,45-46,61                                                                              
+  queries.ts             |   58.33 |    41.84 |   65.51 |   66.66 | 7-9,13-24,69-84,88-103,152,159,171-177,205-212,216-223,227-232,355-358,403-410,421-438,456-465      
+ src/theme               |   77.77 |      100 |       0 |   77.77 |                                                                                                     
+  colors.ts              |     100 |      100 |     100 |     100 |                                                                                                     
+  fonts.ts               |       0 |      100 |       0 |       0 | 27-44                                                                                               
+  tokens.ts              |     100 |      100 |     100 |     100 |                                                                                                     
+ src/types               |       0 |        0 |       0 |       0 |                                                                                                     
+  database.types.ts      |       0 |        0 |       0 |       0 |                                                                                                     
+  models.ts              |       0 |        0 |       0 |       0 |                                                                                                     
+ src/utils               |   71.09 |     70.7 |      65 |   73.39 |                                                                                                     
+  authUrlParser.ts       |   96.42 |     82.6 |     100 |   96.42 | 80                                                                                                  
+  demoAuth.ts            |     100 |     87.5 |     100 |     100 | 10                                                                                                  
+  errorMessages.ts       |   71.42 |       50 |     100 |   71.42 | 36-41                                                                                               
+  eventEmitter.ts        |       0 |        0 |       0 |       0 | 11-32                                                                                               
+  geolocation.ts         |       0 |        0 |       0 |       0 | 12-29                                                                                               
+  location.ts            |   70.58 |       25 |   66.66 |   73.33 | 44-45,54-55                                                                                         
+  privacy.ts             |   86.66 |    82.75 |     100 |     100 | 11,23,46-61                                                                                         
+  ratings.ts             |     100 |      100 |     100 |     100 |                                                                                                     
+-------------------------|---------|----------|---------|---------|-----------------------------------------------------------------------------------------------------
+
+Test Suites: 26 passed, 26 total
+Tests:       137 passed, 137 total
+Snapshots:   0 total
+Time:        26.301 s
+Ran all test suites.

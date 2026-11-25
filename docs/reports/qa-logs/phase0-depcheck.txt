@@ -1,0 +1,9 @@
+﻿Unused dependencies
+* @tanstack/query-async-storage-persister
+* expo-localization
+* expo-speech
+* expo-splash-screen
+* react-native-css-interop
+* react-native-maps
+Missing dependencies
+* @types/node: .\tsconfig.json
