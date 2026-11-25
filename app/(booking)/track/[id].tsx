@@ -125,26 +125,36 @@ export default function LiveTrackingScreen() {
     }
   };
 
-  const handleEmergencySOS = async () => {
-    const url = 'tel:15';
+  const dialEmergencyNumber = async (number: string, labelEn: string, labelUr: string) => {
     try {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        Alert.alert(
-          rtl ? 'ہنگامی پولیس رابطہ' : 'Emergency Assistance',
-          rtl
-            ? 'براہ کرم فوری مدد کے لیے اپنے فون سے 15 ڈائل کریں۔'
-            : 'Please dial 15 directly on your phone keypad for Police Emergency Assistance.'
-        );
-      }
+      await Linking.openURL(`tel:${number}`);
     } catch {
       Alert.alert(
-        'Emergency Assistance',
-        'Please dial 15 directly on your phone keypad for Police Emergency Assistance.'
+        rtl ? labelUr : labelEn,
+        rtl
+          ? `براہ کرم فوری مدد کے لیے اپنے فون سے ${number} ڈائل کریں۔`
+          : `Please dial ${number} directly on your phone keypad for ${labelEn}.`
       );
     }
+  };
+
+  const handleEmergencySOS = () => {
+    Alert.alert(
+      rtl ? 'ہنگامی امداد (SOS)' : 'Emergency Assistance (SOS)',
+      rtl ? 'فوری رابطے کے لیے سروس منتخب کریں:' : 'Select an emergency service to call:',
+      [
+        { text: rtl ? 'منسوخ کریں' : 'Cancel', style: 'cancel' },
+        {
+          text: rtl ? 'پولیس (15)' : 'Police (15)',
+          onPress: () => void dialEmergencyNumber('15', 'Police Emergency', 'ہنگامی پولیس رابطہ'),
+        },
+        {
+          text: rtl ? 'ریسکیو (1122)' : 'Rescue (1122)',
+          style: 'destructive',
+          onPress: () => void dialEmergencyNumber('1122', 'Rescue 1122', 'ریسکیو 1122'),
+        },
+      ]
+    );
   };
 
   const handleChat = () => {

@@ -63,17 +63,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
               Configuration Error
             </Text>
             <Text className="mt-2 text-center text-xs text-gray-600 leading-relaxed max-w-xs">
-              {this.state.message ||
-                'Required backend configuration is missing. Please verify your environment setup.'}
+              Please update or reinstall the app, or contact support if the problem persists.
             </Text>
             <Text className="mt-2 text-center text-[11px] text-gray-400">
               Silent mock fallback is disabled in production to protect data integrity.
             </Text>
-            <Button
-              title="Retry Connection"
-              onPress={this.reset}
-              className="mt-6 min-w-[180px]"
-            />
           </View>
         );
       }
