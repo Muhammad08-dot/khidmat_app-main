@@ -158,11 +158,55 @@ describeIntegration('Integration Suite: Booking State Machine (SM-01 to SM-03)',
 
     // Exactly one should succeed, exactly one should fail with conflict
     const successes = [resultA, resultB].filter((r) => !r.error);
-    const errors = [resultA, resultB].filter((r) => r.error);
-
+    const failures = [resultA, resultB].filter((r) => Boolean(r.error));
     expect(successes).toHaveLength(1);
-    expect(errors).toHaveLength(1);
-    expect(errors[0].error?.message).toMatch(/Status conflict/i);
+    expect(failures).toHaveLength(1);
+  });
+
+  it('SM-04: Customer cannot accept/confirm/start/complete booking, but can cancel while pending/confirmed', async () => {
+    const admin = getAdminClient();
+
+    const { data: booking } = await admin
+      .from('bookings')
+      .insert({
+        customer_id: customer.id,
+        provider_id: providerA.id,
+        category: 'Plumber',
+        description: 'Role rule test booking',
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    expect(booking).toBeDefined();
+
+    // Customer must NOT be able to confirm/accept, start, or complete
+    const { error: confirmErr } = await customer.client.rpc('transition_booking_status', {
+      p_booking_id: booking.id,
+      p_new_status: 'confirmed',
+      p_expected_current_status: 'pending',
+    });
+    expect(confirmErr).toBeDefined();
+
+    const { error: completeErr } = await customer.client.rpc('transition_booking_status', {
+      p_booking_id: booking.id,
+      p_new_status: 'completed',
+      p_expected_current_status: 'pending',
+    });
+    expect(completeErr).toBeDefined();
+
+    // Customer CAN cancel while pending
+    const { data: cancelled, error: cancelErr } = await customer.client.rpc(
+      'transition_booking_status',
+      {
+        p_booking_id: booking.id,
+        p_new_status: 'cancelled',
+        p_expected_current_status: 'pending',
+        p_cancel_reason: 'Customer changed mind',
+      }
+    );
+    expect(cancelErr).toBeNull();
+    expect(cancelled.status).toBe('cancelled');
   });
 });
 

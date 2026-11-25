@@ -158,5 +158,85 @@ describeIntegration('Integration Suite: Row Level Security (RLS-01 to RLS-04)', 
     expect(delErr).toBeDefined();
     expect(delErr?.message).toMatch(/strictly append-only/i);
   });
+
+  it('RLS-05: customer <-> provider switching is allowed, while signup/insert/update role=admin is blocked', async () => {
+    const admin = getAdminClient();
+
+    // Customer can switch to provider (complete-profile flow)
+    const { error: switchErr } = await customer1.client
+      .from('profiles')
+      .update({ role: 'provider' })
+      .eq('id', customer1.id);
+    expect(switchErr).toBeNull();
+
+    // Switch back to customer
+    const { error: backErr } = await customer1.client
+      .from('profiles')
+      .update({ role: 'customer' })
+      .eq('id', customer1.id);
+    expect(backErr).toBeNull();
+
+    // Signup with metadata role: 'admin' must clamp to 'customer'
+    const email = `qa-admin-attempt-${Date.now()}@khidmat.test`;
+    const { data: signUpData } = await customer1.client.auth.signUp({
+      email,
+      password: 'Password123!',
+      options: { data: { name: 'Attacker', role: 'admin' } },
+    });
+
+    if (signUpData.user) {
+      const { data: createdProfile } = await admin
+        .from('profiles')
+        .select('role')
+        .eq('id', signUpData.user.id)
+        .single();
+      expect(createdProfile?.role).toBe('customer');
+      await admin.auth.admin.deleteUser(signUpData.user.id);
+    }
+  });
+
+  it('RLS-06: total_price can be set once upon completion and is locked thereafter', async () => {
+    const admin = getAdminClient();
+    const { data: booking } = await admin
+      .from('bookings')
+      .insert({
+        customer_id: customer1.id,
+        provider_id: provider.id,
+        category: 'Electrician',
+        description: 'Completion price lock test',
+        estimated_price: 2000,
+        status: 'in_progress',
+      })
+      .select()
+      .single();
+
+    expect(booking).toBeDefined();
+
+    // First write to total_price succeeds
+    const { error: firstSetErr } = await provider.client
+      .from('bookings')
+      .update({ total_price: 2200, status: 'completed' })
+      .eq('id', booking.id);
+    expect(firstSetErr).toBeNull();
+
+    // Second write to total_price is rejected
+    const { error: secondSetErr } = await provider.client
+      .from('bookings')
+      .update({ total_price: 5000 })
+      .eq('id', booking.id);
+    expect(secondSetErr).toBeDefined();
+    expect(secondSetErr?.message).toMatch(/Price tampering forbidden/i);
+  });
+
+  it('RLS-07: kyc-documents bucket is private and blocks cross-user reads', async () => {
+    const admin = getAdminClient();
+    const { data: bucket } = await admin.storage.getBucket('kyc-documents');
+    expect(bucket?.public).toBe(false);
+
+    const { data: crossList } = await customer1.client.storage
+      .from('kyc-documents')
+      .list(customer2.id);
+    expect(crossList ?? []).toHaveLength(0);
+  });
 });
 

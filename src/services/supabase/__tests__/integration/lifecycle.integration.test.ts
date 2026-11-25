@@ -148,5 +148,44 @@ describeIntegration('Integration Suite: Account Deletion, Reports & Push (DEL-01
     expect(ownTokens).toHaveLength(1);
     expect(ownTokens?.[0].token).toBe(testToken);
   });
+
+  it('DEL-02: Account deletion anonymizes booking PII (description, coordinates, meta)', async () => {
+    const admin = getAdminClient();
+    const victim = await createTestUser('customer', 'del-pii');
+
+    const { data: booking } = await admin
+      .from('bookings')
+      .insert({
+        customer_id: victim.id,
+        category: 'Plumber',
+        description: 'Secret home address leak',
+        location_lat: 31.5204,
+        location_lng: 74.3587,
+        meta: { address: 'House 12, Gulberg', notes: 'Gate code 1234', customerPhone: '+923001112223' },
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    expect(booking).toBeDefined();
+
+    const { error: delErr } = await victim.client.rpc('delete_user_account', {
+      p_user_id: victim.id,
+    });
+    expect(delErr).toBeNull();
+
+    const { data: anonymized } = await admin
+      .from('bookings')
+      .select('description, location_lat, location_lng, meta')
+      .eq('id', booking.id)
+      .single();
+
+    expect(anonymized?.description).toBe('[Deleted User Booking]');
+    expect(anonymized?.location_lat).toBeNull();
+    expect(anonymized?.location_lng).toBeNull();
+    expect((anonymized?.meta as Record<string, unknown>)?.address).toBeUndefined();
+    expect((anonymized?.meta as Record<string, unknown>)?.notes).toBeUndefined();
+    expect((anonymized?.meta as Record<string, unknown>)?.customerPhone).toBeUndefined();
+  });
 });
 
