@@ -79,7 +79,7 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 export const isConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 export function createConfigErrorProxy(): SupabaseClient {
-  return new Proxy({} as SupabaseClient, {
+  return new Proxy((() => {}) as unknown as SupabaseClient, {
     get(_target, prop) {
       if (prop === 'then') return undefined;
       throw new ConfigError(
