@@ -82,7 +82,7 @@ To allow "Continue with Google" to redirect directly back into the Android / iOS
    - Go to: **Authentication -> URL Configuration**.
    - Set **Site URL** to: `https://sodxwchaqpqnwvnrnsaj.supabase.co` (or your production web domain).
    - Under **Redirect URLs**, add:
-     - `khidmat://*`
+     - `khidmat://**`
      - `khidmat://auth/callback`
      - `exp://**` (for local Expo Go development if applicable)
 2. **Google Cloud Console Configuration**:

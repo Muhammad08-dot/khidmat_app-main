@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text } from 'react-native';
 import { captureError } from '@/src/services/api/errorReporter';
-import { colors } from '@/src/theme/tokens';
+import { supabase } from '@/src/services/supabase/client';
 import { Button } from '@/src/components/ui/Button';
 
 interface Props {
@@ -40,7 +40,16 @@ export class ErrorBoundary extends React.Component<Props, State> {
     void captureError(error, info.componentStack ?? undefined);
   }
 
-  private reset = () => this.setState({ hasError: false, message: undefined, isConfigError: false });
+  private reset = async () => {
+    try {
+      if (supabase?.auth?.getSession) {
+        await supabase.auth.getSession();
+      }
+    } catch (e) {
+      console.warn('[ErrorBoundary] Client reset attempt:', e);
+    }
+    this.setState({ hasError: false, message: undefined, isConfigError: false });
+  };
 
   render() {
     if (this.state.hasError) {
