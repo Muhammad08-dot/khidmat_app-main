@@ -40,7 +40,10 @@ export default function InboxScreen() {
   const isWorker = userProfile?.current_mode === 'worker';
 
   useEffect(() => {
-    if (!user || !userProfile) return;
+    if (!user || !userProfile) {
+      setLoading(false);
+      return;
+    }
     if (!nonce) setLoading(true);
     const fieldName = isWorker ? 'providerId' : 'customerId';
     const unsubscribe = listenToBookings(fieldName, user.id, (data) => {
