@@ -32,3 +32,11 @@ jest.mock('expo-notifications', () => ({
   setNotificationChannelAsync: jest.fn(async () => null),
   AndroidImportance: { MAX: 5, HIGH: 4, DEFAULT: 3 },
 }));
+
+// Mock react-native-safe-area-context for Jest component render tests
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaProvider: ({ children }: any) => children,
+  SafeAreaView: ({ children }: any) => children,
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
+}));

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BRAND } from '@/src/theme/colors';
 import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft,
@@ -51,6 +52,7 @@ interface Provider {
 
 export default function ProviderListScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const {
     category: categoryParam,
     q,
@@ -223,10 +225,14 @@ export default function ProviderListScreen() {
   return (
     <ScrollView
       className="flex-1 bg-surface"
-      contentContainerStyle={{ paddingVertical: 16, paddingBottom: 40 }}
+      contentContainerStyle={{
+        paddingTop: Math.max(insets.top + 8, 16),
+        paddingBottom: 40,
+        flexGrow: 1,
+      }}
       showsVerticalScrollIndicator={false}
     >
-      <View className="px-4">
+      <View className="flex-1 px-4">
         {/* Header */}
         <View className="mb-4 flex-row items-center gap-3">
           <Pressable
@@ -242,11 +248,14 @@ export default function ProviderListScreen() {
         </View>
 
         {error ? (
-          <View className="mx-auto mb-6 max-w-md rounded-2xl border border-red-200 bg-red-100 p-6 text-center">
-            <Text className="text-red-700">{error}</Text>
+          <View className="flex-1 justify-center">
+            <View className="mx-auto mb-6 w-full max-w-md rounded-2xl border border-red-200 bg-red-100 p-6 text-center">
+              <Text className="text-red-700">{error}</Text>
+            </View>
           </View>
         ) : providers.length === 0 ? (
-          <Card className="mx-auto w-full max-w-md p-4">
+          <View className="flex-1 justify-center py-6">
+            <Card className="mx-auto w-full max-w-md p-4">
             <EmptyState
               icon={AlertCircle}
               title="No Matching Workers Found"
@@ -255,6 +264,7 @@ export default function ProviderListScreen() {
               onAction={() => router.replace('/')}
             />
           </Card>
+          </View>
         ) : (
           <>
             {isCrossCity && (

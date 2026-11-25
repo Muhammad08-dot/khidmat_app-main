@@ -11,6 +11,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import {
   Camera,
@@ -38,8 +39,11 @@ import {
   Scale,
   ChevronRight,
   Lock,
+  Sun,
+  Type,
 } from 'lucide-react-native';
 import { useAuth } from '@/src/context/AuthContext';
+import { usePreferences } from '@/src/context/PreferencesContext';
 import { uploadProfilePhoto } from '@/src/services/supabase/legacy';
 import { deleteUserAccountFlow } from '@/src/services/supabase/accountDeletion';
 import { getLang, setLang, type Lang, t } from '@/src/i18n';
@@ -99,6 +103,8 @@ function LinkRow({
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { themeMode, setThemeMode, isDark, fontPreset, setFontPreset, scaled } = usePreferences();
   const { user, userProfile, logout, updateProfile } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
@@ -298,12 +304,18 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-surface"
-      contentContainerStyle={{ paddingTop: 20, paddingBottom: 120 }}
+      className="flex-1"
+      style={{ backgroundColor: isDark ? '#121212' : '#FBFAF6' }}
+      contentContainerStyle={{ paddingTop: Math.max(insets.top + 8, 20), paddingBottom: 120 }}
       showsVerticalScrollIndicator={false}
     >
       <View className="px-4">
-        <Text className="font-display text-2xl font-medium text-ink">Profile</Text>
+        <Text
+          style={{ fontSize: scaled(24), color: isDark ? '#F9FAFB' : '#111827' }}
+          className="font-display font-medium"
+        >
+          Profile
+        </Text>
 
         {/* Hero banner */}
         <View className="mt-4 overflow-hidden rounded-2xl border border-border bg-surface-raised p-5">
@@ -437,20 +449,20 @@ export default function ProfileScreen() {
               <View className="flex-row gap-2">
                 <Pressable
                   onPress={() => handleSwitchLang('en')}
-                  className={`flex-1 py-2 rounded-xl border items-center ${lang === 'en' ? 'bg-secondary border-secondary' : 'border-outline-variant'}`}
+                  className={`flex-1 py-2 rounded-xl border items-center ${lang === 'en' ? 'bg-primary border-primary' : 'border-outline-variant bg-white'}`}
                 >
                   <Text
-                    className={`text-xs font-bold ${lang === 'en' ? 'text-white' : 'text-on-surface-variant'}`}
+                    className={`text-xs font-bold ${lang === 'en' ? 'text-white' : 'text-ink'}`}
                   >
                     English
                   </Text>
                 </Pressable>
                 <Pressable
                   onPress={() => handleSwitchLang('ur')}
-                  className={`flex-1 py-2 rounded-xl border items-center ${lang === 'ur' ? 'bg-secondary border-secondary' : 'border-outline-variant'}`}
+                  className={`flex-1 py-2 rounded-xl border items-center ${lang === 'ur' ? 'bg-primary border-primary' : 'border-outline-variant bg-white'}`}
                 >
                   <Text
-                    className={`text-xs font-bold ${lang === 'ur' ? 'text-white' : 'text-on-surface-variant'}`}
+                    className={`text-xs font-bold ${lang === 'ur' ? 'text-white' : 'text-ink'}`}
                   >
                     اردو
                   </Text>
@@ -461,6 +473,76 @@ export default function ProfileScreen() {
                   Layout direction updates after restarting the app.
                 </Text>
               )}
+            </View>
+
+            {/* Theme Changer */}
+            <View className="mt-4 rounded-2xl bg-surface-container-lowest border border-outline-variant p-4">
+              <View className="flex-row items-center gap-2 mb-3">
+                <Icon icon={Sun} color={BRAND.primary} size={16} />
+                <Text style={{ fontSize: scaled(12) }} className="font-bold text-on-surface">
+                  Theme / Appearance
+                </Text>
+              </View>
+              <View className="flex-row gap-2">
+                {(['light', 'dark', 'system'] as const).map((mode) => (
+                  <Pressable
+                    key={mode}
+                    testID={`theme-${mode}`}
+                    onPress={() => setThemeMode(mode)}
+                    className={`flex-1 py-2 rounded-xl border items-center ${
+                      themeMode === mode
+                        ? 'bg-primary border-primary'
+                        : 'border-outline-variant bg-white'
+                    }`}
+                  >
+                    <Text
+                      className={`text-xs font-bold capitalize ${
+                        themeMode === mode ? 'text-white' : 'text-ink'
+                      }`}
+                    >
+                      {mode}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {/* Font Size Control */}
+            <View className="mt-4 rounded-2xl bg-surface-container-lowest border border-outline-variant p-4">
+              <View className="flex-row items-center gap-2 mb-3">
+                <Icon icon={Type} color={BRAND.primary} size={16} />
+                <Text style={{ fontSize: scaled(12) }} className="font-bold text-on-surface">
+                  Text Size
+                </Text>
+              </View>
+              <View className="flex-row gap-2">
+                {(
+                  [
+                    { id: 'small', label: 'A-' },
+                    { id: 'normal', label: 'A' },
+                    { id: 'large', label: 'A+' },
+                  ] as const
+                ).map((item) => (
+                  <Pressable
+                    key={item.id}
+                    testID={`font-${item.id}`}
+                    onPress={() => setFontPreset(item.id)}
+                    className={`flex-1 py-2 rounded-xl border items-center ${
+                      fontPreset === item.id
+                        ? 'bg-primary border-primary'
+                        : 'border-outline-variant bg-white'
+                    }`}
+                  >
+                    <Text
+                      className={`text-xs font-bold ${
+                        fontPreset === item.id ? 'text-white' : 'text-ink'
+                      }`}
+                    >
+                      {item.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
 
             <Pressable

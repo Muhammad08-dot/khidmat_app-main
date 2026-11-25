@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MotiView } from 'moti';
 import { Bot, X, Send, Trash2, Sparkles } from 'lucide-react-native';
 import { askSiteAgent } from '@/src/services/api/agentClient';
+import { useAuth } from '@/src/context/AuthContext';
 import { Icon } from '../ui/Icon';
 
 interface Message {
@@ -23,22 +24,37 @@ interface Message {
   text: string;
 }
 
-const WELCOME: Message = {
-  role: 'agent',
-  text: 'Hello! I am the Khidmat Support Agent. How can I help you with our platform today?',
-};
-
 const SUGGESTIONS = [
   'How do I book a provider?',
   'What are the pricing details?',
   'How do I become a provider?',
 ];
 
+interface SiteAgentWidgetProps {
+  externalOpen?: boolean;
+  onExternalOpenChange?: (open: boolean) => void;
+}
+
 /** Floating, bottom-docked support agent chat (port of the web Rnd widget —
  *  draggable/resizable is dropped for a stable panel on mobile). */
-export const SiteAgentWidget: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([WELCOME]);
+export const SiteAgentWidget: React.FC<SiteAgentWidgetProps> = ({
+  externalOpen,
+  onExternalOpenChange,
+}) => {
+  const { userProfile } = useAuth();
+  const firstName = userProfile?.name?.split(' ')[0] || '';
+  const welcomeMsg: Message = {
+    role: 'agent',
+    text: `Assalamu Alaikum${firstName ? `, ${firstName}` : ''}! Main aapka Khidmat AI Assistant hoon. How can I help you today?`,
+  };
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setIsOpen = (val: boolean | ((prev: boolean) => boolean)) => {
+    const next = typeof val === 'function' ? val(isOpen) : val;
+    setInternalOpen(next);
+    onExternalOpenChange?.(next);
+  };
+  const [messages, setMessages] = useState<Message[]>([welcomeMsg]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -76,7 +92,7 @@ export const SiteAgentWidget: React.FC = () => {
   };
 
   const clearChat = () => {
-    setMessages([WELCOME]);
+    setMessages([welcomeMsg]);
     setShowSuggestions(true);
   };
 

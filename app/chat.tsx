@@ -14,6 +14,7 @@ import {
   Modal,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ArrowLeft,
   Check,
@@ -71,6 +72,7 @@ const QUICK_REPLIES = ["I'm on the way", 'Aa gaya hoon', 'Please confirm the tim
 
 export default function ChatScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { bookingId } = useLocalSearchParams<{ bookingId?: string }>();
   const { user, userProfile } = useAuth();
 
@@ -316,7 +318,10 @@ export default function ChatScreen() {
       className="flex-1 bg-[#F8F8F4]"
     >
       {/* Header */}
-      <View className="flex-row items-center justify-between border-b border-border bg-surface-raised px-3 py-3">
+      <View
+        style={{ paddingTop: Math.max(insets.top + 8, 12) }}
+        className="flex-row items-center justify-between border-b border-border bg-surface-raised px-3 pb-3"
+      >
         <View className="flex-row items-center gap-2.5">
           <Pressable
             onPress={() => router.push('/inbox')}
