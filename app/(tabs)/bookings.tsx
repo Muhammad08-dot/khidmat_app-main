@@ -42,6 +42,8 @@ import { useBookings, useUpdateBookingStatus, useSendMessage } from '@/src/hooks
 import { Card } from '@/src/components/ui/Card';
 import { Skeleton } from '@/src/components/ui/Skeleton';
 import { Icon } from '@/src/components/ui/Icon';
+import { isRTL } from '@/src/i18n/direction';
+import { getLocalizedError } from '@/src/utils/errorMessages';
 
 interface Booking {
   id?: string;
@@ -74,9 +76,12 @@ export default function BookingsScreen() {
   const {
     data: bookingsData,
     isLoading: loading,
+    isError,
+    error: bookingsError,
     refetch,
     isRefetching,
   } = useBookings(user?.id, role);
+  const rtl = isRTL();
   const bookings = (bookingsData as Booking[]) || [];
   const [activeTab, setActiveTab] = useState<Tab>('all');
   const [pageLimit, setPageLimit] = useState(10);
@@ -421,6 +426,26 @@ export default function BookingsScreen() {
                 <Skeleton className="mt-1 h-8 w-1/4" />
               </Card>
             ))}
+          </View>
+        ) : isError ? (
+          <View className="items-center py-16 px-4">
+            <Icon icon={AlertCircle} color={BRAND.danger} size={48} />
+            <Text className="mt-4 text-lg font-bold text-ink text-center">
+              {rtl ? 'بکنگ لوڈ نہیں ہو سکیں' : 'Could Not Load Bookings'}
+            </Text>
+            <Text className="mt-2 text-center text-sm text-ink/70">
+              {getLocalizedError(bookingsError).message}
+            </Text>
+            {getLocalizedError(bookingsError).canRetry && (
+              <Pressable
+                onPress={() => void refetch()}
+                className="mt-6 rounded-xl bg-primary px-6 py-3"
+              >
+                <Text className="font-semibold text-white">
+                  {rtl ? 'دوبارہ کوشش کریں' : 'Retry'}
+                </Text>
+              </Pressable>
+            )}
           </View>
         ) : filteredBookings.length === 0 ? (
           <View className="items-center py-16">
