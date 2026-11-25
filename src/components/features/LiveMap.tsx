@@ -10,8 +10,8 @@ interface Coordinates {
 }
 
 interface LiveMapProps {
-  workerCoords?: Coordinates;
-  clientCoords?: Coordinates;
+  workerCoords?: Coordinates | null;
+  clientCoords?: Coordinates | null;
   className?: string;
   isCompleted?: boolean;
 }
