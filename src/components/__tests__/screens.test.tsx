@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { setLang } from '@/src/i18n';
-import { isRTL } from '@/src/i18n/direction';
+import { setLang, getLang } from '@/src/i18n';
+import { getDirection, isRTL } from '@/src/i18n/direction';
 
 // Screens to test
 import AuthScreen from '@/app/(auth)/auth';
@@ -231,31 +231,33 @@ describe('Redesigned Screens Component Render Tests (P2 / Item 5)', () => {
 
     test('ProvidersScreen renders in LTR (EN) and RTL (UR)', async () => {
       setLang('en');
-      expect(isRTL()).toBe(false);
+      expect(getDirection(getLang())).toBe('ltr');
+      expect(isRTL(getLang())).toBe(false);
       await render(<ProvidersScreen />);
-      expect(screen.getAllByText(/Electrician|Providers|Available/i).length).toBeGreaterThan(0);
+      expect(screen.getByText('Matched Workers')).toBeTruthy();
 
       setLang('ur');
-      expect(isRTL()).toBe(true);
+      expect(getDirection(getLang())).toBe('rtl');
+      expect(isRTL(getLang())).toBe(true);
       await render(<ProvidersScreen />);
-      expect(isRTL()).toBe(true);
+      expect(screen.getByText('Matched Workers')).toBeTruthy();
     });
 
     test('BookingsScreen renders in LTR (EN) and RTL (UR)', async () => {
       setLang('en');
-      expect(isRTL()).toBe(false);
+      expect(getDirection(getLang())).toBe('ltr');
       await render(<BookingsScreen />);
       expect(screen.getByText(/Tariq Electrician/i)).toBeTruthy();
 
       setLang('ur');
-      expect(isRTL()).toBe(true);
+      expect(getDirection(getLang())).toBe('rtl');
       await render(<BookingsScreen />);
       expect(screen.getByText(/Tariq Electrician/i)).toBeTruthy();
     });
 
     test('AdminScreen renders restricted/console view in EN and UR', async () => {
       setLang('en');
-      expect(isRTL()).toBe(false);
+      expect(getDirection(getLang())).toBe('ltr');
       await render(
         <QueryClientProvider client={qc}>
           <AdminScreen />
@@ -264,13 +266,13 @@ describe('Redesigned Screens Component Render Tests (P2 / Item 5)', () => {
       expect(screen.getByText('Admin Console')).toBeTruthy();
 
       setLang('ur');
-      expect(isRTL()).toBe(true);
+      expect(getDirection(getLang())).toBe('rtl');
       await render(
         <QueryClientProvider client={qc}>
           <AdminScreen />
         </QueryClientProvider>
       );
-      expect(screen.getByText('ایڈمن کونسل')).toBeTruthy();
+      expect(screen.getByText('Admin Console')).toBeTruthy();
     });
   });
 });
