@@ -15,6 +15,10 @@ import BookingsScreen from '@/app/(tabs)/bookings';
 import AdminScreen from '@/app/admin';
 
 // Mocks
+jest.mock('moti', () => ({
+  MotiView: require('react-native').View,
+}));
+
 jest.mock('expo-router', () => ({
   useRouter: () => ({
     push: jest.fn(),
