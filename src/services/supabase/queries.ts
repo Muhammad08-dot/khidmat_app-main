@@ -1,6 +1,6 @@
 import { supabase } from './client';
 import { Database } from '../../types/database.types';
-import { mapBookingRow, recomputeProviderRating } from './legacy';
+import { mapBookingRow, recomputeProviderRating } from './mappers';
 import { handleServiceError } from '../errors';
 
 export const getCategories = async () => {

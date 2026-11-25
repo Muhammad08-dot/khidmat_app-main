@@ -4,7 +4,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase, DEMO_MODE, isConfigured, USE_MOCK, ConfigError } from '../services/supabase/client';
-import { profileColumnsFromCamel } from '../services/supabase/legacy';
+import { profileColumnsFromCamel } from '../services/supabase/mappers';
 import { registerPushToken } from '../services/push';
 import { parseAuthRedirectUrl } from '../utils/authUrlParser';
 import { User as UserProfileModel } from '../types/models'; // Note: update models.ts to match Supabase schema later
