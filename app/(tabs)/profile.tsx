@@ -41,7 +41,7 @@ import {
 } from 'lucide-react-native';
 import { useAuth } from '@/src/context/AuthContext';
 import { uploadProfilePhoto } from '@/src/services/supabase/legacy';
-import { deleteUserAccount } from '@/src/services/supabase/queries';
+import { deleteUserAccountFlow } from '@/src/services/supabase/accountDeletion';
 import { getLang, setLang, type Lang, t } from '@/src/i18n';
 
 import { Avatar } from '@/src/components/ui/Avatar';
@@ -271,7 +271,8 @@ export default function ProfileScreen() {
           if (!user?.id) return;
           try {
             setDeletingAccount(true);
-            await deleteUserAccount(user.id);
+            await deleteUserAccountFlow(user.id);
+            await logout();
             router.replace('/(auth)/auth');
           } catch (err: any) {
             Alert.alert('Failed', err?.message || 'Could not delete account. Please try again.');
