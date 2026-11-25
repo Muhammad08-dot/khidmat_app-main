@@ -180,8 +180,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch {
+      // Ignore missing/deleted auth user or network error on local sign-out
+    }
   };
 
   const sendPasswordReset = async (email: string) => {
