@@ -68,3 +68,14 @@
 ### 3.7 Audit Log Tampering & Deletion
 - **Attack Vector:** A compromised administrator attempts to DELETE or UPDATE past moderation actions in `admin_actions` to hide malicious activity.
 - **Countermeasure:** `trg_admin_actions_immutable` (Migration 0014) forbids any UPDATE or DELETE operations on `admin_actions`, throwing SQLSTATE `42501`. Permissions on UPDATE/DELETE are revoked for all roles.
+
+### 3.8 `admin_actions` Actor Foreign Key & Account Deletion Tradeoff (M2-3 / M2-4)
+- **Why `admin_actions_actor_id_fkey` (`ON DELETE CASCADE`) was dropped (Migration 0013):**
+  - Migration `0008` created `admin_actions.actor_id NOT NULL REFERENCES profiles(id) ON DELETE CASCADE`.
+  - Migration `0014` added `trg_admin_actions_immutable` (`BEFORE UPDATE OR DELETE` raises `42501`), making `admin_actions` strictly append-only.
+  - Because `ON DELETE CASCADE` (or `ON DELETE SET NULL`) would trigger a `DELETE` or `UPDATE` on `admin_actions` when a profile is deleted, it would collide with `trg_admin_actions_immutable` and abort account deletion.
+  - **Consequence:** `actor_id` is now nullable (`NULL` for self-deleted accounts) and has no cascading FK constraint. Audit rows remain immutable forever, and `meta.deleted_user_id` preserves the deleted UUID for compliance.
+- **Account Deletion Partial-Failure & Shared `job_media` Policy (M2-4):**
+  - Storage cleanup (`kyc-documents/{userId}/*`, `avatars/{userId}/*`, `job_media/{bookingId}/*`) executes via Storage API before `delete_user_account` RPC and the `delete-account` Edge Function (`auth.users` deletion).
+  - If an error occurs mid-flow, `delete-account` is idempotent (missing auth user returns success) and re-running cleanup safely skips already-removed objects.
+  - Because `job_media` objects are keyed by `bookingId/`, deleting a user's shared booking media removes those job proof photos for the counterparty as well, while the anonymized booking row (`description = '[Deleted User Booking]'`, coordinates & meta PII stripped) stays intact for financial/audit integrity.

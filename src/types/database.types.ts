@@ -383,7 +383,7 @@ export interface Database {
       admin_actions: {
         Row: {
           id: string;
-          actor_id: string;
+          actor_id: string | null;
           action: string;
           target_type: string;
           target_id: string;
@@ -392,7 +392,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          actor_id: string;
+          actor_id?: string | null;
           action: string;
           target_type: string;
           target_id: string;
@@ -401,7 +401,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          actor_id?: string;
+          actor_id?: string | null;
           action?: string;
           target_type?: string;
           target_id?: string;
