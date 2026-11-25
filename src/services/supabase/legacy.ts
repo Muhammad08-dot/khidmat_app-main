@@ -300,7 +300,7 @@ export async function mergeBookingMeta(bookingId: string, patch: Doc): Promise<v
   if (updateError) throw updateError;
 }
 
-/** Uploads before/after job proof photos; returns the public URL. */
+/** Uploads before/after job proof photos to the private job_media bucket; returns a signed URL. */
 export async function uploadJobMedia(userId: string, localUri: string): Promise<string> {
   const response = await fetch(localUri);
   const blob = await response.blob();
@@ -314,7 +314,13 @@ export async function uploadJobMedia(userId: string, localUri: string): Promise<
   });
   if (error) throw error;
 
-  return supabase.storage.from('job_media').getPublicUrl(path).data.publicUrl;
+  const { data: signed, error: signErr } = await supabase.storage
+    .from('job_media')
+    .createSignedUrl(path, 3600);
+  if (signErr || !signed?.signedUrl) {
+    throw signErr ?? new Error('Failed to create signed URL for job media.');
+  }
+  return signed.signedUrl;
 }
 
 export async function submitProviderReview(
