@@ -12,10 +12,12 @@
  * customer's live map (track/[id].tsx) updates even when the app is headless.
  */
 import { Platform } from 'react-native';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Location from 'expo-location';
 import { defineTask } from 'expo-task-manager';
 import { supabase } from './supabase/client';
 
+const IS_EXPO_GO = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 const BG_LOCATION_ENABLED = process.env.EXPO_PUBLIC_BG_LOCATION_ENABLED === 'true';
 export const TRACKING_TASK_NAME = 'khidmat-provider-tracking';
 
@@ -59,6 +61,10 @@ defineTask(TRACKING_TASK_NAME, async () => {
 });
 
 export async function startProviderTracking(bookingId: string): Promise<boolean> {
+  if (IS_EXPO_GO) {
+    console.info('[bgLocation] Background location is not available in Expo Go.');
+    return false;
+  }
   if (!BG_LOCATION_ENABLED || Platform.OS === 'web') return false;
   try {
     const granted = await Location.requestBackgroundPermissionsAsync();
