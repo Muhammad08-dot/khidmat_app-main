@@ -21,6 +21,7 @@ import { Icon } from '@/src/components/ui/Icon';
 import { Card } from '@/src/components/ui/Card';
 import { useAuth } from '@/src/context/AuthContext';
 import { isRTL } from '@/src/i18n/direction';
+import { getLang } from '@/src/i18n';
 import { createSignedKycUrl } from '@/src/services/supabase/kyc';
 import { maskCnic } from '@/src/utils/privacy';
 import { getLocalizedError } from '@/src/utils/errorMessages';
@@ -53,7 +54,7 @@ export default function AdminScreen() {
   const { userProfile, loading } = useAuth();
   const queryClient = useQueryClient();
   const [section, setSection] = useState<Section>('verification');
-  const rtl = isRTL();
+  const rtl = isRTL(getLang());
 
   const handleOpenKycDoc = async (path?: string | null) => {
     if (!path) {
@@ -157,7 +158,7 @@ export default function AdminScreen() {
         className="flex-1 bg-surface"
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       >
-        <View className="px-4">
+        <View testID="admin-root" className="px-4" style={{ direction: rtl ? 'rtl' : 'ltr' }}>
           {Header}
           <Card className="items-center gap-3 border border-border p-8">
             <Icon icon={XCircle} color={BRAND.danger} size={30} />
@@ -183,7 +184,7 @@ export default function AdminScreen() {
       className="flex-1 bg-surface"
       contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
     >
-      <View className="px-4">
+      <View testID="admin-root" className="px-4" style={{ direction: rtl ? 'rtl' : 'ltr' }}>
         {Header}
 
         <View className="mb-5 flex-row gap-2">

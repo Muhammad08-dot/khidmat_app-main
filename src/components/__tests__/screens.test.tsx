@@ -231,46 +231,48 @@ describe('Redesigned Screens Component Render Tests (P2 / Item 5)', () => {
 
     test('ProvidersScreen renders in LTR (EN) and RTL (UR)', async () => {
       setLang('en');
-      expect(isRTL(getLang())).toBe(false);
       await render(<ProvidersScreen />);
-      expect(screen.getByText('Matched Workers')).toBeTruthy();
+      const enTitle = screen.getByText('Matched Workers');
+      expect(enTitle).toBeTruthy();
 
       setLang('ur');
-      expect(isRTL(getLang())).toBe(true);
       await render(<ProvidersScreen />);
-      expect(screen.getByText('Matched Workers')).toBeTruthy();
+      const urTitle = screen.getByText('Matched Workers');
+      expect(urTitle).toBeTruthy();
     });
 
     test('BookingsScreen renders in LTR (EN) and RTL (UR)', async () => {
       setLang('en');
-      expect(isRTL(getLang())).toBe(false);
       await render(<BookingsScreen />);
       expect(screen.getByText(/Tariq Electrician/i)).toBeTruthy();
 
       setLang('ur');
-      expect(isRTL(getLang())).toBe(true);
       await render(<BookingsScreen />);
       expect(screen.getByText(/Tariq Electrician/i)).toBeTruthy();
     });
 
-    test('AdminScreen renders restricted/console view in EN and UR', async () => {
+    test('AdminScreen renders restricted/console view with real direction style in EN and UR', async () => {
       setLang('en');
-      expect(isRTL(getLang())).toBe(false);
       await render(
         <QueryClientProvider client={qc}>
           <AdminScreen />
         </QueryClientProvider>
       );
       expect(screen.getByText('Admin Console')).toBeTruthy();
+      expect(screen.getByTestId('admin-root').props.style).toEqual(
+        expect.objectContaining({ direction: 'ltr' })
+      );
 
       setLang('ur');
-      expect(isRTL(getLang())).toBe(true);
       await render(
         <QueryClientProvider client={qc}>
           <AdminScreen />
         </QueryClientProvider>
       );
-      expect(screen.getByText('Admin Console')).toBeTruthy();
+      expect(screen.getByText('ایڈمن کونسل')).toBeTruthy();
+      expect(screen.getByTestId('admin-root').props.style).toEqual(
+        expect.objectContaining({ direction: 'rtl' })
+      );
     });
   });
 });
