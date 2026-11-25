@@ -48,6 +48,7 @@ import { Avatar } from '@/src/components/ui/Avatar';
 import { TierBadge } from '@/src/components/ui/TierBadge';
 import { Select } from '@/src/components/ui/Select';
 import { Icon } from '@/src/components/ui/Icon';
+import { maskPhoneNumber, maskCnic } from '@/src/utils/privacy';
 
 const SPECIALTIES = [
   'Electrician',
@@ -401,7 +402,7 @@ export default function ProfileScreen() {
                   icon: Phone,
                   color: BRAND.success,
                   label: 'Phone',
-                  value: userProfile.phone || 'Not set',
+                  value: userProfile.phone ? maskPhoneNumber(userProfile.phone) : 'Not set',
                 },
                 {
                   icon: MapPin,

@@ -9,9 +9,14 @@
  */
 import { supabase } from './client';
 import { sendPushToUser } from '../push';
-import { averageRating } from '../../utils/ratings';
+import {
+  Doc,
+  mapBookingRow,
+  profileColumnsFromCamel,
+  recomputeProviderRating,
+} from './mappers';
 
-export type Doc = Record<string, any>;
+export { Doc, mapBookingRow, profileColumnsFromCamel, recomputeProviderRating };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -47,40 +52,6 @@ const BOOKING_SELECT = `
   customer:profiles!bookings_customer_id_fkey(name, profile_contacts!profile_contacts_user_id_fkey(phone)),
   provider:providers!bookings_provider_id_fkey(base_price, profiles!providers_id_fkey(name))
 `;
-
-export const mapBookingRow = (row: any): Doc => {
-  const meta: Doc = row.meta ?? {};
-  const providerProfile = row.provider?.profiles as any;
-  return {
-    bookingId: row.id,
-    customerId: row.customer_id,
-    customerName: row.customer?.name ?? meta.customerName ?? 'Customer',
-    customerPhone: meta.customerPhone ?? row.customer?.profile_contacts?.phone ?? '',
-    providerId: row.provider_id,
-    providerName: providerProfile?.name ?? meta.providerName ?? 'Provider',
-    providerCategory: row.category,
-    description: row.description ?? '',
-    date: meta.date ?? String(row.created_at ?? '').slice(0, 10),
-    timeSlot: meta.timeSlot ?? '',
-    address: meta.address ?? '',
-    notes: meta.notes ?? '',
-    status: row.status,
-    urgency: row.urgency ?? 'medium',
-    totalPrice: row.estimated_price ?? meta.totalPrice ?? 0,
-    distanceKm: meta.distanceKm ?? 0,
-    basePrice: meta.basePrice ?? row.provider?.base_price ?? 0,
-    travelFee: meta.travelFee ?? 0,
-    coordinates:
-      meta.coordinates ??
-      (row.location_lat != null ? { lat: row.location_lat, lng: row.location_lng } : undefined),
-    workerLocation: meta.workerLocation,
-    clientLocation: meta.clientLocation,
-    customerRating: meta.customerRating,
-    reviewedAt: meta.reviewedAt,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-};
 
 const fetchBookingById = async (id: string): Promise<Doc | null> => {
   const { data, error } = await supabase
@@ -224,20 +195,6 @@ const mapProfileRow = (row: any): Doc => ({
   ...row,
   photoURL: row.photo_url,
 });
-
-/** Translates the camelCase keys screens pass to `updateProfile` into columns. */
-export function profileColumnsFromCamel(data: Doc): Doc {
-  const { photoURL, basePrice, location, currentMode, ...rest } = data;
-  const row: Doc = { ...rest };
-  if (photoURL !== undefined) row.photo_url = photoURL;
-  if (basePrice !== undefined) row.base_price = basePrice;
-  if (currentMode !== undefined) row.current_mode = currentMode;
-  if (location && typeof location === 'object') {
-    row.location_lat = (location as any).lat;
-    row.location_lng = (location as any).lng;
-  }
-  return row;
-}
 
 /* ------------------------------------------------------------------ */
 /* Realtime                                                            */
@@ -383,20 +340,6 @@ export async function submitProviderReview(
   // Recompute the provider's aggregate rating from ALL their reviews so the
   // star on cards/detail actually reflects new feedback (the write-only bug).
   await recomputeProviderRating(providerId);
-}
-
-/** AVG(rating) over a provider's visible reviews -> providers.rating (1 decimal). */
-export async function recomputeProviderRating(providerId: string): Promise<void> {
-  const { data, error } = await supabase
-    .from('reviews')
-    .select('rating')
-    .eq('provider_id', providerId)
-    .neq('is_hidden', true);
-  if (error || !data || data.length === 0) return;
-  await supabase
-    .from('providers')
-    .update({ rating: averageRating(data.map((r) => r.rating)) })
-    .eq('id', providerId);
 }
 
 export async function uploadProfilePhoto(userId: string, localUri: string): Promise<string> {

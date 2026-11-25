@@ -9,9 +9,11 @@ Welcome to the Khidmat project documentation repository. This directory houses a
 | Document | Description |
 | :--- | :--- |
 | **[PRD_Khidmat_v2.md](file:///D:/dev-stuff/khidmat-hardening/docs/PRD_Khidmat_v2.md)** | Master Product Requirements Document: stabilization, UI overhaul, RLS audit, and quality gates. |
+| **[LEGACY_MIGRATION_PLAN.md](file:///D:/dev-stuff/khidmat-hardening/docs/LEGACY_MIGRATION_PLAN.md)** | Migration and deprecation plan for `legacy.ts`, tracking all 12 importing files and target services. |
 | **[ARCHITECTURE.md](file:///D:/dev-stuff/khidmat-hardening/docs/ARCHITECTURE.md)** | Technical stack, data flow, Supabase schema topology, and self-healing agent pipeline. |
 | **[SECURITY.md](file:///D:/dev-stuff/khidmat-hardening/docs/SECURITY.md)** | Detailed Table × Role × Operation matrix, Row Level Security policies, and privilege escalation guards. |
 | **[SETUP.md](file:///D:/dev-stuff/khidmat-hardening/docs/SETUP.md)** | Local environment configuration, environment variables, and emulator/device run instructions. |
+| **[LEGACY_MIGRATION_PLAN.md](file:///D:/dev-stuff/khidmat-hardening/docs/LEGACY_MIGRATION_PLAN.md)** | Phased migration and deprecation strategy for `legacy.ts` across 12 consuming files. |
 | **[LAUNCH_CHECKLIST.md](file:///D:/dev-stuff/khidmat-hardening/docs/LAUNCH_CHECKLIST.md)** | Play Store readiness checklist, signing, release profiles, and production gates. |
 | **[MANUAL_TESTS.md](file:///D:/dev-stuff/khidmat-hardening/docs/MANUAL_TESTS.md)** | Physical device testing matrix (Android/iOS, LTR/RTL Urdu layout checks). |
 | **[OPEN_QUESTIONS.md](file:///D:/dev-stuff/khidmat-hardening/docs/OPEN_QUESTIONS.md)** | Tracked architectural ambiguities and owner decisions. |

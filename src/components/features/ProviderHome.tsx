@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
-import { BRAND } from '@/src/theme/colors';
-import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert, Modal } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+  Alert,
+  Modal,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '@/src/context/AuthContext';
 import { useBookings, useUpdateBookingStatus, useSendMessage } from '@/src/hooks/useSupabase';
@@ -8,22 +15,26 @@ import { uploadJobMedia, mergeBookingMeta } from '@/src/services/supabase/legacy
 import { useRouter } from 'expo-router';
 import {
   CheckCircle,
-  DollarSign,
-  Star,
   Briefcase,
   Calendar,
   MapPin,
   Clock,
   MessageSquare,
   Camera,
+  ShieldCheck,
+  TrendingUp,
+  Star,
   X,
+  AlertTriangle,
 } from 'lucide-react-native';
-
-import { getCurrentCoords } from '../../utils/geolocation';
-import { Avatar } from '../ui/Avatar';
-import { TierBadge } from '../ui/TierBadge';
-import { Card } from '../ui/Card';
-import { Icon } from '../ui/Icon';
+import { getCurrentCoords } from '@/src/utils/geolocation';
+import { Avatar } from '@/src/components/ui/Avatar';
+import { TierBadge } from '@/src/components/ui/TierBadge';
+import { Card } from '@/src/components/ui/Card';
+import { Button } from '@/src/components/ui/Button';
+import { Badge } from '@/src/components/ui/Badge';
+import { colors } from '@/src/theme/tokens';
+import { isRTL } from '@/src/i18n';
 
 export const ProviderHome: React.FC = () => {
   const router = useRouter();
@@ -32,6 +43,7 @@ export const ProviderHome: React.FC = () => {
   const { mutateAsync: updateStatus } = useUpdateBookingStatus();
   const { mutateAsync: sendSystemMessage } = useSendMessage();
 
+  const rtl = isRTL();
   const [toggling, setToggling] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [completingBooking, setCompletingBooking] = useState<any | null>(null);
@@ -42,6 +54,7 @@ export const ProviderHome: React.FC = () => {
   if (!userProfile) return null;
 
   const isOnline = userProfile.available === true;
+  const isKycVerified = userProfile.kycVerified === true;
 
   const toggleOnline = async () => {
     if (!user) return;
@@ -51,23 +64,21 @@ export const ProviderHome: React.FC = () => {
     if (!isOnline) {
       const coords = await getCurrentCoords();
       if (!coords) {
-        setLocationError(
-          'Location access is required to go Online. Please enable location permissions.'
-        );
+        setLocationError('Location access is required to go Online.');
         setToggling(false);
         return;
       }
       try {
         await updateProfile({ available: true, location: coords });
       } catch (err) {
-        console.error('Failed to update profile to online:', err);
-        setLocationError('Failed to update online status. Please check connection.');
+        console.error('Failed to update online status:', err);
+        setLocationError('Failed to update status. Please check your network.');
       }
     } else {
       try {
         await updateProfile({ available: false });
       } catch (err) {
-        console.error('Failed to update profile to offline:', err);
+        console.error('Failed to update offline status:', err);
       }
     }
     setToggling(false);
@@ -83,7 +94,20 @@ export const ProviderHome: React.FC = () => {
       refetch();
     } catch (err: any) {
       console.error('Error accepting booking:', err);
-      Alert.alert('Failed', err?.message || 'Failed to accept the job. Please try again.');
+      Alert.alert('Action Failed', err?.message || 'Could not accept this booking.');
+    }
+  };
+
+  const declineBooking = async (booking: any) => {
+    try {
+      await updateStatus({
+        bookingId: booking.bookingId || booking.id,
+        status: 'cancelled',
+        expectedCurrentStatus: booking.status || 'pending',
+      });
+      refetch();
+    } catch (err: any) {
+      console.error('Error declining booking:', err);
     }
   };
 
@@ -99,7 +123,7 @@ export const ProviderHome: React.FC = () => {
         bookingId,
         senderId: user?.id || '',
         content: JSON.stringify({
-          text: 'The provider has marked the service as completed. Pending client confirmation/rating review.',
+          text: 'The provider has marked this job as completed.',
           isSystemEvent: true,
           eventStatus: 'completed',
         }),
@@ -107,7 +131,7 @@ export const ProviderHome: React.FC = () => {
       refetch();
     } catch (err) {
       console.error('Error completing booking:', err);
-      Alert.alert('Failed', 'Failed to update booking status. Please try again.');
+      Alert.alert('Failed', 'Failed to update booking status.');
     }
   };
 
@@ -120,7 +144,7 @@ export const ProviderHome: React.FC = () => {
   const pickCompletionPhoto = async () => {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Permission needed', 'Camera access is required to take job photos.');
+      Alert.alert('Permission needed', 'Camera access is required for completion proof.');
       return;
     }
     const result = await ImagePicker.launchCameraAsync({ quality: 0.7 });
@@ -145,7 +169,7 @@ export const ProviderHome: React.FC = () => {
           try {
             urls.push(await uploadJobMedia(user!.id, uri));
           } catch (e) {
-            console.warn('Job photo upload failed (continuing):', e);
+            console.warn('Job photo upload failed:', e);
           }
         }
         if (urls.length > 0) {
@@ -162,329 +186,308 @@ export const ProviderHome: React.FC = () => {
 
   const openChat = (bookingId: string) => router.push(`/chat?bookingId=${bookingId}`);
 
-  const activeBookings = bookings.filter((b) => b.status === 'pending' || b.status === 'confirmed');
-  const recentHistory = bookings
-    .filter((b) => b.status === 'completed' || b.status === 'closed')
-    .sort(
-      (a, b) =>
-        new Date(b.updatedAt || b.createdAt).getTime() -
-        new Date(a.updatedAt || a.createdAt).getTime()
-    );
+  const pendingBookings = bookings.filter((b) => b.status === 'pending');
+  const activeBookings = bookings.filter((b) => b.status === 'confirmed' || b.status === 'in_progress');
+  const totalEarnings = userProfile.totalEarnings || 0;
+  const completedJobs = userProfile.totalJobs || 0;
 
   return (
     <>
       <ScrollView
-        className="flex-1 bg-surface"
-        contentContainerStyle={{ paddingTop: 20, paddingBottom: 120 }}
+        className="flex-1 bg-background"
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
         <View className="px-4">
-          {/* Header + availability */}
-          <View className="rounded-2xl border border-border bg-gradient-to-br from-primary/10 to-accent-sage/10 p-5">
-            <View className="flex-row items-center gap-3">
+          {/* Header Card with Availability Toggle (S-8) */}
+          <Card className="p-5 mb-4">
+            <View className="flex-row items-center gap-3.5 mb-4">
               <Avatar
                 src={userProfile.photoURL}
                 name={userProfile.name}
-                className="h-14 w-14 border-2 border-surface"
+                className="w-14 h-14 rounded-full border border-gray-200"
               />
               <View className="flex-1">
-                <View className="flex-row flex-wrap items-center gap-2">
-                  <Text className="font-display text-lg font-extrabold text-ink">
-                    Welcome, {userProfile.name}!
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-base font-bold text-gray-900">
+                    {userProfile.name}
                   </Text>
-                  <TierBadge tier={userProfile.tier || 'Bronze'} />
+                  <TierBadge tier={(userProfile.tier as any) || 'Bronze'} />
                 </View>
-                <Text className="mt-0.5 text-xs text-ink/60">
-                  Manage your services, track earnings, and respond to clients.
+                <Text className="text-xs text-gray-500 mt-0.5">
+                  {userProfile.category || 'Professional Partner'} • {userProfile.city || 'Pakistan'}
                 </Text>
               </View>
             </View>
 
+            {/* Prominent Availability Toggle Button */}
             <Pressable
               onPress={toggleOnline}
               disabled={toggling}
-              className={`mt-4 flex-row items-center justify-center gap-2 rounded-xl border px-6 py-3.5 ${
-                isOnline ? 'border-primary bg-primary' : 'border-border bg-surface'
+              className={`w-full py-3.5 px-4 rounded-xl flex-row items-center justify-center gap-2.5 transition-all ${
+                isOnline
+                  ? 'bg-emerald-600 border border-emerald-700 shadow-sm'
+                  : 'bg-gray-100 border border-gray-200'
               }`}
             >
               {toggling ? (
-                <ActivityIndicator size="small" color={isOnline ? '#fff' : BRAND.primary} />
+                <ActivityIndicator size="small" color={isOnline ? '#FFFFFF' : colors.primary} />
               ) : (
                 <View
-                  className={`h-3.5 w-3.5 rounded-full border-2 border-white ${
-                    isOnline ? 'bg-surface-raised' : 'bg-ink/40'
+                  className={`w-3.5 h-3.5 rounded-full ${
+                    isOnline ? 'bg-white' : 'bg-gray-400'
                   }`}
                 />
               )}
-              <Text className={`text-sm font-bold ${isOnline ? 'text-white' : 'text-ink/50'}`}>
+              <Text
+                className={`text-sm font-bold ${
+                  isOnline ? 'text-white' : 'text-gray-700'
+                }`}
+              >
                 {toggling
-                  ? 'Updating location...'
+                  ? 'Updating status...'
                   : isOnline
-                    ? 'You are ONLINE'
-                    : 'You are OFFLINE'}
+                  ? 'YOU ARE ONLINE • READY FOR JOBS'
+                  : 'YOU ARE OFFLINE • GO ONLINE'}
               </Text>
             </Pressable>
-            <Text className="mt-2 text-center text-[10px] font-semibold uppercase tracking-wider text-ink/40">
-              {isOnline
-                ? 'Visible to customers searching for services'
-                : 'Hidden from customer search results'}
-            </Text>
+
             {locationError && (
-              <Text className="mt-2 rounded-xl border border-accent-terracotta/20 bg-accent-terracotta/10 p-3 text-xs text-accent-terracotta">
+              <Text className="mt-2 text-xs text-red-600 font-medium">
                 {locationError}
               </Text>
             )}
-          </View>
+          </Card>
 
-          {/* Stats */}
-          <View className="mt-5 flex-row flex-wrap" style={{ gap: 10 }}>
-            {[
-              {
-                label: 'Jobs Completed',
-                icon: CheckCircle,
-                color: BRAND.primary as string,
-                value: String(userProfile.totalJobs || 0),
-              },
-              {
-                label: 'Total Earnings',
-                icon: DollarSign,
-                color: BRAND.primary,
-                value: `Rs. ${userProfile.totalEarnings || 0}`,
-              },
-              {
-                label: 'Overall Rating',
-                icon: Star,
-                color: BRAND.gold,
-                value: userProfile.rating != null ? userProfile.rating.toFixed(1) : 'New',
-              },
-              {
-                label: 'Specialty',
-                icon: Briefcase,
-                color: BRAND.primary,
-                value: userProfile.category || 'Specialist',
-              },
-            ].map((s) => (
-              <View
-                key={s.label}
-                className="flex-1 rounded-xl border border-border bg-surface-raised p-4"
-                style={{ minWidth: '45%' }}
+          {/* KYC Status Banner (S-8) */}
+          <View
+            className={`p-4 rounded-2xl border mb-4 flex-row items-center gap-3 ${
+              isKycVerified
+                ? 'bg-emerald-50 border-emerald-200'
+                : 'bg-amber-50 border-amber-200'
+            }`}
+          >
+            {isKycVerified ? (
+              <ShieldCheck size={22} color="#059669" />
+            ) : (
+              <AlertTriangle size={22} color="#D97706" />
+            )}
+            <View className="flex-1">
+              <Text
+                className={`text-xs font-bold ${
+                  isKycVerified ? 'text-emerald-900' : 'text-amber-900'
+                }`}
               >
-                <Text className="text-[10px] font-semibold uppercase tracking-wide text-ink/40">
-                  {s.label}
-                </Text>
-                <View className="mt-2 flex-row items-center gap-2">
-                  <Icon icon={s.icon} color={s.color} size={20} />
-                  <Text className="text-lg font-extrabold text-ink">{s.value}</Text>
-                </View>
-              </View>
-            ))}
+                {isKycVerified
+                  ? 'CNIC Identity Verified'
+                  : 'KYC Document Verification Required'}
+              </Text>
+              <Text
+                className={`text-[11px] mt-0.5 leading-tight ${
+                  isKycVerified ? 'text-emerald-700' : 'text-amber-700'
+                }`}
+              >
+                {isKycVerified
+                  ? 'Your profile carries the verified badge for all customer searches.'
+                  : 'Upload your CNIC images in Profile to unlock full customer job visibility.'}
+              </Text>
+            </View>
           </View>
 
-          {/* Active requests */}
-          <View className="mt-6">
-            <Text className="flex-row items-center gap-2 text-base font-bold text-ink">
-              <Icon icon={Calendar} color={BRAND.primary} size={18} /> Active Service Requests (
-              {activeBookings.length})
-            </Text>
-
-            {activeBookings.length === 0 ? (
-              <Card className="mt-3 p-6">
-                <Text className="text-center text-sm font-semibold text-ink">
-                  No Active Requests
+          {/* Earnings & Stats Summary Cards (S-8) */}
+          <View className="flex-row gap-3 mb-6">
+            <Card className="flex-1 p-4">
+              <View className="flex-row items-center justify-between mb-1">
+                <Text className="text-[11px] font-semibold text-gray-500 uppercase">
+                  Total Earnings
                 </Text>
-                <Text className="mt-1 text-center text-xs text-ink/60">
-                  {isOnline
-                    ? "You are online but haven't received any bookings yet. Service requests will appear here in real-time."
-                    : 'Go ONLINE above to start receiving service requests from nearby customers.'}
+                <TrendingUp size={14} color={colors.primary} />
+              </View>
+              <Text className="text-lg font-bold text-gray-900">
+                PKR {totalEarnings}
+              </Text>
+              <Text className="text-[10px] text-gray-400 mt-0.5">
+                Cash settled jobs
+              </Text>
+            </Card>
+
+            <Card className="flex-1 p-4">
+              <View className="flex-row items-center justify-between mb-1">
+                <Text className="text-[11px] font-semibold text-gray-500 uppercase">
+                  Completed
+                </Text>
+                <CheckCircle size={14} color="#059669" />
+              </View>
+              <Text className="text-lg font-bold text-gray-900">
+                {completedJobs} Jobs
+              </Text>
+              <Text className="text-[10px] text-gray-400 mt-0.5">
+                ★ 5.0 Rating average
+              </Text>
+            </Card>
+          </View>
+
+          {/* Incoming Job Requests (S-8) */}
+          <View className="mb-6">
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-base font-bold text-gray-900">
+                Incoming Requests ({pendingBookings.length})
+              </Text>
+              {pendingBookings.length > 0 && (
+                <Badge label="Action Required" variant="warning" />
+              )}
+            </View>
+
+            {pendingBookings.length === 0 ? (
+              <Card className="p-6 items-center">
+                <Clock size={28} color="#9CA3AF" />
+                <Text className="text-xs font-semibold text-gray-600 mt-2">
+                  No pending requests
+                </Text>
+                <Text className="text-[11px] text-gray-400 text-center mt-0.5">
+                  Stay online to receive instant booking notifications from nearby clients.
                 </Text>
               </Card>
             ) : (
-              activeBookings.map((b) => (
-                <Card key={b.bookingId} className="mt-3 p-4">
-                  <View className="flex-row items-center gap-2">
-                    <Text
-                      className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                        b.status === 'pending'
-                          ? 'bg-accent-terracotta/10 text-accent-terracotta'
-                          : 'bg-primary/10 text-primary'
-                      }`}
-                    >
-                      {b.status}
-                    </Text>
-                    <Text className="font-mono text-xs font-bold text-ink/40">
-                      #{String(b.bookingId || '').slice(0, 8) || 'N/A'}
-                    </Text>
-                  </View>
-                  <Text className="mt-2 text-base font-bold text-ink">{b.customerName}</Text>
-                  <View className="mt-1 flex-row flex-wrap gap-x-4 gap-y-1">
-                    <Text className="flex-row items-center gap-1 text-xs font-medium text-ink/60">
-                      <Icon icon={MapPin} color={BRAND.primary} size={13} /> {b.address}
-                    </Text>
-                    <Text className="flex-row items-center gap-1 text-xs font-medium text-ink/60">
-                      <Icon icon={Clock} color={BRAND.primary} size={13} /> {b.timeSlot} ({b.date})
+              pendingBookings.map((b) => (
+                <Card key={b.bookingId || b.id} className="p-4 mb-3">
+                  <View className="flex-row justify-between items-start mb-2">
+                    <View>
+                      <Text className="text-sm font-bold text-gray-900">
+                        {b.customerName || 'Customer Request'}
+                      </Text>
+                      <Text className="text-xs text-gray-500 mt-0.5">
+                        {b.providerCategory || 'Service'} • {b.date || 'Today'} ({b.timeSlot || 'Flexible'})
+                      </Text>
+                    </View>
+                    <Text className="text-sm font-bold text-primary">
+                      PKR {b.totalPrice || 0}
                     </Text>
                   </View>
-                  <Text className="mt-2 text-xs font-bold text-primary">
-                    PKR Invoice: Rs. {b.totalPrice}{' '}
-                    <Text className="text-[10px] font-normal text-ink/40">
-                      (Rs. {b.basePrice} base + Rs. {b.travelFee} travel)
+
+                  <View className="flex-row items-center gap-1.5 p-2 rounded-lg bg-gray-50 mb-3">
+                    <MapPin size={13} color="#6B7280" />
+                    <Text numberOfLines={1} className="text-xs text-gray-700 flex-1">
+                      {b.address || 'Location provided upon accept'}
                     </Text>
-                  </Text>
-                  <View className="mt-3 flex-row gap-2">
-                    <Pressable
-                      onPress={() => openChat(b.bookingId)}
-                      className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-border bg-surface py-2.5"
-                    >
-                      <Icon icon={MessageSquare} color={BRAND.primary} size={15} />
-                      <Text className="text-xs font-semibold text-ink">Chat Client</Text>
-                    </Pressable>
-                    {b.status === 'pending' && (
-                      <Pressable
-                        onPress={() => acceptBooking(b)}
-                        className="flex-[2] flex-row items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5"
-                      >
-                        <Icon icon={CheckCircle} color="#fff" size={15} />
-                        <Text className="text-xs font-semibold text-white">Accept Job</Text>
-                      </Pressable>
-                    )}
-                    {b.status === 'confirmed' && (
-                      <Pressable
-                        onPress={() => openCompleteModal(b)}
-                        className="flex-[2] flex-row items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5"
-                      >
-                        <Icon icon={CheckCircle} color="#fff" size={15} />
-                        <Text className="text-xs font-semibold text-white">Complete Job</Text>
-                      </Pressable>
-                    )}
+                  </View>
+
+                  <View className="flex-row gap-2.5">
+                    <Button
+                      title="Decline"
+                      variant="ghost"
+                      onPress={() => declineBooking(b)}
+                      className="flex-1 py-2 min-h-[40px]"
+                    />
+                    <Button
+                      title="Accept Job"
+                      onPress={() => acceptBooking(b)}
+                      className="flex-1 py-2 min-h-[40px]"
+                    />
                   </View>
                 </Card>
               ))
             )}
           </View>
 
-          {/* Recent earnings */}
-          <View className="mt-6">
-            <Text className="flex-row items-center gap-2 text-base font-bold text-ink">
-              <Icon icon={DollarSign} color={BRAND.primary} size={18} /> Recent Earnings (
-              {recentHistory.length})
-            </Text>
-            <Card className="mt-3 p-4">
-              {recentHistory.length === 0 ? (
-                <Text className="py-6 text-center text-xs text-ink/40">
-                  No completed jobs yet. Keep online and complete assignments to earn!
-                </Text>
-              ) : (
-                recentHistory.map((h) => (
-                  <View
-                    key={h.bookingId}
-                    className="flex-row items-center justify-between border-b border-border py-3 last:border-b-0"
-                  >
-                    <View>
-                      <Text className="text-xs font-bold text-ink">{h.customerName}</Text>
-                      <Text className="text-[10px] font-medium text-ink/40">{h.date}</Text>
-                    </View>
-                    <View className="items-end">
-                      <Text className="text-xs font-extrabold text-primary">
-                        +Rs. {h.totalPrice}
-                      </Text>
-                      <Text className="text-[9px] text-ink/40">Completed</Text>
-                    </View>
+          {/* Active Jobs in Progress */}
+          {activeBookings.length > 0 && (
+            <View className="mb-6">
+              <Text className="text-base font-bold text-gray-900 mb-3">
+                Active Jobs ({activeBookings.length})
+              </Text>
+              {activeBookings.map((b) => (
+                <Card key={b.bookingId || b.id} className="p-4 mb-3">
+                  <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-sm font-bold text-gray-900">
+                      {b.customerName || 'Active Job'}
+                    </Text>
+                    <Badge label="In Progress" variant="warning" />
                   </View>
-                ))
-              )}
-            </Card>
-          </View>
+                  <Text className="text-xs text-gray-600 mb-3">
+                    {b.address}
+                  </Text>
+                  <View className="flex-row gap-2">
+                    <Button
+                      title="Chat with Client"
+                      variant="outline"
+                      onPress={() => openChat(b.bookingId || b.id)}
+                      className="flex-1 py-2 min-h-[42px]"
+                    />
+                    <Button
+                      title="Mark Completed"
+                      onPress={() => openCompleteModal(b)}
+                      className="flex-1 py-2 min-h-[42px]"
+                    />
+                  </View>
+                </Card>
+              ))}
+            </View>
+          )}
         </View>
-      </ScrollView>
 
-      {/* Job completion photo modal */}
-      <Modal
-        visible={!!completingBooking}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setCompletingBooking(null)}
-      >
-        <Pressable className="flex-1 bg-black/50" onPress={() => setCompletingBooking(null)}>
-          <View className="flex-1 justify-end">
-            <Pressable
-              className="bg-surface-raised rounded-t-3xl p-6"
-              onPress={(e) => e.stopPropagation()}
-            >
-              <View className="flex-row items-center justify-between">
-                <Text className="text-lg font-bold text-ink">Complete Job</Text>
-                <Pressable onPress={() => setCompletingBooking(null)} hitSlop={8}>
-                  <Icon icon={X} color={BRAND.muted} size={20} />
-                </Pressable>
-              </View>
-              <Text className="text-sm text-ink/60 mt-1">
-                Add optional before/after photos so the client can verify the work.
+        {/* Completion Modal */}
+        <Modal
+          visible={!!completingBooking}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setCompletingBooking(null)}
+        >
+          <View className="flex-1 items-center justify-center bg-black/50 p-4">
+            <View className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
+              <Text className="text-base font-bold text-gray-900 mb-1">
+                Complete Service
+              </Text>
+              <Text className="text-xs text-gray-500 mb-4">
+                Confirm cash received and take job photos before closing.
               </Text>
 
-              <View className="flex-row gap-3 mt-5">
-                {completionPhotos.map((uri, i) => (
-                  <View
-                    key={i}
-                    className="h-20 w-20 rounded-xl bg-ink/10 items-center justify-center"
-                  >
-                    <Icon icon={CheckCircle} color={BRAND.primary} size={24} />
-                  </View>
-                ))}
-                {completionPhotos.length < 3 && (
-                  <Pressable
-                    onPress={pickCompletionPhoto}
-                    className="h-20 w-20 rounded-xl border border-dashed border-primary/40 items-center justify-center"
-                  >
-                    <Icon icon={Camera} color={BRAND.primary} size={24} />
-                  </Pressable>
-                )}
-              </View>
-              {completionPhotos.length > 0 && (
-                <Text className="text-xs text-ink/50 mt-2">
-                  {completionPhotos.length} photo(s) captured
-                </Text>
-              )}
-
-              {/* COD Cash Received Confirmation */}
               <Pressable
                 onPress={() => setCodCashReceived(!codCashReceived)}
-                className="mt-4 flex-row items-center gap-3 rounded-xl border border-border bg-surface p-3"
+                className="flex-row items-center gap-2.5 p-3 rounded-xl bg-gray-50 border border-gray-200 mb-4"
               >
                 <View
-                  className={`h-5 w-5 rounded-md border items-center justify-center ${
-                    codCashReceived ? 'border-primary bg-primary' : 'border-ink/30'
+                  className={`w-5 h-5 rounded-md border items-center justify-center ${
+                    codCashReceived ? 'bg-primary border-primary' : 'border-gray-400'
                   }`}
                 >
-                  {codCashReceived && <Icon icon={CheckCircle} color="#fff" size={14} />}
+                  {codCashReceived && <Text className="text-xs text-white font-bold">✓</Text>}
                 </View>
-                <View className="flex-1">
-                  <Text className="text-xs font-bold text-ink">
-                    Cash payment received (Rs.{' '}
-                    {completingBooking.totalPrice || completingBooking.estimated_price || 0})
-                  </Text>
-                  <Text className="text-[10px] text-ink/50">
-                    Check this if the client has handed over the cash.
-                  </Text>
-                </View>
+                <Text className="text-xs font-semibold text-gray-800">
+                  Cash Payment of PKR {completingBooking?.totalPrice || 0} Received
+                </Text>
               </Pressable>
 
               <Pressable
-                onPress={confirmComplete}
-                disabled={finishing}
-                className="mt-6 rounded-xl bg-primary py-3.5 flex-row items-center justify-center gap-2"
+                onPress={pickCompletionPhoto}
+                className="w-full py-3 rounded-xl border border-dashed border-gray-300 items-center justify-center flex-row gap-2 mb-4"
               >
-                {finishing ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Icon icon={CheckCircle} color="#fff" size={18} />
-                )}
-                <Text className="text-sm font-bold text-white">
-                  {finishing ? 'Uploading…' : 'Mark as Completed'}
+                <Camera size={16} color={colors.primary} />
+                <Text className="text-xs font-semibold text-primary">
+                  {completionPhotos.length > 0
+                    ? `${completionPhotos.length} Photo(s) Attached`
+                    : 'Attach Job Photo (Optional)'}
                 </Text>
               </Pressable>
-            </Pressable>
+
+              <View className="flex-row gap-3">
+                <Button
+                  title="Cancel"
+                  variant="secondary"
+                  onPress={() => setCompletingBooking(null)}
+                  className="flex-1"
+                />
+                <Button
+                  title="Confirm"
+                  onPress={confirmComplete}
+                  loading={finishing}
+                  className="flex-1"
+                />
+              </View>
+            </View>
           </View>
-        </Pressable>
-      </Modal>
+        </Modal>
+      </ScrollView>
     </>
   );
 };

@@ -1,30 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { BRAND } from '@/src/theme/colors';
-import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Pressable, ActivityIndicator, Linking } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
-  ShieldAlert,
   ArrowLeft,
   MapPin,
   Clock,
   MessageSquare,
   CheckCircle,
-  Navigation,
   Phone,
-  User,
-  ChevronDown,
-  ChevronUp,
-  Compass,
+  ShieldAlert,
 } from 'lucide-react-native';
 import { useAuth } from '@/src/context/AuthContext';
 import { supabase } from '@/src/services/supabase/client';
-import { listenToBookings, writeDocument } from '@/src/services/supabase/legacy';
-
+import { listenToBookings } from '@/src/services/supabase/legacy';
 import { LiveMap } from '@/src/components/features/LiveMap';
 import { Card } from '@/src/components/ui/Card';
-import { Icon } from '@/src/components/ui/Icon';
-import { getDistanceKm, estimateTravelTimeMinutes } from '@/src/utils/location';
-import { getCurrentCoords } from '@/src/utils/geolocation';
+import { Button } from '@/src/components/ui/Button';
+import { Avatar } from '@/src/components/ui/Avatar';
+import { Badge } from '@/src/components/ui/Badge';
+import { colors } from '@/src/theme/tokens';
+import { isRTL } from '@/src/i18n';
 
 interface Booking {
   bookingId: string;
@@ -63,13 +58,11 @@ export default function LiveTrackingScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
+  const rtl = isRTL();
 
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isTopExpanded, setIsTopExpanded] = useState(false);
-  const [isBottomExpanded, setIsBottomExpanded] = useState(false);
-  const [isSimulating, setIsSimulating] = useState(false);
   const [liveWorkerLocation, setLiveWorkerLocation] = useState<{
     lat: number;
     lng: number;
@@ -77,18 +70,10 @@ export default function LiveTrackingScreen() {
     speed: number;
     timestamp: string;
   } | null>(null);
-  const [liveClientLocation, setLiveClientLocation] = useState<{
-    lat: number;
-    lng: number;
-    timestamp: string;
-  } | null>(null);
 
-  const simIntervalRef = useRef<any>(null);
-  const previousCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
   const trackingChannelRef = useRef<any>(null);
-  const lastDbWriteRef = useRef<number>(0);
 
-  // 1. Subscribe to Realtime broadcast channel for live location (zero DB overload)
+  // Subscribe to Realtime tracking channel
   useEffect(() => {
     if (!id) return;
     const channelName = `tracking:${id}`;
@@ -98,452 +83,165 @@ export default function LiveTrackingScreen() {
     channel.on('broadcast', { event: 'location' }, ({ payload }: any) => {
       if (!payload) return;
       if (payload.role === 'worker') {
-        setLiveWorkerLocation(payload.location);
-      } else if (payload.role === 'client') {
-        setLiveClientLocation(payload.location);
+        setLiveWorkerLocation({
+          lat: payload.lat,
+          lng: payload.lng,
+          heading: payload.heading || 0,
+          speed: payload.speed || 0,
+          timestamp: payload.timestamp || new Date().toISOString(),
+        });
       }
     });
 
     channel.subscribe();
 
     return () => {
-      channel.unsubscribe();
       supabase.removeChannel(channel);
-      trackingChannelRef.current = null;
     };
   }, [id]);
 
+  // Subscribe to Booking state changes
   useEffect(() => {
-    if (!id || !user) return;
-    setLoading(true);
-    const unsubscribe = listenToBookings('bookingId', id, (data) => {
-      if (data && data.length > 0) {
-        const activeBooking = data[0] as Booking;
-        if (activeBooking.customerId !== user.id && activeBooking.providerId !== user.id) {
-          setError('Unauthorized: You do not have permission to track this service.');
-          setLoading(false);
-          return;
-        }
-        setBooking(activeBooking);
+    if (!id) return;
+    const unsubscribe = listenToBookings('bookingId', id, (allBookings: any[]) => {
+      const match = allBookings[0];
+      if (match) {
+        setBooking(match);
         setError(null);
       } else {
-        setError('Booking tracking session not found.');
+        setError('Booking not found or not accessible.');
       }
       setLoading(false);
     });
-    return () => unsubscribe();
-  }, [id, user]);
-
-  // GPS location sharing — broadcasted via WebSockets (Realtime) instead of DB writes
-  useEffect(() => {
-    if (!booking || !user) return;
-    const isActive = booking.status === 'confirmed' || booking.status === 'in_progress';
-    if (!isActive) return;
-
-    let cancelled = false;
-    const interval = setInterval(async () => {
-      if (cancelled) return;
-      const coords = await getCurrentCoords();
-      if (!coords || cancelled) return;
-
-      const currentLat = coords.lat;
-      const currentLng = coords.lng;
-      const timestamp = new Date().toISOString();
-      let heading = 0;
-      if (previousCoordsRef.current) {
-        const p1 = previousCoordsRef.current;
-        const dy = currentLat - p1.lat;
-        const dx = currentLng - p1.lng;
-        if (dx !== 0 || dy !== 0) heading = Math.atan2(dy, dx) * (180 / Math.PI);
-      }
-      previousCoordsRef.current = { lat: currentLat, lng: currentLng };
-
-      const isWorker = user.id === booking.providerId;
-      const locPayload = isWorker
-        ? {
-            lat: currentLat,
-            lng: currentLng,
-            heading,
-            speed: 0,
-            timestamp,
-          }
-        : { lat: currentLat, lng: currentLng, timestamp };
-
-      // Update sender's local state immediately
-      if (isWorker) {
-        setLiveWorkerLocation(locPayload as any);
-      } else {
-        setLiveClientLocation(locPayload as any);
-      }
-
-      // Broadcast over Supabase Realtime channel (zero database write)
-      if (trackingChannelRef.current) {
-        trackingChannelRef.current
-          .send({
-            type: 'broadcast',
-            event: 'location',
-            payload: {
-              role: isWorker ? 'worker' : 'client',
-              location: locPayload,
-            },
-          })
-          .catch?.(() => {});
-      }
-
-      // Throttled fallback: write to DB at most once per 60s
-      const now = Date.now();
-      if (now - lastDbWriteRef.current > 60_000) {
-        lastDbWriteRef.current = now;
-        const dbPayload = isWorker
-          ? { workerLocation: locPayload }
-          : { clientLocation: locPayload };
-        writeDocument('bookings', booking.bookingId, {
-          ...booking,
-          ...dbPayload,
-        }).catch((err) => console.error('Periodic fallback tracking save failed:', err));
-      }
-    }, 6000);
 
     return () => {
-      cancelled = true;
-      clearInterval(interval);
-      if (simIntervalRef.current) {
-        clearInterval(simIntervalRef.current);
-        simIntervalRef.current = null;
-      }
+      if (typeof unsubscribe === 'function') unsubscribe();
     };
-  }, [booking?.status, user, booking?.bookingId, booking?.providerId]);
+  }, [id]);
 
-  const startSimulation = async () => {
-    if (!booking) return;
-    setIsSimulating(true);
-
-    const clientPos = liveClientLocation || booking.coordinates || { lat: 31.5204, lng: 74.3587 };
-    let currentLat = clientPos.lat - 0.012;
-    let currentLng = clientPos.lng - 0.012;
-    const totalSteps = 15;
-    let stepNum = 0;
-
-    const initialSimLoc = {
-      lat: currentLat,
-      lng: currentLng,
-      heading: 45,
-      speed: 9.5,
-      timestamp: new Date().toISOString(),
-    };
-    setLiveWorkerLocation(initialSimLoc);
-    if (trackingChannelRef.current) {
-      trackingChannelRef.current
-        .send({
-          type: 'broadcast',
-          event: 'location',
-          payload: { role: 'worker', location: initialSimLoc },
-        })
-        .catch?.(() => {});
+  const handleCall = () => {
+    if (booking?.customerPhone) {
+      Linking.openURL(`tel:${booking.customerPhone}`);
     }
+  };
 
-    simIntervalRef.current = setInterval(() => {
-      stepNum++;
-      if (stepNum > totalSteps) {
-        clearInterval(simIntervalRef.current);
-        simIntervalRef.current = null;
-        setIsSimulating(false);
-        return;
-      }
-      const fraction = stepNum / totalSteps;
-      const nextLat = clientPos.lat - 0.012 + 0.012 * fraction;
-      const nextLng = clientPos.lng - 0.012 + 0.012 * fraction;
-      const dy = nextLat - currentLat;
-      const dx = nextLng - currentLng;
-      const heading = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
-      currentLat = nextLat;
-      currentLng = nextLng;
-
-      const simLoc = {
-        lat: nextLat,
-        lng: nextLng,
-        heading,
-        speed: 9.5,
-        timestamp: new Date().toISOString(),
-      };
-      setLiveWorkerLocation(simLoc);
-      if (trackingChannelRef.current) {
-        trackingChannelRef.current
-          .send({
-            type: 'broadcast',
-            event: 'location',
-            payload: { role: 'worker', location: simLoc },
-          })
-          .catch?.(() => {});
-      }
-    }, 2500);
+  const handleChat = () => {
+    if (id) {
+      router.push(`/chat?bookingId=${id}`);
+    }
   };
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-surface">
-        <ActivityIndicator size="large" color={BRAND.primary} />
-        <Text className="mt-4 text-sm text-ink/60">Initializing Live Map...</Text>
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text className="mt-3 text-xs font-semibold text-gray-500">
+          Connecting to live tracker...
+        </Text>
       </View>
     );
   }
 
-  if (error || !booking) {
-    return (
-      <View className="flex-1 items-center justify-center bg-surface px-6">
-        <View className="mb-6 flex-row items-center gap-2 rounded-xl border border-accent-terracotta/20 bg-accent-terracotta/10 p-4">
-          <Icon icon={ShieldAlert} color={BRAND.caution} size={20} />
-          <Text className="flex-1 text-accent-terracotta">{error || 'Booking not found.'}</Text>
-        </View>
-        <Pressable
-          onPress={() => router.back()}
-          className="flex-row items-center gap-2 rounded-xl bg-primary px-6 py-3"
-        >
-          <Icon icon={ArrowLeft} color="#fff" size={18} />
-          <Text className="font-semibold text-white">Go Back</Text>
-        </Pressable>
-      </View>
-    );
-  }
+  const statusVariantMap: Record<string, any> = {
+    pending: 'warning',
+    confirmed: 'info',
+    in_progress: 'warning',
+    completed: 'success',
+    cancelled: 'danger',
+  };
 
-  const isWorker = user?.id === booking.providerId;
-  const clientCoords = liveClientLocation ||
-    booking.clientLocation ||
-    booking.coordinates || { lat: 31.5204, lng: 74.3587 };
-  const workerCoords = liveWorkerLocation || booking.workerLocation || null;
-
-  let distance = booking.distanceKm;
-  let etaMinutes = estimateTravelTimeMinutes(distance);
-  if (workerCoords) {
-    const liveDistance = getDistanceKm(
-      workerCoords.lat,
-      workerCoords.lng,
-      clientCoords.lat,
-      clientCoords.lng
-    );
-    distance = Number(liveDistance.toFixed(2));
-    etaMinutes = estimateTravelTimeMinutes(liveDistance);
-  }
-
-  const isCompleted = booking.status === 'completed' || booking.status === 'closed';
+  const currentStatus = booking?.status || 'pending';
 
   return (
-    <ScrollView
-      className="flex-1 bg-surface"
-      contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
-      showsVerticalScrollIndicator={false}
-    >
-      <View className="px-4">
-        {/* Header */}
-        <View className="mb-4 flex-row items-center gap-3">
-          <Pressable
-            onPress={() => router.back()}
-            className="h-10 w-10 items-center justify-center rounded-full border border-border"
-          >
-            <Icon icon={ArrowLeft} color={BRAND.ink} size={20} />
-          </Pressable>
-          <View className="flex-1">
-            <Text className="font-display text-lg font-medium text-ink">Live Tracking</Text>
-            <Text className="text-xs text-ink/60">
-              {isCompleted
-                ? 'Service complete. Location sharing has stopped.'
-                : `Real-time location coordination for ${booking.providerCategory}`}
-            </Text>
-          </View>
-        </View>
-
-        {/* Map card */}
-        <View className="overflow-hidden rounded-2xl border border-border">
-          <View className="relative bg-surface">
-            <LiveMap
-              workerCoords={workerCoords}
-              clientCoords={clientCoords}
-              isCompleted={isCompleted}
-              className="h-[50vh] w-full"
-            />
-
-            {/* Floating Destination card */}
-            <View className="absolute left-3 right-3 top-3">
-              <View className="overflow-hidden rounded-2xl bg-[#121E16] p-4">
-                <View className="flex-row items-start justify-between gap-3">
-                  <View className="flex-row items-start gap-2">
-                    <View className="mt-0.5 h-8 w-8 items-center justify-center rounded-full bg-accent-terracotta/20">
-                      <Icon icon={MapPin} color={BRAND.caution} size={16} />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="font-mono text-[10px] uppercase tracking-widest text-white/50">
-                        Destination
-                      </Text>
-                      <Text className="text-sm font-bold text-white">{booking.address}</Text>
-                    </View>
-                  </View>
-                  <Pressable onPress={() => setIsTopExpanded(!isTopExpanded)} className="p-1">
-                    <Icon
-                      icon={isTopExpanded ? ChevronDown : ChevronUp}
-                      color="#ffffffbb"
-                      size={16}
-                    />
-                  </Pressable>
-                </View>
-                {isTopExpanded && (
-                  <View className="mt-3 border-t border-white/10 pt-2">
-                    <Text className="text-xs text-white/70">
-                      <Text className="font-bold">Customer:</Text> {booking.customerName}
-                    </Text>
-                    <Text className="mt-1 text-xs text-white/70">
-                      <Text className="font-bold">Scheduled Slot:</Text> {booking.date} •{' '}
-                      {booking.timeSlot}
-                    </Text>
-                    <Text className="mt-1 text-xs text-white/70">
-                      <Text className="font-bold">Service Type:</Text> {booking.providerCategory}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-
-            {/* Floating ETA card */}
-            <View className="absolute bottom-3 left-3 right-3">
-              <Card className="p-4">
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center gap-2">
-                    <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                      <Icon icon={Clock} color={BRAND.primary} size={16} />
-                    </View>
-                    <View>
-                      <Text className="font-mono text-[10px] uppercase tracking-wider text-ink/40">
-                        ETA Estimate
-                      </Text>
-                      <Text className="text-base font-extrabold text-ink">
-                        {isCompleted ? 'Arrived' : `${etaMinutes} mins away`}
-                      </Text>
-                    </View>
-                  </View>
-                  <View className="flex-row items-center gap-2">
-                    <Text className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-bold text-primary">
-                      {distance} km
-                    </Text>
-                    <Pressable
-                      onPress={() => setIsBottomExpanded(!isBottomExpanded)}
-                      className="p-1"
-                    >
-                      <Icon
-                        icon={isBottomExpanded ? ChevronDown : ChevronUp}
-                        color="rgba(20,35,28,0.5)"
-                        size={16}
-                      />
-                    </Pressable>
-                  </View>
-                </View>
-                {isBottomExpanded && (
-                  <View className="mt-3 border-t border-border pt-2">
-                    <Text className="text-xs text-ink/70">
-                      <Text className="font-bold">Assigned Pro:</Text> {booking.providerName}
-                    </Text>
-                    <Text className="mt-1 text-xs text-ink/70">
-                      <Text className="font-bold">Travel Charge:</Text> Rs.{' '}
-                      {booking.totalPrice - booking.basePrice}
-                    </Text>
-                    <Text className="mt-1 text-[10px] italic text-ink/40">
-                      ETA is computed based on relative coordinate spacing assuming baseline driving
-                      parameters.
-                    </Text>
-                  </View>
-                )}
-              </Card>
-            </View>
-          </View>
-        </View>
-
-        {/* Tracking info sidebar */}
-        <Card className="mt-4 p-5">
-          <Text className="mb-3 border-b border-border pb-2 font-display text-lg font-medium text-ink">
-            Live Location Tracking
-          </Text>
-
-          <View className="gap-2.5">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-xs font-semibold text-ink/75">Tracking Status:</Text>
-              <View
-                className={`rounded-full border px-2.5 py-0.5 ${
-                  isCompleted
-                    ? 'border-emerald-500/20 bg-emerald-500/10'
-                    : 'border-primary/20 bg-primary/10'
-                }`}
-              >
-                <Text
-                  className={`text-[10px] font-bold uppercase ${
-                    isCompleted ? 'text-emerald-600' : 'text-primary'
-                  }`}
-                >
-                  {isCompleted ? 'Closed' : 'Active Tracking'}
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row items-center justify-between">
-              <Text className="text-xs font-semibold text-ink/75">Worker Coordinates:</Text>
-              <Text className="font-mono text-[10px] text-ink/70">
-                {workerCoords
-                  ? `${workerCoords.lat.toFixed(4)}, ${workerCoords.lng.toFixed(4)}`
-                  : 'Acquiring...'}
-              </Text>
-            </View>
-            <View className="flex-row items-center justify-between">
-              <Text className="text-xs font-semibold text-ink/75">Your Location:</Text>
-              <Text className="font-mono text-[10px] text-ink/70">
-                {clientCoords
-                  ? `${clientCoords.lat.toFixed(4)}, ${clientCoords.lng.toFixed(4)}`
-                  : 'Searching...'}
-              </Text>
-            </View>
-          </View>
-
-          <View className="mt-3 rounded-xl border border-primary/10 bg-primary/5 p-3">
-            <Text className="text-xs font-bold text-primary">Location Privacy Notice</Text>
-            <Text className="mt-1 text-xs leading-relaxed text-ink/75">
-              Bi-directional coordinate tracking is only enabled while the booking is active.
-              Sharing stops immediately upon job completion or cancellation.
-            </Text>
-          </View>
-
-          <View className="mt-4 gap-2.5">
-            {!isCompleted && isWorker && (
-              <Pressable
-                onPress={startSimulation}
-                disabled={isSimulating}
-                className={`flex-row items-center justify-center gap-2 rounded-xl border py-3 ${
-                  isSimulating ? 'border-amber-500/20 bg-amber-500/10' : 'border-primary bg-primary'
-                }`}
-              >
-                <Icon icon={Compass} color={isSimulating ? BRAND.warning : '#fff'} size={16} />
-                <Text
-                  className={`text-sm font-bold ${isSimulating ? 'text-amber-600' : 'text-white'}`}
-                >
-                  {isSimulating ? 'Simulating Movement...' : 'Simulate Worker Movement'}
-                </Text>
-              </Pressable>
-            )}
-
-            <Pressable
-              onPress={() => router.push(`/chat?bookingId=${booking.bookingId}`)}
-              className="flex-row items-center justify-center gap-2 rounded-xl border border-border bg-surface py-3"
-            >
-              <Icon icon={MessageSquare} color={BRAND.primary} size={16} />
-              <Text className="text-sm font-bold text-ink">Open Booking Chat</Text>
-            </Pressable>
-
-            {!isWorker && booking.status === 'completed' && (
-              <Pressable
-                onPress={() => router.push('/bookings')}
-                className="flex-row items-center justify-center gap-2 rounded-xl bg-primary py-3"
-              >
-                <Icon icon={CheckCircle} color="#fff" size={16} />
-                <Text className="text-sm font-bold text-white">Confirm Job Completed</Text>
-              </Pressable>
-            )}
-          </View>
-        </Card>
+    <View className="flex-1 bg-background">
+      {/* Top Bar */}
+      <View className="pt-12 pb-3 px-4 bg-white border-b border-border flex-row items-center justify-between shadow-xs">
+        <Pressable
+          onPress={() => router.back()}
+          className="w-9 h-9 rounded-full bg-gray-100 items-center justify-center"
+        >
+          <ArrowLeft size={18} color="#1F2937" />
+        </Pressable>
+        <Text className="text-sm font-bold text-gray-900">Live Service Tracking</Text>
+        <Badge
+          label={currentStatus.replace('_', ' ').toUpperCase()}
+          variant={statusVariantMap[currentStatus] || 'neutral'}
+        />
       </View>
-    </ScrollView>
+
+      {/* Map View */}
+      <View className="flex-1">
+        <LiveMap
+          clientCoords={booking?.coordinates || null}
+          workerCoords={liveWorkerLocation || (booking?.workerLocation as any) || null}
+          isCompleted={currentStatus === 'completed'}
+        />
+      </View>
+
+      {/* Bottom Sheet Card */}
+      <View className="p-4 bg-white border-t border-border rounded-t-3xl shadow-lg">
+        {/* Provider Profile & Actions */}
+        <View className="flex-row items-center gap-3 mb-3">
+          <Avatar
+            name={booking?.providerName || 'Worker'}
+            className="w-12 h-12 rounded-full border border-gray-200"
+          />
+          <View className="flex-1">
+            <Text className="text-sm font-bold text-gray-900">
+              {booking?.providerName || 'Service Provider'}
+            </Text>
+            <Text className="text-xs text-gray-500">
+              {booking?.providerCategory || 'Technician'}
+            </Text>
+            <View className="flex-row items-center gap-2 mt-0.5">
+              <Clock size={12} color={colors.primary} />
+              <Text className="text-xs font-semibold text-primary">
+                ETA ~ 15 mins
+              </Text>
+            </View>
+          </View>
+
+          {/* Quick Call & Chat */}
+          <View className="flex-row gap-2">
+            <Pressable
+              onPress={handleCall}
+              className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-200 items-center justify-center active:bg-emerald-100"
+            >
+              <Phone size={16} color="#059669" />
+            </Pressable>
+            <Pressable
+              onPress={handleChat}
+              className="w-10 h-10 rounded-full bg-blue-50 border border-blue-200 items-center justify-center active:bg-blue-100"
+            >
+              <MessageSquare size={16} color="#2563EB" />
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Address and Price pill */}
+        <View className="p-3 bg-gray-50 rounded-xl border border-gray-200 flex-row items-center justify-between mb-3">
+          <View className="flex-1 mr-3 flex-row items-center gap-1.5">
+            <MapPin size={14} color="#6B7280" />
+            <Text numberOfLines={1} className="text-xs text-gray-700 font-medium">
+              {booking?.address || 'Service location'}
+            </Text>
+          </View>
+          <Text className="text-xs font-bold text-primary">
+            PKR {booking?.totalPrice || 0}
+          </Text>
+        </View>
+
+        {/* Emergency SOS */}
+        <Pressable
+          onPress={() => Linking.openURL('tel:15')}
+          className="flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl bg-red-50 border border-red-200"
+        >
+          <ShieldAlert size={14} color="#DC2626" />
+          <Text className="text-xs font-bold text-red-700">
+            Khidmat Safety Shield (Emergency 15)
+          </Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }
