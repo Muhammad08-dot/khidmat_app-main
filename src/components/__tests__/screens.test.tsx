@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { setLang } from '@/src/i18n';
+import { isRTL } from '@/src/i18n/direction';
 
 // Screens to test
 import AuthScreen from '@/app/(auth)/auth';
@@ -8,6 +10,9 @@ import { CustomerHome } from '@/src/components/features/CustomerHome';
 import { ProviderHome } from '@/src/components/features/ProviderHome';
 import ConfirmBookingScreen from '@/app/(booking)/booking';
 import LiveTrackingScreen from '@/app/(booking)/track/[id]';
+import ProvidersScreen from '@/app/providers';
+import BookingsScreen from '@/app/(tabs)/bookings';
+import AdminScreen from '@/app/admin';
 
 // Mocks
 jest.mock('expo-router', () => ({
@@ -214,6 +219,54 @@ describe('Redesigned Screens Component Render Tests (P2 / Item 5)', () => {
       await render(<LiveTrackingScreen />);
       expect(screen.getByText('Live Service Tracking')).toBeTruthy();
       expect(screen.getByText('Khidmat Safety Shield (Emergency 15)')).toBeTruthy();
+    });
+  });
+
+  describe('Providers, Bookings & Admin Direction Assertions (M3-9)', () => {
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
+    test('ProvidersScreen renders in LTR (EN) and RTL (UR)', async () => {
+      setLang('en');
+      expect(isRTL()).toBe(false);
+      await render(<ProvidersScreen />);
+      expect(screen.getAllByText(/Electrician|Providers|Available/i).length).toBeGreaterThan(0);
+
+      setLang('ur');
+      expect(isRTL()).toBe(true);
+      await render(<ProvidersScreen />);
+      expect(isRTL()).toBe(true);
+    });
+
+    test('BookingsScreen renders in LTR (EN) and RTL (UR)', async () => {
+      setLang('en');
+      expect(isRTL()).toBe(false);
+      await render(<BookingsScreen />);
+      expect(screen.getByText(/Tariq Electrician/i)).toBeTruthy();
+
+      setLang('ur');
+      expect(isRTL()).toBe(true);
+      await render(<BookingsScreen />);
+      expect(screen.getByText(/Tariq Electrician/i)).toBeTruthy();
+    });
+
+    test('AdminScreen renders restricted/console view in EN and UR', async () => {
+      setLang('en');
+      expect(isRTL()).toBe(false);
+      await render(
+        <QueryClientProvider client={qc}>
+          <AdminScreen />
+        </QueryClientProvider>
+      );
+      expect(screen.getByText('Admin Console')).toBeTruthy();
+
+      setLang('ur');
+      expect(isRTL()).toBe(true);
+      await render(
+        <QueryClientProvider client={qc}>
+          <AdminScreen />
+        </QueryClientProvider>
+      );
+      expect(screen.getByText('ایڈمن کونسل')).toBeTruthy();
     });
   });
 });
