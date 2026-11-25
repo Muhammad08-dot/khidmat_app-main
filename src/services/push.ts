@@ -7,20 +7,24 @@
  * owner under RLS, so clients send to tokens they can legitimately see.
  */
 import { Platform } from 'react-native';
-import Constants from 'expo-constants';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { supabase } from './supabase/client';
 
-// Show alerts while the app is foregrounded.
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+const IS_EXPO_GO = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+// Show alerts while the app is foregrounded (skip if Expo Go remote push warning applies).
+if (!IS_EXPO_GO) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+}
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 
@@ -31,6 +35,10 @@ const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
  */
 export async function registerPushToken(userId: string): Promise<void> {
   if (Platform.OS === 'web') return; // Expo push targets iOS/Android only
+  if (IS_EXPO_GO) {
+    console.info('[push] Remote push notifications are not available in Expo Go.');
+    return;
+  }
   try {
     let { status } = await Notifications.getPermissionsAsync();
     if (status !== 'granted') {

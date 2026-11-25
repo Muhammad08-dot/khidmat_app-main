@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, ScrollView, Pressable, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, ScrollView, Pressable, ActivityIndicator, Linking, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft,
@@ -125,6 +125,38 @@ export default function LiveTrackingScreen() {
     }
   };
 
+  const dialEmergencyNumber = async (number: string, labelEn: string, labelUr: string) => {
+    try {
+      await Linking.openURL(`tel:${number}`);
+    } catch {
+      Alert.alert(
+        rtl ? labelUr : labelEn,
+        rtl
+          ? `براہ کرم فوری مدد کے لیے اپنے فون سے ${number} ڈائل کریں۔`
+          : `Please dial ${number} directly on your phone keypad for ${labelEn}.`
+      );
+    }
+  };
+
+  const handleEmergencySOS = () => {
+    Alert.alert(
+      rtl ? 'ہنگامی امداد (SOS)' : 'Emergency Assistance (SOS)',
+      rtl ? 'فوری رابطے کے لیے سروس منتخب کریں:' : 'Select an emergency service to call:',
+      [
+        { text: rtl ? 'منسوخ کریں' : 'Cancel', style: 'cancel' },
+        {
+          text: rtl ? 'پولیس (15)' : 'Police (15)',
+          onPress: () => void dialEmergencyNumber('15', 'Police Emergency', 'ہنگامی پولیس رابطہ'),
+        },
+        {
+          text: rtl ? 'ریسکیو (1122)' : 'Rescue (1122)',
+          style: 'destructive',
+          onPress: () => void dialEmergencyNumber('1122', 'Rescue 1122', 'ریسکیو 1122'),
+        },
+      ]
+    );
+  };
+
   const handleChat = () => {
     if (id) {
       router.push(`/chat?bookingId=${id}`);
@@ -233,12 +265,13 @@ export default function LiveTrackingScreen() {
 
         {/* Emergency SOS */}
         <Pressable
-          onPress={() => Linking.openURL('tel:15')}
+          testID="tracking-sos-button"
+          onPress={handleEmergencySOS}
           className="flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl bg-red-50 border border-red-200"
         >
           <ShieldAlert size={14} color="#DC2626" />
           <Text className="text-xs font-bold text-red-700">
-            Khidmat Safety Shield (Emergency 15)
+            {rtl ? 'خدمت ایمرجنسی شیلڈ (پولیس 15)' : 'Khidmat Safety Shield (Emergency 15)'}
           </Text>
         </Pressable>
       </View>

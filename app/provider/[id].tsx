@@ -28,6 +28,7 @@ import { TierBadge } from '@/src/components/ui/TierBadge';
 import { Avatar } from '@/src/components/ui/Avatar';
 import { Card } from '@/src/components/ui/Card';
 import { Icon } from '@/src/components/ui/Icon';
+import { isRTL } from '@/src/i18n/direction';
 
 interface Provider {
   userId: string;
@@ -51,6 +52,7 @@ export default function ProviderProfileScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user, userProfile } = useAuth();
+  const rtl = isRTL();
 
   const [provider, setProvider] = useState<Provider | null>(null);
   const [loading, setLoading] = useState(true);
@@ -166,7 +168,7 @@ export default function ProviderProfileScreen() {
       contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       showsVerticalScrollIndicator={false}
     >
-      <View className="px-4">
+      <View className="px-4" style={{ direction: rtl ? 'rtl' : 'ltr' }}>
         {/* Header */}
         <View className="mb-5 flex-row items-center gap-3">
           <Pressable
@@ -176,8 +178,12 @@ export default function ProviderProfileScreen() {
             <Icon icon={ArrowLeft} color={BRAND.ink} size={20} />
           </Pressable>
           <View className="flex-1">
-            <Text className="font-display text-lg font-medium text-ink">Worker Profile</Text>
-            <Text className="text-xs text-ink/60">Professional credentials &amp; reviews</Text>
+            <Text className="font-display text-lg font-medium text-ink text-start">
+              {rtl ? 'ماہر کی پروفائل' : 'Worker Profile'}
+            </Text>
+            <Text className="text-xs text-ink/60 text-start">
+              {rtl ? 'پیشہ ورانہ معلومات اور جائزے' : 'Professional credentials & reviews'}
+            </Text>
           </View>
         </View>
 

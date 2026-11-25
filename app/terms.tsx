@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Scale, ChevronLeft } from 'lucide-react-native';
+import { Scale, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { BRAND } from '@/src/theme/colors';
 import { Icon } from '@/src/components/ui/Icon';
+import { isRTL } from '@/src/i18n/direction';
 
 const EFFECTIVE_DATE = 'Effective date: 9 October 2026';
 
@@ -70,31 +71,35 @@ const SECTIONS: { title: string; body: string[] }[] = [
 
 export default function TermsScreen() {
   const router = useRouter();
+  const rtl = isRTL();
   return (
     <ScrollView
       className="flex-1 bg-surface"
       contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       showsVerticalScrollIndicator={false}
     >
-      <View className="px-4">
+      <View className="px-4" style={{ direction: rtl ? 'rtl' : 'ltr' }}>
         <View className="mb-6 flex-row items-center gap-4">
           <Pressable
             onPress={() => router.back()}
             className="h-11 w-11 items-center justify-center rounded-full border border-border"
           >
-            <Icon icon={ChevronLeft} color={BRAND.ink} size={20} />
+            <Icon icon={rtl ? ChevronRight : ChevronLeft} color={BRAND.ink} size={20} />
           </Pressable>
           <View className="flex-1">
-            <Text className="font-display text-3xl font-bold text-ink">Terms of Service</Text>
-            <Text className="mt-0.5 text-xs text-ink/60">{EFFECTIVE_DATE}</Text>
+            <Text className="font-display text-3xl font-bold text-ink text-start">
+              {rtl ? 'خدمات کی شرائط' : 'Terms of Service'}
+            </Text>
+            <Text className="mt-0.5 text-xs text-ink/60 text-start">{EFFECTIVE_DATE}</Text>
           </View>
         </View>
 
         <View className="mb-6 flex-row items-center gap-3 rounded-2xl border border-accent-gold/20 bg-accent-gold/10 p-4">
           <Icon icon={Scale} color={BRAND.gold} size={22} />
-          <Text className="flex-1 text-xs leading-relaxed text-ink/80">
-            Khidmat is a marketplace: we connect you with independent providers and keep the
-            platform safe and fair for both sides.
+          <Text className="flex-1 text-xs leading-relaxed text-ink/80 text-start">
+            {rtl
+              ? 'خدمت ایک مارکیٹ پلیس ہے: ہم آپ کو آزاد ماہرین سے جوڑتے ہیں اور دونوں فریقین کے لیے پلیٹ فارم کو محفوظ اور منصفانہ رکھتے ہیں۔'
+              : 'Khidmat is a marketplace: we connect you with independent providers and keep the platform safe and fair for both sides.'}
           </Text>
         </View>
 

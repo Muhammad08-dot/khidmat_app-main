@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ChevronLeft,
+  ChevronRight,
   ShieldCheck,
   XCircle,
   Star,
@@ -13,11 +14,17 @@ import {
   Inbox,
   Flag,
   CheckCircle,
+  FileText,
 } from 'lucide-react-native';
 import { BRAND } from '@/src/theme/colors';
 import { Icon } from '@/src/components/ui/Icon';
 import { Card } from '@/src/components/ui/Card';
 import { useAuth } from '@/src/context/AuthContext';
+import { isRTL } from '@/src/i18n/direction';
+import { getLang } from '@/src/i18n';
+import { createSignedKycUrl } from '@/src/services/supabase/kyc';
+import { maskCnic } from '@/src/utils/privacy';
+import { getLocalizedError } from '@/src/utils/errorMessages';
 import {
   getPendingProviders,
   setProviderVerification,
@@ -47,6 +54,20 @@ export default function AdminScreen() {
   const { userProfile, loading } = useAuth();
   const queryClient = useQueryClient();
   const [section, setSection] = useState<Section>('verification');
+  const rtl = isRTL(getLang());
+
+  const handleOpenKycDoc = async (path?: string | null) => {
+    if (!path) {
+      Alert.alert(rtl ? 'دستاویز دستیاب نہیں' : 'No KYC Document', rtl ? 'اس کاریگر نے ابھی دستاویز اپ لوڈ نہیں کی۔' : 'No KYC document uploaded yet.');
+      return;
+    }
+    try {
+      const signedUrl = await createSignedKycUrl(path);
+      await Linking.openURL(signedUrl);
+    } catch (err) {
+      Alert.alert(rtl ? 'خرابی' : 'Error', getLocalizedError(err).message);
+    }
+  };
 
   const isAdmin = userProfile?.role === 'admin';
 
@@ -118,11 +139,15 @@ export default function AdminScreen() {
         onPress={() => router.back()}
         className="h-11 w-11 items-center justify-center rounded-full border border-border"
       >
-        <Icon icon={ChevronLeft} color={BRAND.ink} size={20} />
+        <Icon icon={rtl ? ChevronRight : ChevronLeft} color={BRAND.ink} size={20} />
       </Pressable>
       <View className="flex-1">
-        <Text className="font-display text-2xl font-bold text-ink">Admin Console</Text>
-        <Text className="mt-0.5 text-xs text-ink/60">Provider vetting & review moderation</Text>
+        <Text className="font-display text-2xl font-bold text-ink text-start">
+          {rtl ? 'ایڈمن کونسل' : 'Admin Console'}
+        </Text>
+        <Text className="mt-0.5 text-xs text-ink/60 text-start">
+          {rtl ? 'کاریگر کی تصدیق اور جائزوں کی نگرانی' : 'Provider vetting & review moderation'}
+        </Text>
       </View>
     </View>
   );
@@ -133,7 +158,7 @@ export default function AdminScreen() {
         className="flex-1 bg-surface"
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       >
-        <View className="px-4">
+        <View testID="admin-root" className="px-4" style={{ direction: rtl ? 'rtl' : 'ltr' }}>
           {Header}
           <Card className="items-center gap-3 border border-border p-8">
             <Icon icon={XCircle} color={BRAND.danger} size={30} />
@@ -159,7 +184,7 @@ export default function AdminScreen() {
       className="flex-1 bg-surface"
       contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
     >
-      <View className="px-4">
+      <View testID="admin-root" className="px-4" style={{ direction: rtl ? 'rtl' : 'ltr' }}>
         {Header}
 
         <View className="mb-5 flex-row gap-2">
@@ -204,9 +229,21 @@ export default function AdminScreen() {
                       {p.status}
                     </Text>
                   </View>
-                  <Text className="text-xs text-ink/60">
-                    {p.city ?? '—'} · {p.phone ?? 'no phone'} · applied {day(p.createdAt)}
+                  <Text className="text-xs text-ink/60 text-start">
+                    {p.city ?? '—'} · {p.phone ?? 'no phone'}
+                    {(p as any).cnic ? ` · CNIC ${maskCnic((p as any).cnic)}` : ''} · applied {day(p.createdAt)}
                   </Text>
+                  {(p as any).id_document_url ? (
+                    <Pressable
+                      onPress={() => void handleOpenKycDoc((p as any).id_document_url)}
+                      className="flex-row items-center gap-1.5 self-start rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5"
+                    >
+                      <Icon icon={FileText} color={BRAND.primary} size={14} />
+                      <Text className="text-xs font-semibold text-primary">
+                        {rtl ? 'شناختی دستاویز دیکھیں' : 'View KYC Document (Signed URL)'}
+                      </Text>
+                    </Pressable>
+                  ) : null}
                   <View className="flex-row gap-2">
                     <Pressable
                       onPress={() => verifyMut.mutate({ id: p.id, status: 'verified' })}

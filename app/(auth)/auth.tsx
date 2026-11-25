@@ -8,6 +8,7 @@ import {
   Platform,
   Pressable,
   Alert,
+  TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -16,9 +17,7 @@ import {
   Lock,
   User,
   Phone,
-  Briefcase,
   Camera,
-  MapPin,
   Sparkles,
 } from 'lucide-react-native';
 import { useAuth } from '@/src/context/AuthContext';
@@ -57,12 +56,10 @@ const SPECIALTIES = [
 
 export default function AuthScreen() {
   const router = useRouter();
-  const { signIn, signUp, sendPasswordReset, sendPhoneOtp, verifyPhoneOtp, signInWithGoogle } =
-    useAuth();
+  const { signIn, signUp, sendPasswordReset, signInWithGoogle } = useAuth();
 
   const rtl = isRTL();
   const showDemoLogin = isDemoLoginEnabled();
-  const phoneAuthEnabled = process.env.EXPO_PUBLIC_PHONE_AUTH_ENABLED === 'true';
 
   const [isLogin, setIsLogin] = useState(true);
   const [signupStep, setSignupStep] = useState(0); // 0: Credentials, 1: Location/Trade, 2: Review
@@ -90,11 +87,6 @@ export default function AuthScreen() {
   const [basePrice, setBasePrice] = useState('');
   const [bio, setBio] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
-
-  // OTP State
-  const [otpPhone, setOtpPhone] = useState('');
-  const [otpCode, setOtpCode] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
 
   const PakistaniCities = Object.keys(PAKISTAN_CITIES);
 
@@ -339,17 +331,21 @@ export default function AuthScreen() {
               </Text>
 
               <Input
+                testID="auth-email-input"
                 label="Email Address"
                 placeholder="name@example.com"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoComplete="email"
+                textContentType="emailAddress"
                 containerClassName="mb-3.5"
                 leadingIcon={<Mail size={16} color={BRAND.muted} />}
               />
 
               <Input
+                testID="auth-password-input"
                 label="Password"
                 placeholder="Enter your password"
                 value={password}
@@ -358,13 +354,16 @@ export default function AuthScreen() {
                 showPasswordToggle
                 isPasswordVisible={showLoginPassword}
                 onTogglePassword={() => setShowLoginPassword(!showLoginPassword)}
+                autoComplete="current-password"
+                textContentType="password"
                 containerClassName="mb-2"
                 leadingIcon={<Lock size={16} color={BRAND.muted} />}
               />
 
               <Pressable
+                testID="auth-forgot-password"
                 onPress={handleForgotPassword}
-                className={`mb-4 self-end`}
+                className="mb-4 self-end"
               >
                 <Text className="text-xs font-semibold text-primary">
                   Forgot password?
@@ -372,6 +371,7 @@ export default function AuthScreen() {
               </Pressable>
 
               <Button
+                testID="auth-login-button"
                 title="Login to Account"
                 onPress={handleLoginSubmit}
                 loading={loading}
@@ -386,6 +386,7 @@ export default function AuthScreen() {
               </View>
 
               <GoogleButton
+                testID="auth-google-button"
                 onPress={handleGoogleSignIn}
                 label="Continue with Google"
                 loading={loading}
@@ -394,6 +395,7 @@ export default function AuthScreen() {
 
               {showDemoLogin && (
                 <Button
+                  testID="auth-demo-button"
                   title="⚡ Quick Demo Login (Dev Mode)"
                   variant="outline"
                   onPress={async () => {
@@ -474,10 +476,13 @@ export default function AuthScreen() {
                   />
 
                   <Input
+                    testID="signup-name-input"
                     label="Full Name"
                     placeholder="e.g. Muhammad Bilal"
                     value={name}
                     onChangeText={setName}
+                    autoComplete="name"
+                    textContentType="name"
                     containerClassName="mb-3"
                     leadingIcon={<User size={16} color={BRAND.muted} />}
                   />
@@ -497,12 +502,17 @@ export default function AuthScreen() {
                       >
                         +92
                       </Text>
-                      <Input
+                      <TextInput
+                        testID="signup-phone-input"
                         placeholder="3001234567"
+                        placeholderTextColor="#9CA3AF"
                         value={phone}
                         onChangeText={(t) => setPhone(t.replace(/\D/g, ''))}
                         keyboardType="phone-pad"
                         maxLength={10}
+                        autoComplete="tel"
+                        textContentType="telephoneNumber"
+                        underlineColorAndroid="transparent"
                         style={PHONE_TEXT_STYLE}
                         className="flex-1 py-3 text-sm text-gray-900 border-0"
                       />
@@ -510,17 +520,21 @@ export default function AuthScreen() {
                   </View>
 
                   <Input
+                    testID="signup-email-input"
                     label="Email Address"
                     placeholder="name@example.com"
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
                     autoCapitalize="none"
+                    autoComplete="email"
+                    textContentType="emailAddress"
                     containerClassName="mb-3"
                     leadingIcon={<Mail size={16} color={BRAND.muted} />}
                   />
 
                   <Input
+                    testID="signup-password-input"
                     label="Password"
                     placeholder="At least 6 characters"
                     value={password}
@@ -529,11 +543,14 @@ export default function AuthScreen() {
                     showPasswordToggle
                     isPasswordVisible={showSignupPassword}
                     onTogglePassword={() => setShowSignupPassword(!showSignupPassword)}
+                    autoComplete="new-password"
+                    textContentType="newPassword"
                     containerClassName="mb-5"
                     leadingIcon={<Lock size={16} color={BRAND.muted} />}
                   />
 
                   <Button
+                    testID="signup-next-button"
                     title="Continue to Location"
                     onPress={() => {
                       if (validateStep1()) setSignupStep(1);
@@ -603,12 +620,14 @@ export default function AuthScreen() {
 
                   <View className="flex-row gap-3">
                     <Button
+                      testID="signup-back-button"
                       title="Back"
                       variant="secondary"
                       onPress={() => setSignupStep(0)}
                       className="flex-1"
                     />
                     <Button
+                      testID="signup-next-button"
                       title="Next: Review"
                       onPress={() => {
                         if (validateStep2()) setSignupStep(2);
@@ -688,6 +707,7 @@ export default function AuthScreen() {
                       className="flex-1"
                     />
                     <Button
+                      testID="signup-submit-button"
                       title="Complete Signup"
                       onPress={handleSignupSubmit}
                       loading={loading}
@@ -701,6 +721,7 @@ export default function AuthScreen() {
 
           {/* Switch Login / Signup Footer */}
           <Pressable
+            testID="auth-switch-button"
             onPress={() => {
               setIsLogin(!isLogin);
               setError(null);
