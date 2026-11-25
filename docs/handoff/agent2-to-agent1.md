@@ -15,3 +15,10 @@
   - `scripts/e2e-qa-suite.mjs` $\rightarrow$ `e2e/e2e-qa-suite.mjs`
   - `scripts/test-chrome.mjs` $\rightarrow$ `e2e/test-chrome.mjs`
 - **Notice for Agent 1:** The Chrome testing and screenshot capture script has been consolidated into the `e2e/` folder per PRD Phase 4. Please invoke it from `e2e/test-chrome.mjs` (`node e2e/test-chrome.mjs`).
+
+## Task P3-3: Full Account Deletion Flow (UI Integration)
+- **Files Added:**
+  - `src/services/supabase/accountDeletion.ts` (`deleteUserAccountFlow(userId)`, `purgeUserStorageFiles(userId)`)
+  - `supabase/functions/delete-account/index.ts` (Edge Function that deletes `auth.users` via `SUPABASE_SERVICE_ROLE_KEY`)
+- **Change Needed (Post-Merge):** Update the Profile / Settings "Delete Account" action in UI to call `deleteUserAccountFlow(user.id)` instead of invoking the RPC directly.
+- **Reason:** Calling `delete_user_account` RPC alone leaves files in `kyc-documents`, `avatars`, and `job_media` and leaves the `auth.users` record intact. `deleteUserAccountFlow()` purges Storage API objects first, runs the RPC (anonymizing booking PII and deleting profile rows), and invokes the `delete-account` Edge Function to remove `auth.users`.
