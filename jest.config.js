@@ -1,7 +1,7 @@
 module.exports = {
   preset: 'jest-expo',
   setupFiles: ['./jest.setup.js'],
-  testPathIgnorePatterns: ['/node_modules/', '/agent-server/', '/integration/'],
+  testPathIgnorePatterns: ['/node_modules/', '/agent-server/', '/integration/', '/e2e/'],
   collectCoverageFrom: [
     'app/**/*.{ts,tsx}',
     'src/**/*.{ts,tsx}',

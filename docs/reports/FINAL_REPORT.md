@@ -78,3 +78,115 @@
    npx expo start -c
    ```
    *(Use `npx expo start --tunnel` if university/office Wi-Fi isolates LAN clients.)*
+
+
+---
+
+## 3. SDK 58 Upgrade, LinkingContext Crash Fix & Verification Pipeline (2026-11-25)
+
+### TASK 1 — LinkingContext Crash Diagnosis & Fix
+- **Root Cause:**
+  1. `app/_layout.tsx` (`RootNavigator`) wrapped `<Stack>` inside `<View className={colorScheme === 'dark' ? 'dark' : ''}>`. Dynamic `className` with `'dark'` CSS variables on an ancestor of `<Stack>` triggered NativeWind `printUpgradeWarning` in `react-native-css-interop/dist/runtime/native/render-component.js`, which called `JSON.stringify(originalProps)` over `<Stack>` children and hit `LinkingContext.get__options` outside provider context (`Couldn't find a LinkingContext context`).
+  2. Removed dynamic `className` from the root `<View>` in `app/_layout.tsx`, aligned `nativewind@4.2.7` with `react-native-css-interop@0.2.7` (`--save-exact`), removed direct `expo-modules-core` from `package.json` (leaving hoisted `58.1.0` from `expo@58.0.26`), and performed a clean `.expo` + `node_modules` reinstall.
+- **Raw Diagnostic Outputs:**
+```
+$ npm ls nativewind react-native-css-interop tailwindcss react-native-reanimated expo-router
+khidmat-mobile@1.0.0 D:\dev-stuff\khidmat_app-main
++-- expo-router@58.0.32
+| +-- react-native-drawer-layout@4.2.13
+| | `-- react-native-reanimated@4.7.1 deduped
+| `-- react-native-reanimated@4.7.1 deduped
++-- expo@58.0.26
+| `-- @expo/cli@58.1.21
+|   +-- @expo/router-server@58.0.23
+|   | `-- expo-router@58.0.32 deduped
+|   `-- expo-router@58.0.32 deduped
++-- moti@0.30.0
+| `-- react-native-reanimated@4.7.1 deduped
++-- nativewind@4.2.7
+| +-- react-native-css-interop@0.2.7 deduped
+| `-- tailwindcss@3.4.19 deduped
++-- react-native-css-interop@0.2.7
+| +-- react-native-reanimated@4.7.1 deduped
+| `-- tailwindcss@3.4.19 deduped
++-- react-native-reanimated@4.7.1
+`-- tailwindcss@3.4.19
+
+$ node -e "const p=require('./node_modules/nativewind/package.json'); console.log('dependencies:', p.dependencies); console.log('peerDependencies:', p.peerDependencies);"
+dependencies: {
+  'comment-json': '^4.2.5',
+  debug: '^4.3.7',
+  'react-native-css-interop': '0.2.7'
+}
+peerDependencies: { tailwindcss: '>3.3.0' }
+
+$ git grep -n "className" -- "app/_layout.tsx" "app/(auth)/_layout.tsx"
+(empty output - exit 1)
+
+$ git grep -n -i maplibre -- package.json app src
+(empty output - exit 1)
+```
+- **Metro Startup & Dev Bundle Output:**
+```
+Starting project at D:\dev-stuff\khidmat_app-main
+Starting Metro Bundler
+Waiting on http://localhost:8081
+Android Bundled 26365ms node_modules\expo-router\entry.js (4431 modules)
+
+$ curl.exe -s http://localhost:8081/status
+packager-status:running
+BUNDLE_HTTP:200
+```
+
+### TASK 2 — Full Developer Verification Pipeline
+1. **Static (`npx tsc --noEmit`):**
+```
+TSC_EXIT:0 (0 errors)
+```
+2. **Unit (`npx jest`):**
+```
+Test Suites: 25 passed, 25 total
+Tests:       128 passed, 128 total
+Snapshots:   0 total
+JEST_EXIT:0
+```
+3. **Bundle (`npx expo export --output-dir .tmp-export`):**
+```
+Web Bundled 69247ms node_modules\expo-router\entry.js (3846 modules)
+iOS Bundled 100701ms node_modules\expo-router\entry.js (4243 modules)
+Android Bundled 145446ms node_modules\expo-router\entry.js (4241 modules)
+Exported: .tmp-export
+EXPORT_EXIT:0
+```
+4. **Backend Integration (`node scripts/use-env.js test && node scripts/test-integration.js`):**
+```
+Missing .env.app.test. Create it with EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY first.
+USE_ENV_EXIT:1
+```
+**BLOCKED:** `.env.test` and `.env.app.test` are not present in `D:\dev-stuff\khidmat_app-main` (`Test-Path .env.test` -> `False`, `Test-Path .env.app.test` -> `False`).
+5. **End-to-End Backend Smoke (`node scripts/smoke-test.js`):** **BLOCKED** on missing `.env.test`.
+6. **Types Regen (`supabase gen types typescript`):** **BLOCKED** on missing `.env.test` / `$SUPABASE_TEST_PROJECT_REF`.
+7. **Deployed Edge Functions (`supabase functions list`):** **BLOCKED** on missing `.env.test` / `$SUPABASE_TEST_PROJECT_REF`.
+8. **`npx expo-doctor`:**
+```
+Running 20 checks on your project...
+20/20 checks passed. No issues detected!
+```
+
+### TASK 3 — Manual Device Checklist & Known Expected-Fail Items (GATE-A)
+**On-Device Test Checklist:**
+1. Email signup
+2. Complete profile
+3. Customer home EN/UR (RTL & Urdu font rendering)
+4. Create booking
+5. Provider confirm / start / complete
+6. Track screen live status
+7. Chat both directions
+8. Job photo upload visible to customer
+9. Inbox / notifications empty states
+10. Delete account + re-login blocked
+11. Session persistence
+
+**Known Expected-Fail Items in Expo Go (Not Bugs):**
+- Google sign-in (OAuth client not created; in `EXPO_PUBLIC_DEMO_MODE=true` it falls back to `demo@khidmat.app`)
+- Background location tracking & remote push notifications in Expo Go (SDK 58 StoreClient limitation; requires EAS Development Build for native background tasks/remote push)

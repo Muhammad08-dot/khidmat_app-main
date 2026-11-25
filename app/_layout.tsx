@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthProvider, useAuth } from '@/src/context/AuthContext';
+import { PreferencesProvider, usePreferences } from '@/src/context/PreferencesContext';
 import { useAppFonts } from '@/src/theme/fonts';
 import { initI18n } from '@/src/i18n';
 
@@ -50,7 +51,7 @@ function RouteGuard({ children }: { children: React.ReactNode }) {
 }
 
 function RootNavigator() {
-  const colorScheme = useColorScheme();
+  const { isDark } = usePreferences();
   const router = useRouter();
 
   // Handle notification tap deep-links (runtime + cold start from killed app)
@@ -94,8 +95,8 @@ function RootNavigator() {
   }, [router]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#121212' : '#FBFAF6' }} className={colorScheme === 'dark' ? 'dark' : ''}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+    <View style={{ flex: 1, backgroundColor: isDark ? '#121212' : '#FBFAF6' }}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <RouteGuard>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(auth)" />
@@ -167,9 +168,11 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <AuthProvider>
-            <RootNavigator />
-          </AuthProvider>
+          <PreferencesProvider>
+            <AuthProvider>
+              <RootNavigator />
+            </AuthProvider>
+          </PreferencesProvider>
         </GestureHandlerRootView>
       </ErrorBoundary>
     </QueryClientProvider>

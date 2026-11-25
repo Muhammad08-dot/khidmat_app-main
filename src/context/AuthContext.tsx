@@ -220,7 +220,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     throttleAuth();
-    if (DEMO_MODE && !process.env.EXPO_PUBLIC_SUPABASE_URL) {
+    if (DEMO_MODE) {
       return signIn('demo@khidmat.app', '123456');
     }
 

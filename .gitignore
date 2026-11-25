@@ -29,3 +29,8 @@ agent-server/.env
 *.apk
 coverage/
 
+
+e2e/web-playwright/node_modules/
+e2e/web-playwright/test-results/
+e2e/web-playwright/playwright-report/
+

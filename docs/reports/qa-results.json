@@ -1,0 +1,27 @@
+{
+  "generatedAt": "2026-11-25T19:05:00Z",
+  "branch": "feat/prd-v2-hardening",
+  "testProject": "BLOCKED (no separate TEST Supabase credentials in .env.test/.env.app.test)",
+  "checks": {
+    "tsc": { "exitCode": 0, "errors": 0 },
+    "eslint": { "exitCode": 0, "errors": 0, "warnings": 376 },
+    "jest": { "exitCode": 0, "suitesPassed": 28, "suitesTotal": 28, "testsPassed": 144, "testsTotal": 144 },
+    "expoDoctor": { "exitCode": 0, "checksPassed": 20, "checksTotal": 20 },
+    "secretScan": { "exitCode": 0, "filesScanned": 211 },
+    "expoExportAndroid": { "exitCode": 0 },
+    "expoExportWeb": { "exitCode": 0 },
+    "playwrightWebDemo": { "exitCode": 0, "passed": 2, "failed": 0, "axeAuthViolations": 2, "axeHomeViolations": 2 },
+    "backendIntegration": { "status": "BLOCKED", "reason": "Missing separate TEST Supabase credentials in .env.test/.env.app.test" },
+    "backendSmoke": { "status": "BLOCKED", "reason": "Missing separate TEST Supabase credentials in .env.test/.env.app.test" }
+  },
+  "featureMatrix": {
+    "onPressHandlers": 187,
+    "matrixRows": 187
+  },
+  "findingsBySeverity": {
+    "S0": 0,
+    "S1": 2,
+    "S2": 5,
+    "S3": 3
+  }
+}

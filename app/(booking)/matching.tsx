@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BRAND } from '@/src/theme/colors';
 import { View, Text, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MotiView } from 'moti';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
@@ -27,6 +28,8 @@ import {
   UserCheck,
   Compass,
   AlertCircle,
+  ArrowLeft,
+  ChevronRight,
   CheckCircle2,
   ArrowRight,
 } from 'lucide-react-native';
@@ -63,6 +66,7 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
 
 export default function MatchingScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { q, category } = useLocalSearchParams<{ q?: string; category?: string }>();
   const { userProfile } = useAuth();
 
@@ -156,7 +160,8 @@ export default function MatchingScreen() {
               key={i}
               from={{ opacity: 0.8, scale: 0.4 }}
               animate={{ opacity: 0, scale: 1.6 }}
-              transition={{ type: 'timing', duration: 2500, loop: true, delay: i * 800 }}
+              transition={{ type: 'timing', duration: 2500, loop: true } as any}
+              delay={i * 800}
               style={{
                 position: 'absolute',
                 width: '100%',
@@ -207,8 +212,23 @@ export default function MatchingScreen() {
   const urgencyInfo = result ? getUrgency(result.urgency) : getUrgency('medium');
 
   return (
-    <View className="flex-1 bg-surface">
-      <View className="px-4 py-6">
+    <View className="flex-1 bg-surface" style={{ paddingTop: Math.max(insets.top + 8, 16) }}>
+      {/* Top Exit / Back Bar */}
+      <View className="flex-row items-center justify-between px-4 pb-2">
+        <Pressable
+          testID="matching-back-button"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+          className="h-10 w-10 items-center justify-center rounded-full border border-border bg-surface-raised"
+        >
+          <Icon icon={ArrowLeft} color={BRAND.ink} size={20} />
+        </Pressable>
+        <Text className="text-xs font-semibold uppercase tracking-wider text-ink/50">
+          AI Match
+        </Text>
+        <View className="h-10 w-10" />
+      </View>
+
+      <View className="flex-1 justify-center px-4 pb-8">
         {/* Header announcement */}
         <View className="items-center">
           <View className="h-14 w-14 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-100">
@@ -232,17 +252,21 @@ export default function MatchingScreen() {
           ) : null}
 
           <View className="mb-4">
-            <View className="mb-3 flex-row items-center gap-3 rounded-xl border border-border bg-surface p-3">
+            <Pressable
+              onPress={handleFindProviders}
+              className="mb-3 flex-row items-center gap-3 rounded-xl border border-primary/25 bg-surface p-3 active:opacity-80"
+            >
               <View className="h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                 <Icon icon={MatchedIcon as any} color={BRAND.primary} size={24} />
               </View>
               <View className="flex-1">
                 <Text className="font-mono text-[10px] uppercase tracking-wider text-ink/40">
-                  Identified Specialty
+                  Identified Specialty (Tap to browse)
                 </Text>
                 <Text className="text-base font-bold text-ink">{result?.category}</Text>
               </View>
-            </View>
+              <Icon icon={ChevronRight} color={BRAND.primary} size={18} />
+            </Pressable>
 
             {result && (
               <View

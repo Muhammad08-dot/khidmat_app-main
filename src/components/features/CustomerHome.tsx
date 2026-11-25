@@ -23,11 +23,15 @@ import {
   ShieldCheck,
   ChevronRight,
   Clock,
+  Bot,
 } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
+import { usePreferences } from '@/src/context/PreferencesContext';
 import { getCurrentCoords } from '@/src/utils/geolocation';
 import { ProviderCard } from '@/src/components/ui/ProviderCard';
 import { Badge } from '@/src/components/ui/Badge';
+import { SiteAgentWidget } from '@/src/components/features/SiteAgentWidget';
 import { colors } from '@/src/theme/tokens';
 import { isRTL } from '@/src/i18n';
 
@@ -82,14 +86,17 @@ const TOP_RATED_PROVIDERS = [
 export const CustomerHome: React.FC = () => {
   const router = useRouter();
   const { userProfile, updateProfile } = useAuth();
+  const { isDark, scaled } = usePreferences();
+  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const rtl = isRTL();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [focused, setFocused] = useState(false);
+  const [agentOpen, setAgentOpen] = useState(false);
 
   const city = userProfile?.city || 'Lahore';
-  const userName = userProfile?.name?.split(' ')[0] || 'Guest';
+  const firstName = userProfile?.name?.split(' ')[0] || '';
 
   // Sync customer location once on mount
   useEffect(() => {
@@ -112,26 +119,28 @@ export const CustomerHome: React.FC = () => {
     router.push(`/matching?category=${encodeURIComponent(name)}`);
 
   return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentContainerStyle={{ paddingTop: 16, paddingBottom: 110 }}
-      showsVerticalScrollIndicator={false}
-    >
-      <View className="px-4">
-        {/* ================= TOP BAR: GREETING + LOCATION PILL (S-4) ================= */}
-        <View
-          className={`flex-row items-center justify-between mb-4 ${
-            rtl ? 'flex-row-reverse' : ''
-          }`}
-        >
-          <View>
-            <Text className="text-xs text-gray-500 font-medium">
-              Assalamu Alaikum
-            </Text>
-            <Text className="text-xl font-bold text-gray-900">
-              {userName} 👋
-            </Text>
-          </View>
+    <View className="flex-1" style={{ backgroundColor: isDark ? '#121212' : '#FBFAF6' }}>
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingTop: Math.max(insets.top + 8, 16), paddingBottom: 110 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="px-4">
+          {/* ================= TOP BAR: BRAND + LOCATION PILL + ALERTS ================= */}
+          <View
+            className={`flex-row items-center justify-between mb-4 ${
+              rtl ? 'flex-row-reverse' : ''
+            }`}
+          >
+            <View>
+              <Text
+                testID="home-greeting"
+                style={{ fontSize: scaled(22), color: isDark ? '#F9FAFB' : '#111827' }}
+                className="font-bold"
+              >
+                Khidmat
+              </Text>
+            </View>
 
           <View className="flex-row items-center gap-2">
             {/* Location Pill */}
@@ -173,10 +182,39 @@ export const CustomerHome: React.FC = () => {
             onSubmitEditing={() => submitSearch()}
             placeholder="Search electrician, plumber, AC repair..."
             placeholderTextColor="#9CA3AF"
-            className="ml-2.5 flex-1 py-3 text-sm text-gray-900"
+            style={{ fontSize: scaled(14) }}
+            className="ml-2.5 flex-1 py-3 text-gray-900"
             returnKeyType="search"
           />
         </View>
+
+        {/* ================= AI CHATBOT ASSISTANT CARD ================= */}
+        <Pressable
+          testID="home-ai-chatbot-card"
+          onPress={() => setAgentOpen(true)}
+          className="mb-6 rounded-2xl border border-primary/20 bg-emerald-950 p-4 shadow-xs"
+        >
+          <View className={`flex-row items-center justify-between gap-3 ${rtl ? 'flex-row-reverse' : ''}`}>
+            <View className="flex-row items-center gap-3 flex-1">
+              <View className="w-10 h-10 rounded-full bg-emerald-600 items-center justify-center">
+                <Bot size={20} color="#FFFFFF" />
+              </View>
+              <View className="flex-1">
+                <Text style={{ fontSize: scaled(13) }} className="font-bold text-white">
+                  Assalamu Alaikum{firstName ? `, ${firstName}` : ''}!
+                </Text>
+                <Text style={{ fontSize: scaled(11) }} className="text-emerald-200 mt-0.5">
+                  Khidmat AI Assistant — tap to chat &amp; get instant help
+                </Text>
+              </View>
+            </View>
+            <View className="rounded-xl bg-emerald-600 px-3 py-1.5">
+              <Text style={{ fontSize: scaled(11) }} className="font-bold text-white">
+                Ask AI
+              </Text>
+            </View>
+          </View>
+        </Pressable>
 
         {/* ================= RECENT BOOKING STRIP (S-4) ================= */}
         <View
@@ -296,6 +334,8 @@ export const CustomerHome: React.FC = () => {
         </View>
       </View>
     </ScrollView>
+    <SiteAgentWidget externalOpen={agentOpen} onExternalOpenChange={setAgentOpen} />
+  </View>
   );
 };
 

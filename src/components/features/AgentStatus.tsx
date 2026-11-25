@@ -81,7 +81,7 @@ export function AgentStatus({ agents = DEFAULT_AGENTS, className = '' }: AgentSt
               key={agent.id}
               from={{ opacity: 0, translateY: 10, scale: 0.95 }}
               animate={{ opacity: 1, translateY: 0, scale: 1 }}
-              transition={{ type: 'spring', delay: index * 150 }}
+              transition={{ type: 'spring', delay: index * 150 } as any}
               className="flex-row items-center p-3 rounded-xl bg-white/5 border border-white/5"
             >
               {/* Icon Container with Moti Pulse if Active/Thinking */}
@@ -90,7 +90,7 @@ export function AgentStatus({ agents = DEFAULT_AGENTS, className = '' }: AgentSt
                   <MotiView
                     from={{ scale: 1, opacity: 0.5 }}
                     animate={{ scale: 1.5, opacity: 0 }}
-                    transition={{ type: 'timing', duration: 1500, loop: true }}
+                    transition={{ type: 'timing', duration: 1500, loop: true } as any}
                     style={{
                       position: 'absolute',
                       width: 40,

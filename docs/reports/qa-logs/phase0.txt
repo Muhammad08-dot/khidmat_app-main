@@ -1,0 +1,88 @@
+﻿=== GIT ===
+On branch feat/prd-v2-hardening
+Your branch is up to date with 'origin/feat/prd-v2-hardening'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   docs/reports/FINAL_REPORT.md
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	prompt.md
+
+no changes added to commit (use "git add" and/or "git commit -a")
+feat/prd-v2-hardening
+806ef73 fix(security): patch critical and high npm audit vulnerabilities
+356e842 test(demo): support full 11-category checklist in mockClient and verify end-to-end
+390f104 docs(report): record SDK 58 verification pipeline and GATE-A checklist
+7c082c8 fix: linking-context crash (css-interop alignment + clean reinstall)
+d5f654b chore(expo): upgrade to SDK 58 and fix LinkingContext render crash
+=== VERSIONS ===
+node: v24.16.0
+npm: 11.13.0
+supabase: 3.4.0
+=== SECRET SCAN ===
+🔍 Running Secret & Credential Scan on tracked files...
+✅ Secret scan PASSED: Scanned 211 tracked files. No private keys or non-anon JWTs found.
+
+=== NPM AUDIT --OMIT=DEV ===
+# npm audit report
+
+minimatch  7.0.0 - 11.0.0
+Severity: moderate
+minimatch has potential denial of service via globparts amplification - https://github.com/advisories/GHSA-g3hv-75wg-m249
+fix available via `npm audit fix --force`
+Will install expo@52.0.49, which is a breaking change
+node_modules/minimatch
+  @expo/fingerprint  >=0.11.12-canary-20250303-4dba60e
+  Depends on vulnerable versions of minimatch
+  node_modules/@expo/fingerprint
+    expo  >=53.0.0-canary-20241211-61c49bd
+    Depends on vulnerable versions of @expo/fingerprint
+    node_modules/expo
+
+3 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+=== AGENT-SERVER ===
+
+> khidmat-agent-server@1.0.0 typecheck
+> tsc --noEmit
+
+
+> khidmat-agent-server@1.0.0 test
+> node --import tsx --test src/__tests__/*.test.ts
+
+▶ Khidmat Agent Server Test Suite (P3-6)
+  ▶ Health Endpoints
+    ✔ GET /health returns 200 with status ok (58.2655ms)
+    ✔ GET /api/health returns 200 with status ok (9.0919ms)
+  ✔ Health Endpoints (68.459ms)
+  ▶ JWT Authentication Validation
+    ✔ rejects requests with missing Authorization header (401) (32.3723ms)
+    ✔ rejects requests with expired JWT token (401) (13.2748ms)
+    ✔ rejects requests with wrong audience (401) (6.3721ms)
+    ✔ rejects requests signed with wrong secret (401) (5.153ms)
+    ✔ accepts valid JWT token and processes request (200) (7.2861ms)
+  ✔ JWT Authentication Validation (65.5856ms)
+  ▶ Zod Input Validation
+    ✔ rejects invalid payload missing required message field (400) (6.242ms)
+  ✔ Zod Input Validation (6.5756ms)
+  ▶ CORS Restrictions
+    ✔ permits configured allowed origins (4.8095ms)
+    ✔ restricts unconfigured unauthorized origins (4.0962ms)
+  ✔ CORS Restrictions (9.3072ms)
+  ▶ Rate Limiting
+    ✔ throttles requests when rate limit threshold is exceeded (429) (14.1545ms)
+  ✔ Rate Limiting (14.4676ms)
+✔ Khidmat Agent Server Test Suite (P3-6) (185.4222ms)
+ℹ tests 11
+ℹ suites 6
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1191.4023
