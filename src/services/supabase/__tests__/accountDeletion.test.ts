@@ -47,7 +47,7 @@ describe('Account Deletion Service (P3-3)', () => {
     const removed = await purgeUserStorageFiles(userId);
 
     expect(removed).toBe(2);
-    expect(storageFrom).toHaveBeenCalledTimes(USER_MEDIA_BUCKETS.length);
+    expect(storageFrom).toHaveBeenCalledTimes(5);
     expect(storageFrom).toHaveBeenCalledWith('kyc-documents');
     expect(storageFrom).toHaveBeenCalledWith('avatars');
     expect(storageFrom).toHaveBeenCalledWith('job_media');
