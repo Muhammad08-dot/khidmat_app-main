@@ -12,3 +12,4 @@
 
 ## 3. UI TestIDs Availability
 - All UI interactive elements now provide deterministic `testID` properties cataloged in `docs/ui/TESTIDS.md` for Maestro and integration tests.
+

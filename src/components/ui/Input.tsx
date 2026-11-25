@@ -73,7 +73,6 @@ export const Input: React.FC<InputProps> = ({
         <TextInput
           testID={testID}
           placeholderTextColor="#9CA3AF"
-          importantForAutofill="no"
           underlineColorAndroid="transparent"
           style={{
             textAlign: rtl ? 'right' : 'left',

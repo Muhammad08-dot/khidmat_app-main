@@ -1,12 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { BRAND } from '@/src/theme/colors';
-import { View, Text } from 'react-native';
-import Svg, { Path, Circle, G, Text as SvgText } from 'react-native-svg';
-import { Navigation } from 'lucide-react-native';
+import { View, Text, Pressable, Platform } from 'react-native';
 import { type LocationCoords } from '../../utils/location';
 import { Icon } from '../ui/Icon';
-
-const getEnv = (key: string): string => (process.env as any)[key] || '';
+import { MapPin, Navigation, RotateCw } from 'lucide-react-native';
 
 interface LiveMapProps {
   workerCoords: (LocationCoords & { heading?: number }) | null;
@@ -15,134 +12,40 @@ interface LiveMapProps {
   isCompleted?: boolean;
 }
 
-/** Whether a real Google Maps API key is configured. */
-const hasRealMapKey = (): boolean => {
-  const key = getEnv('EXPO_PUBLIC_GOOGLE_MAPS_API_KEY');
-  return !!key && key !== 'your_google_maps_key_here';
+export const OSM_RASTER_STYLE = {
+  version: 8,
+  sources: {
+    'osm-tiles': {
+      type: 'raster',
+      tiles: [
+        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      ],
+      tileSize: 256,
+      attribution: '© OpenStreetMap contributors',
+    },
+  },
+  layers: [
+    {
+      id: 'osm-tiles-layer',
+      type: 'raster',
+      source: 'osm-tiles',
+      minzoom: 0,
+      maxzoom: 19,
+    },
+  ],
 };
 
-// Lazy-load real maps only when a key is configured (keeps Expo Go happy).
-let MapView: any = null;
-let Marker: any = null;
-let Polyline: any = null;
-(function tryLoadRealMap() {
-  try {
-    const maps = require('react-native-maps');
-    MapView = maps.default ?? maps;
-    Marker = maps.Marker;
-    Polyline = maps.Polyline;
-  } catch {
-    MapView = null;
+let MapLibreGL: any = null;
+try {
+  MapLibreGL = require('@maplibre/maplibre-react-native');
+  if (MapLibreGL?.setAccessToken) {
+    MapLibreGL.setAccessToken(null);
   }
-})();
-const realMapAvailable = () => hasRealMapKey() && !!MapView;
-
-/** Mock map grid route — mirrors the web reference screenshot styling. */
-const MOCK_ROUTE_POINTS = [
-  { x: 70, y: 310 },
-  { x: 130, y: 280 },
-  { x: 190, y: 260 },
-  { x: 260, y: 200 },
-  { x: 260, y: 130 },
-  { x: 310, y: 90 },
-];
-
-const posOnPath = (progress: number) => {
-  if (progress <= 0) return { ...MOCK_ROUTE_POINTS[0], heading: 0 };
-  if (progress >= 1) {
-    return { ...MOCK_ROUTE_POINTS[MOCK_ROUTE_POINTS.length - 1], heading: 0 };
-  }
-  const segCount = MOCK_ROUTE_POINTS.length - 1;
-  const index = Math.floor(progress * segCount);
-  const segProgress = progress * segCount - index;
-  const p1 = MOCK_ROUTE_POINTS[index];
-  const p2 = MOCK_ROUTE_POINTS[index + 1];
-  const dx = p2.x - p1.x;
-  const dy = p2.y - p1.y;
-  const angleRad = Math.atan2(dy, dx);
-  const heading = angleRad * (180 / Math.PI) + 90;
-  return {
-    x: p1.x + dx * segProgress,
-    y: p1.y + dy * segProgress,
-    heading,
-  };
-};
-
-const MockMap: React.FC<{ progress: number; isCompleted: boolean }> = ({
-  progress,
-  isCompleted,
-}) => {
-  const current = posOnPath(progress);
-  const dest = MOCK_ROUTE_POINTS[MOCK_ROUTE_POINTS.length - 1];
-  const routeD = `M ${MOCK_ROUTE_POINTS.map((p) => `${p.x},${p.y}`).join(' L ')}`;
-
-  return (
-    <View className="relative overflow-hidden rounded-2xl border border-border bg-[#EAEBE6]">
-      <Svg viewBox="0 0 400 400" width="100%" height={300}>
-        {/* Roads */}
-        <Path
-          d="M 0,50 L 400,50 M 0,150 L 400,150 M 0,250 L 400,250 M 0,350 L 400,350"
-          stroke="#ffffff"
-          strokeWidth={6}
-        />
-        <Path
-          d="M 50,0 L 50,400 M 150,0 L 150,400 M 250,0 L 250,400 M 350,0 L 350,400"
-          stroke="#ffffff"
-          strokeWidth={6}
-        />
-        <Path d="M 0,350 L 350,0" stroke="#ffffff" strokeWidth={8} />
-        <Path d="M 120,400 L 400,120" stroke="#ffffff" strokeWidth={5} />
-        {/* Landmark labels */}
-        <SvgText x={20} y={30} fill="#0f172a33" fontSize={8} fontWeight="700" letterSpacing={1}>
-          {'GULBERG MAIN BLVD'}
-        </SvgText>
-        <SvgText x={240} y={300} fill="#0f172a33" fontSize={8} fontWeight="700" letterSpacing={1}>
-          {'DHA PHASE 5'}
-        </SvgText>
-        <SvgText x={310} y={220} fill="#0f172a33" fontSize={8} fontWeight="700" letterSpacing={1}>
-          {'MALL ROAD'}
-        </SvgText>
-        {/* Route path */}
-        <Path
-          d={routeD}
-          fill="none"
-          stroke={BRAND.success}
-          strokeWidth={5}
-          strokeLinecap="round"
-          strokeDasharray="8,4"
-        />
-        {/* Destination pin */}
-        <G translateX={dest.x} translateY={dest.y - 10}>
-          <Path d="M-6,-6 L6,-6 L0,10 Z" fill={BRAND.caution} />
-          <Circle cx={0} cy={-6} r={3} fill="#ffffff" />
-        </G>
-        <Circle
-          cx={dest.x}
-          cy={dest.y}
-          r={14}
-          fill="none"
-          stroke={BRAND.danger}
-          strokeWidth={1.5}
-        />
-        {/* Worker marker */}
-        <G translateX={current.x} translateY={current.y}>
-          <Circle cx={0} cy={0} r={16} fill="rgba(16,185,129,0.2)" />
-          <Circle cx={0} cy={0} r={11} fill={BRAND.success} stroke="#fff" strokeWidth={2} />
-        </G>
-        {/* Worker heading arrow */}
-        <G translateX={current.x - 4} translateY={current.y - 7}>
-          <G rotation={current.heading} origin="4, 7">
-            <Path d="M-4,3 L0,-7 L4,3 L0,0 Z" fill="#ffffff" />
-          </G>
-        </G>
-      </Svg>
-      {/* Compass HUD */}
-      <View className="absolute right-4 top-4 rounded-full border border-border bg-surface-raised p-2 shadow-soft">
-        <Icon icon={Navigation} color={BRAND.primary} size={16} />
-      </View>
-    </View>
-  );
-};
+} catch {
+  MapLibreGL = null;
+}
 
 export const LiveMap: React.FC<LiveMapProps> = ({
   workerCoords,
@@ -150,68 +53,132 @@ export const LiveMap: React.FC<LiveMapProps> = ({
   className = '',
   isCompleted = false,
 }) => {
-  const realMap = realMapAvailable();
-  const [mockProgress, setMockProgress] = useState(0);
+  const [hasError, setHasError] = useState(false);
+  const [retryNonce, setRetryNonce] = useState(0);
 
-  // Simulate worker movement when no real map is available or when live coords
-  // haven't arrived yet — makes the tracking screen feel alive.
-  useEffect(() => {
-    if (realMap && clientCoords && workerCoords) return;
-    const timer = setInterval(() => {
-      setMockProgress((prev) => {
-        if (isCompleted) return 1;
-        if (prev >= 0.95) return 0.95;
-        return prev + 0.03;
-      });
-    }, 3000);
-    return () => clearInterval(timer);
-  }, [realMap, clientCoords, workerCoords, isCompleted]);
+  const canUseMapLibre = Boolean(
+    MapLibreGL && MapLibreGL.MapView && Platform.OS !== 'web' && !hasError
+  );
 
-  if (realMap && MapView) {
-    const center = clientCoords || workerCoords || { lat: 31.52, lng: 74.35 };
-    return (
-      <View
-        className={`overflow-hidden rounded-2xl border border-border ${className}`}
-        style={{ height: 300 }}
-      >
-        <MapView
+  const centerLat = workerCoords?.lat || clientCoords?.lat || 31.5204;
+  const centerLng = workerCoords?.lng || clientCoords?.lng || 74.3587;
+
+  // Route GeoJSON connecting provider and client
+  const routeGeoJson: any =
+    workerCoords && clientCoords
+      ? {
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [workerCoords.lng, workerCoords.lat],
+              [clientCoords.lng, clientCoords.lat],
+            ],
+          },
+        }
+      : null;
+
+  return (
+    <View
+      className={`relative overflow-hidden rounded-2xl border border-border bg-slate-100 ${className}`}
+      style={{ height: 280 }}
+    >
+      {canUseMapLibre ? (
+        <MapLibreGL.MapView
+          key={`maplibre-live-${retryNonce}`}
           style={{ flex: 1 }}
-          initialRegion={{
-            latitude: center.lat,
-            longitude: center.lng,
-            latitudeDelta: 0.05,
-            longitudeDelta: 0.05,
-          }}
+          mapStyle={JSON.stringify(OSM_RASTER_STYLE)}
+          onDidFailLoadingMap={() => setHasError(true)}
         >
-          {clientCoords && (
-            <Marker
-              coordinate={{ latitude: clientCoords.lat, longitude: clientCoords.lng }}
-              pinColor="#B91C1C"
-            />
-          )}
-          {workerCoords && (
-            <Marker
-              coordinate={{ latitude: workerCoords.lat, longitude: workerCoords.lng }}
-              pinColor="#006E2F"
-              title={isCompleted ? 'Arrived' : 'Provider'}
-            />
-          )}
-          {clientCoords && workerCoords && (
-            <Polyline
-              coordinates={[
-                { latitude: workerCoords.lat, longitude: workerCoords.lng },
-                { latitude: clientCoords.lat, longitude: clientCoords.lng },
-              ]}
-              strokeColor="#006E2F"
-              strokeWidth={5}
-            />
-          )}
-        </MapView>
-      </View>
-    );
-  }
+          <MapLibreGL.Camera
+            centerCoordinate={[centerLng, centerLat]}
+            zoomLevel={14}
+            animationDuration={800}
+          />
 
-  return <MockMap progress={mockProgress} isCompleted={isCompleted} />;
+          {/* Client Destination Marker */}
+          {clientCoords && (
+            <MapLibreGL.PointAnnotation
+              id="client-pin"
+              coordinate={[clientCoords.lng, clientCoords.lat]}
+            >
+              <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                <View className="h-7 w-7 rounded-full bg-red-600 border-2 border-white items-center justify-center shadow-md">
+                  <Icon icon={MapPin} color="#ffffff" size={16} />
+                </View>
+              </View>
+            </MapLibreGL.PointAnnotation>
+          )}
+
+          {/* Provider Marker */}
+          {workerCoords && (
+            <MapLibreGL.PointAnnotation
+              id="worker-pin"
+              coordinate={[workerCoords.lng, workerCoords.lat]}
+            >
+              <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                <View className="h-8 w-8 rounded-full bg-primary border-2 border-white items-center justify-center shadow-lg">
+                  <Icon icon={Navigation} color="#ffffff" size={16} />
+                </View>
+              </View>
+            </MapLibreGL.PointAnnotation>
+          )}
+
+          {/* Live Connecting Route */}
+          {routeGeoJson && (
+            <MapLibreGL.ShapeSource id="route-source" shape={routeGeoJson}>
+              <MapLibreGL.LineLayer
+                id="route-layer"
+                style={{
+                  lineColor: BRAND.primary,
+                  lineWidth: 4,
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                  lineDasharray: [2, 1],
+                }}
+              />
+            </MapLibreGL.ShapeSource>
+          )}
+        </MapLibreGL.MapView>
+      ) : (
+        <View className="flex-1 items-center justify-center p-4 bg-slate-50">
+          <View className="h-10 w-10 rounded-full bg-primary/10 items-center justify-center mb-2">
+            <Icon icon={Navigation} color={BRAND.primary} size={20} />
+          </View>
+          <Text className="text-xs font-semibold text-gray-800 mb-0.5">
+            {isCompleted ? 'Service Completed at Location' : 'Live Tracking Active'}
+          </Text>
+          <Text className="text-[11px] text-gray-500 mb-3 text-center">
+            {workerCoords
+              ? `Provider: ${workerCoords.lat.toFixed(4)}, ${workerCoords.lng.toFixed(4)}`
+              : 'Waiting for live GPS updates from provider...'}
+          </Text>
+          <Pressable
+            onPress={() => {
+              setHasError(false);
+              setRetryNonce((n) => n + 1);
+            }}
+            className="flex-row items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 shadow-sm active:bg-gray-50"
+          >
+            <Icon icon={RotateCw} color={BRAND.primary} size={12} />
+            <Text className="text-[11px] font-semibold text-primary">Retry live map</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {/* Floating Status Indicator */}
+      <View className="absolute top-3 right-3 rounded-full border border-border bg-white/95 px-3 py-1 shadow-sm flex-row items-center gap-1.5">
+        <View
+          className={`h-2 w-2 rounded-full ${
+            isCompleted ? 'bg-emerald-500' : 'bg-primary'
+          }`}
+        />
+        <Text className="text-[10px] font-bold text-gray-700 uppercase tracking-wider">
+          {isCompleted ? 'Arrived' : 'In Transit'}
+        </Text>
+      </View>
+    </View>
+  );
 };
 
 export default LiveMap;

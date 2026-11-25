@@ -338,6 +338,8 @@ export default function AuthScreen() {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoComplete="email"
+                textContentType="emailAddress"
                 containerClassName="mb-3.5"
                 leadingIcon={<Mail size={16} color={BRAND.muted} />}
               />
@@ -352,6 +354,8 @@ export default function AuthScreen() {
                 showPasswordToggle
                 isPasswordVisible={showLoginPassword}
                 onTogglePassword={() => setShowLoginPassword(!showLoginPassword)}
+                autoComplete="current-password"
+                textContentType="password"
                 containerClassName="mb-2"
                 leadingIcon={<Lock size={16} color={BRAND.muted} />}
               />
@@ -477,6 +481,8 @@ export default function AuthScreen() {
                     placeholder="e.g. Muhammad Bilal"
                     value={name}
                     onChangeText={setName}
+                    autoComplete="name"
+                    textContentType="name"
                     containerClassName="mb-3"
                     leadingIcon={<User size={16} color={BRAND.muted} />}
                   />
@@ -504,7 +510,8 @@ export default function AuthScreen() {
                         onChangeText={(t) => setPhone(t.replace(/\D/g, ''))}
                         keyboardType="phone-pad"
                         maxLength={10}
-                        importantForAutofill="no"
+                        autoComplete="tel"
+                        textContentType="telephoneNumber"
                         underlineColorAndroid="transparent"
                         style={PHONE_TEXT_STYLE}
                         className="flex-1 py-3 text-sm text-gray-900 border-0"
@@ -520,6 +527,8 @@ export default function AuthScreen() {
                     onChangeText={setEmail}
                     keyboardType="email-address"
                     autoCapitalize="none"
+                    autoComplete="email"
+                    textContentType="emailAddress"
                     containerClassName="mb-3"
                     leadingIcon={<Mail size={16} color={BRAND.muted} />}
                   />
@@ -534,6 +543,8 @@ export default function AuthScreen() {
                     showPasswordToggle
                     isPasswordVisible={showSignupPassword}
                     onTogglePassword={() => setShowSignupPassword(!showSignupPassword)}
+                    autoComplete="new-password"
+                    textContentType="newPassword"
                     containerClassName="mb-5"
                     leadingIcon={<Lock size={16} color={BRAND.muted} />}
                   />

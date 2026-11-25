@@ -77,3 +77,4 @@ This registry catalogs all automated `testID` selectors used by unit, component,
 | `ui-button` | `Pressable` / `Button` | Generic accessible button |
 | `ui-input` | `TextInput` / `Input` | Generic input field |
 | `ui-chip` | `Pressable` / `Chip` | Interactive filter chip |
+
