@@ -164,16 +164,16 @@ export const ProviderHome: React.FC = () => {
         codMarkedAt: new Date().toISOString(),
       };
       if (completionPhotos.length > 0) {
-        const urls: string[] = [];
+        const paths: string[] = [];
         for (const uri of completionPhotos) {
           try {
-            urls.push(await uploadJobMedia(user!.id, uri));
+            paths.push(await uploadJobMedia(bookingId, uri));
           } catch (e) {
             console.warn('Job photo upload failed:', e);
           }
         }
-        if (urls.length > 0) {
-          metaPatch.jobPhotos = [...(completingBooking.jobPhotos ?? []), ...urls];
+        if (paths.length > 0) {
+          metaPatch.jobPhotos = [...(completingBooking.jobPhotos ?? []), ...paths];
         }
       }
       await mergeBookingMeta(bookingId, metaPatch);

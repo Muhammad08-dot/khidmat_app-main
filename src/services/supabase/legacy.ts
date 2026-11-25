@@ -300,13 +300,17 @@ export async function mergeBookingMeta(bookingId: string, patch: Doc): Promise<v
   if (updateError) throw updateError;
 }
 
-/** Uploads before/after job proof photos to the private job_media bucket; returns a signed URL. */
-export async function uploadJobMedia(userId: string, localUri: string): Promise<string> {
+/**
+ * Uploads before/after job proof photos to the private `job_media` bucket
+ * under `{bookingId}/{timestamp}.{ext}` and returns ONLY the storage path
+ * (never a signed URL — signed URLs are generated at display time).
+ */
+export async function uploadJobMedia(bookingId: string, localUri: string): Promise<string> {
   const response = await fetch(localUri);
   const blob = await response.blob();
   const ext = localUri.split('.').pop()?.split('?')[0]?.toLowerCase();
   const safeExt = ['png', 'jpg', 'jpeg', 'webp'].includes(ext ?? '') ? ext : 'jpg';
-  const path = `${userId}/${Date.now()}.${safeExt}`;
+  const path = `${bookingId}/${Date.now()}.${safeExt}`;
 
   const { error } = await supabase.storage.from('job_media').upload(path, blob, {
     contentType: `image/${safeExt === 'jpg' ? 'jpeg' : safeExt}`,
@@ -314,13 +318,24 @@ export async function uploadJobMedia(userId: string, localUri: string): Promise<
   });
   if (error) throw error;
 
-  const { data: signed, error: signErr } = await supabase.storage
+  return path;
+}
+
+/** Generates a short-lived signed URL at display time for a stored `job_media` path. */
+export async function createSignedJobMediaUrl(
+  pathOrUrl: string,
+  expiresInSeconds = 900
+): Promise<string> {
+  if (!pathOrUrl) throw new Error('Job media path is required.');
+  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
+
+  const { data, error } = await supabase.storage
     .from('job_media')
-    .createSignedUrl(path, 3600);
-  if (signErr || !signed?.signedUrl) {
-    throw signErr ?? new Error('Failed to create signed URL for job media.');
+    .createSignedUrl(pathOrUrl, expiresInSeconds);
+  if (error || !data?.signedUrl) {
+    throw error ?? new Error('Failed to create signed URL for job media.');
   }
-  return signed.signedUrl;
+  return data.signedUrl;
 }
 
 export async function submitProviderReview(
