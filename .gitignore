@@ -20,6 +20,8 @@ web-build/
 .env.local
 .env.test
 .env.test.local
+.env.app.test
+.env.app.prod
 .env.*.local
 docs/qa-artifacts/*.png
 agent-server/.env
