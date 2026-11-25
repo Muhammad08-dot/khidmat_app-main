@@ -508,6 +508,10 @@ class Builder {
     this.filters.push([col, 'gte', val]);
     return this;
   }
+  or(expr: string) {
+    this.filters.push(['__or__', 'or', expr]);
+    return this;
+  }
   order(col: string, opts?: { ascending?: boolean }) {
     this.orderSpec = { col, ascending: opts?.ascending !== false };
     return this;
@@ -552,6 +556,16 @@ class Builder {
       if (op === 'is') return val === null ? row[col] == null : row[col] === val;
       if (op === 'in') return Array.isArray(val) && val.map(String).includes(String(row[col]));
       if (op === 'gte') return row[col] >= val;
+      if (op === 'or') {
+        const clauses = String(val).split(',').map((s) => s.trim()).filter(Boolean);
+        return clauses.some((clause) => {
+          const [c, operator, ...rest] = clause.split('.');
+          const target = rest.join('.');
+          if (operator === 'eq') return String(row[c]) === String(target);
+          if (operator === 'neq') return String(row[c]) !== String(target);
+          return false;
+        });
+      }
       return true;
     });
   }
@@ -851,17 +865,59 @@ export function createMockSupabase() {
 
     storage: {
       from(_bucket: string) {
+        const bucket = _bucket ?? 'bucket';
         return {
           async upload(path: string, _blob: any, _opts?: any) {
             await new Promise((r) => setTimeout(r, 80));
             return { data: { path }, error: null };
           },
+          async list(_prefix?: string, _opts?: any) {
+            return { data: [], error: null };
+          },
+          async remove(_paths: string[]) {
+            return { data: [], error: null };
+          },
+          async createSignedUrl(path: string, _expiresIn: number) {
+            return {
+              data: { signedUrl: `https://mock.assets.local/${bucket}/${path}` },
+              error: null,
+            };
+          },
           getPublicUrl(path: string) {
             return {
-              data: { publicUrl: `https://mock.assets.local/${_bucket ?? 'bucket'}/${path}` },
+              data: { publicUrl: `https://mock.assets.local/${bucket}/${path}` },
             };
           },
         };
+      },
+    },
+
+    async rpc(fnName: string, args?: Record<string, any>) {
+      if (fnName === 'delete_user_account') {
+        const uidToDelete = args?.p_user_id;
+        if (!uidToDelete) return { data: null, error: new QueryError('p_user_id required') };
+        db.profiles = db.profiles.filter((p) => String(p.id) !== String(uidToDelete));
+        db.profile_contacts = db.profile_contacts.filter((c) => String(c.user_id) !== String(uidToDelete));
+        db.providers = db.providers.filter((p) => String(p.id) !== String(uidToDelete));
+        return { data: true, error: null };
+      }
+      return { data: null, error: new QueryError(`mock: unknown rpc ${fnName}`) };
+    },
+
+    functions: {
+      async invoke(fnName: string, _opts?: any) {
+        if (fnName === 'delete-account') {
+          if (!currentSession?.user?.id) {
+            return { data: null, error: new QueryError('Unauthorized') };
+          }
+          const uidToDelete = currentSession.user.id;
+          const idx = AUTH_USERS.findIndex((x) => String(x.id) === String(uidToDelete));
+          if (idx >= 0) AUTH_USERS.splice(idx, 1);
+          currentSession = null;
+          notifyAuth('SIGNED_OUT', null);
+          return { data: { deleted: true }, error: null };
+        }
+        return { data: null, error: new QueryError(`mock: unknown function ${fnName}`) };
       },
     },
   };
