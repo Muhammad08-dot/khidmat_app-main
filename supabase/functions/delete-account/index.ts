@@ -5,6 +5,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/**
+ * Edge Function: delete-account (M2-4)
+ * - Derives target user id strictly from the verified caller JWT (`auth.getUser()`),
+ *   never trusting a userId from the request body for normal users.
+ * - Admin override is allowed ONLY when `targetUserId` is supplied AND the caller's
+ *   `profiles.role === 'admin'` in the database.
+ * - Idempotent: if the auth user was already deleted, returns 200 `{ deleted: true, alreadyDeleted: true }`.
+ */
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -30,7 +38,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Verify caller identity using the caller's JWT
+    // Verify caller identity strictly from JWT
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -47,20 +55,54 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Delete the auth.users record using service_role
     const adminClient = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id);
+    let targetUserId = user.id;
+    let body: { targetUserId?: string } = {};
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
+
+    if (body?.targetUserId && body.targetUserId !== user.id) {
+      // Admin override only after verifying is_admin in DB
+      const { data: callerProfile } = await adminClient
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (callerProfile?.role !== 'admin') {
+        return new Response(JSON.stringify({ error: 'Forbidden: admin role required' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      targetUserId = body.targetUserId;
+    }
+
+    const { error: deleteError } = await adminClient.auth.admin.deleteUser(targetUserId);
     if (deleteError) {
+      const msg = deleteError.message?.toLowerCase() ?? '';
+      if (msg.includes('not found') || (deleteError as { status?: number }).status === 404) {
+        return new Response(
+          JSON.stringify({ deleted: true, alreadyDeleted: true, userId: targetUserId }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
       return new Response(JSON.stringify({ error: deleteError.message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    return new Response(JSON.stringify({ deleted: true, userId: user.id }), {
+    return new Response(JSON.stringify({ deleted: true, userId: targetUserId }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
